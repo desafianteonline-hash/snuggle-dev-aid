@@ -109,6 +109,27 @@ const Install = () => {
                 </li>
               </ol>
             </div>
+
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 space-y-3">
+              <h2 className="text-sm font-bold flex items-center gap-2 text-destructive">
+                <Shield className="h-4 w-4" />
+                Antes de compartilhar
+              </h2>
+              <ul className="text-xs text-muted-foreground space-y-2 pl-1">
+                <li className="flex gap-2">
+                  <span className="text-destructive font-bold">•</span>
+                  <span>Cada patrulheiro precisa ter uma <strong>conta cadastrada pelo administrador</strong> no painel Admin → Equipe</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-destructive font-bold">•</span>
+                  <span>O administrador deve fornecer o <strong>email e senha</strong> de acesso a cada patrulheiro</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-destructive font-bold">•</span>
+                  <span>Sem credenciais, o patrulheiro <strong>não conseguirá acessar</strong> o app</span>
+                </li>
+              </ul>
+            </div>
           </div>
 
           {/* Link & actions */}
