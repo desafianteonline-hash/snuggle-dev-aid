@@ -77,7 +77,11 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
   const [newPointName, setNewPointName] = useState('');
   const [newPointLat, setNewPointLat] = useState('');
   const [newPointLng, setNewPointLng] = useState('');
+  const [newPointCep, setNewPointCep] = useState('');
+  const [cepAddress, setCepAddress] = useState('');
+  const [loadingCep, setLoadingCep] = useState(false);
   const [savingPoint, setSavingPoint] = useState(false);
+  const [addMode, setAddMode] = useState<'cep' | 'coords'>('cep');
 
   const online = patrollers.filter(p => p.status === 'online').length;
   const offline = patrollers.filter(p => p.status === 'offline').length;
