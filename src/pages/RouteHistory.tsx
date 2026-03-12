@@ -286,8 +286,8 @@ const RouteHistory = () => {
       </header>
 
       {/* Filters */}
-      <div className="border-b border-border px-4 py-3 bg-card/50 flex flex-wrap gap-3 items-end">
-        <div className="flex-1 min-w-[180px]">
+      <div className="border-b border-border px-4 py-3 bg-card/50 grid grid-cols-2 sm:flex sm:flex-wrap gap-3 items-end">
+        <div className="col-span-2 sm:flex-1 sm:min-w-[180px]">
           <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Patrulheiro</label>
           <Select value={selectedPatroller} onValueChange={setSelectedPatroller}>
             <SelectTrigger className="bg-secondary border-border">

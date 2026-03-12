@@ -123,8 +123,8 @@ const GeofenceTimeline = () => {
       </header>
 
       {/* Filters */}
-      <div className="border-b border-border px-4 py-3 bg-card/50 flex flex-wrap gap-3 items-end">
-        <div className="min-w-[160px]">
+      <div className="border-b border-border px-4 py-3 bg-card/50 grid grid-cols-2 sm:flex sm:flex-wrap gap-3 items-end">
+        <div className="col-span-2 sm:col-span-1 sm:min-w-[160px]">
           <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Patrulheiro</label>
           <Select value={filterPatroller} onValueChange={setFilterPatroller}>
             <SelectTrigger className="bg-secondary border-border text-sm">
@@ -139,7 +139,7 @@ const GeofenceTimeline = () => {
           </Select>
         </div>
 
-        <div className="min-w-[160px]">
+        <div>
           <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Cerca</label>
           <Select value={filterGeofence} onValueChange={setFilterGeofence}>
             <SelectTrigger className="bg-secondary border-border text-sm">
@@ -154,7 +154,7 @@ const GeofenceTimeline = () => {
           </Select>
         </div>
 
-        <div className="min-w-[120px]">
+        <div>
           <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Tipo</label>
           <Select value={filterType} onValueChange={(v) => setFilterType(v as any)}>
             <SelectTrigger className="bg-secondary border-border text-sm">
@@ -216,7 +216,7 @@ const GeofenceTimeline = () => {
       </div>
 
       {/* Stats */}
-      <div className="px-4 py-3 border-b border-border grid grid-cols-2 sm:grid-cols-5 gap-2">
+      <div className="px-4 py-3 border-b border-border grid grid-cols-3 sm:grid-cols-5 gap-2">
         {[
           { label: 'Total', value: stats.total, color: 'text-foreground' },
           { label: 'Entradas', value: stats.enters, color: 'text-primary' },
