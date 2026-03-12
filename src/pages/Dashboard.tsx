@@ -155,11 +155,14 @@ const Dashboard = () => {
             <span className="hidden sm:inline">Relatórios</span>
           </Button>
           <GeofenceControls
+            geofences={geofences}
             addMode={geofenceAddMode}
             onToggleAddMode={() => { setGeofenceAddMode(!geofenceAddMode); setPendingGeofenceLocation(null); }}
             pendingLocation={pendingGeofenceLocation}
             onConfirm={handleGeofenceConfirm}
             onCancel={() => setPendingGeofenceLocation(null)}
+            onDelete={handleGeofenceDelete}
+            onUpdate={handleGeofenceUpdate}
           />
           <Button
             variant="outline"
