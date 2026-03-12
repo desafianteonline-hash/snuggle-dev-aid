@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Shield, Plus, Trash2, Pencil, MapPin, GripHorizontal, X } from 'lucide-react';
 import { Shield, Plus, Trash2, Pencil, MapPin } from 'lucide-react';
 import type { Geofence } from '@/hooks/useGeofences';
 
