@@ -113,8 +113,8 @@ const Admin = () => {
       const { data, error } = await supabase.functions.invoke('create-user', {
         body: {
           action: 'create', email, password, role: selectedRole,
-          name: selectedRole === 'patroller' ? name : undefined,
-          phone: selectedRole === 'patroller' ? phone : undefined,
+          name: name || undefined,
+          phone: phone || undefined,
           vehicle_plate: selectedRole === 'patroller' ? vehiclePlate : undefined,
         },
       });
