@@ -152,27 +152,44 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
   const geocodeAddress = async (viaData: any, number: string): Promise<{ lat: string; lng: string } | null> => {
     if (!viaData) return null;
     const street = viaData.logradouro || '';
-    const numberPart = number ? `, ${number}` : '';
-    const query = encodeURIComponent(`${street}${numberPart}, ${viaData.bairro || ''}, ${viaData.localidade}, ${viaData.uf}, Brazil`);
+    const city = viaData.localidade || '';
+    const state = viaData.uf || '';
+    const neighborhood = viaData.bairro || '';
 
-    try {
-      const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`);
-      const geoData = await geoRes.json();
+    // Try multiple query strategies (most specific → least specific)
+    const queries = [
+      // 1. Structured query with street + number
+      number
+        ? `street=${encodeURIComponent(`${street}, ${number}`)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&country=Brazil&format=json&limit=1`
+        : null,
+      // 2. Structured query without number
+      `street=${encodeURIComponent(street)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&country=Brazil&format=json&limit=1`,
+      // 3. Free-form: street + neighborhood + city
+      `q=${encodeURIComponent(`${street}, ${neighborhood}, ${city}, ${state}, Brazil`)}&format=json&limit=1`,
+      // 4. Free-form: just neighborhood + city (fallback)
+      `q=${encodeURIComponent(`${neighborhood}, ${city}, ${state}, Brazil`)}&format=json&limit=1`,
+      // 5. Free-form: just city (last resort)
+      `q=${encodeURIComponent(`${city}, ${state}, Brazil`)}&format=json&limit=1`,
+    ].filter(Boolean) as string[];
 
-      if (geoData.length > 0) {
-        const lat = geoData[0].lat as string;
-        const lng = geoData[0].lon as string;
-        setNewPointLat(lat);
-        setNewPointLng(lng);
-        return { lat, lng };
+    for (const qs of queries) {
+      try {
+        const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?${qs}`);
+        const geoData = await geoRes.json();
+
+        if (geoData.length > 0) {
+          const lat = geoData[0].lat as string;
+          const lng = geoData[0].lon as string;
+          setNewPointLat(lat);
+          setNewPointLng(lng);
+          return { lat, lng };
+        }
+      } catch {
+        // Try next query
       }
-
-      toast({ title: 'Coordenadas não encontradas', description: 'Verifique o CEP e o número', variant: 'destructive' });
-      return null;
-    } catch {
-      toast({ title: 'Erro ao geocodificar', variant: 'destructive' });
-      return null;
     }
+
+    return null;
   };
 
   const handleNumberBlur = () => {
