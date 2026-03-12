@@ -68,6 +68,7 @@ const Dashboard = () => {
     setPendingGeofenceLocation(null);
     setGeofenceAddMode(false);
     toast({ title: '✅ Cerca criada', description: `"${name}" adicionada com sucesso` });
+    logActivity({ action: 'create', entityType: 'geofence', entityName: name, details: { lat: pendingGeofenceLocation.lat, lng: pendingGeofenceLocation.lng, radius } });
   }, [pendingGeofenceLocation, user, addGeofence, toast]);
 
   const handleGeofenceDelete = useCallback(async (id: string) => {
