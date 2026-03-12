@@ -469,8 +469,16 @@ const Admin = () => {
 
   const handleSaveOperational = async () => {
     if (!settings.id) return;
-    const confirmed = window.confirm('Deseja salvar as configurações operacionais?');
-    if (!confirmed) return;
+    setConfirmDialog({
+      open: true, title: 'Salvar configurações', description: 'Deseja salvar as configurações operacionais?', variant: 'default',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        await doSaveOperational();
+      },
+    });
+  };
+
+  const doSaveOperational = async () => {
 
     setSavingOperational(true);
     try {
