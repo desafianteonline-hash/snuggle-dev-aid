@@ -85,6 +85,9 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
   const [savingPoint, setSavingPoint] = useState(false);
   const [saveStatus, setSaveStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [addMode, setAddMode] = useState<'cep' | 'coords'>('cep');
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean; title: string; description: string; variant: 'default' | 'destructive'; onConfirm: () => void;
+  }>({ open: false, title: '', description: '', variant: 'default', onConfirm: () => {} });
 
   const online = patrollers.filter(p => p.status === 'online').length;
   const offline = patrollers.filter(p => p.status === 'offline').length;
