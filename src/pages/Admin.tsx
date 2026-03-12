@@ -91,6 +91,54 @@ const Admin = () => {
   const [companyLng, setCompanyLng] = useState('');
   const [companyAddress, setCompanyAddress] = useState('');
   const [savingLocation, setSavingLocation] = useState(false);
+  const [companyCep, setCompanyCep] = useState('');
+  const [companyNumero, setCompanyNumero] = useState('');
+  const [searchingCep, setSearchingCep] = useState(false);
+
+  const formatCep = (value: string) => {
+    const digits = value.replace(/\D/g, '').slice(0, 8);
+    if (digits.length <= 5) return digits;
+    return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  };
+
+  const handleCepSearch = async () => {
+    const cepDigits = companyCep.replace(/\D/g, '');
+    if (cepDigits.length !== 8) {
+      toast.error('CEP deve ter 8 dígitos');
+      return;
+    }
+    setSearchingCep(true);
+    try {
+      const viaCepRes = await fetch(`https://viacep.com.br/ws/${cepDigits}/json/`);
+      const viaCepData = await viaCepRes.json();
+      if (viaCepData.erro) {
+        toast.error('CEP não encontrado');
+        setSearchingCep(false);
+        return;
+      }
+      const { logradouro, bairro, localidade, uf } = viaCepData;
+      const numero = companyNumero.trim();
+      const fullAddress = [logradouro, numero, bairro, `${localidade} - ${uf}`].filter(Boolean).join(', ');
+      setCompanyAddress(fullAddress);
+
+      // Geocode via Nominatim
+      const searchQuery = numero && logradouro
+        ? `${logradouro}, ${numero}, ${localidade}, ${uf}, Brazil`
+        : `${logradouro || bairro}, ${localidade}, ${uf}, Brazil`;
+      const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=1&countrycodes=br`);
+      const geoData = await geoRes.json();
+      if (geoData.length > 0) {
+        setCompanyLat(geoData[0].lat);
+        setCompanyLng(geoData[0].lon);
+        toast.success('Endereço encontrado! Coordenadas preenchidas.');
+      } else {
+        toast.warning('Endereço encontrado mas coordenadas não localizadas. Preencha manualmente.');
+      }
+    } catch {
+      toast.error('Erro ao buscar CEP');
+    }
+    setSearchingCep(false);
+  };
 
   // Sync branding form with loaded settings
   useEffect(() => {
