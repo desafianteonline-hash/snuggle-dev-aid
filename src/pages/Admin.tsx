@@ -260,28 +260,23 @@ const Admin = () => {
   };
 
   const doSaveEdit = async (u: UserRecord) => {
-
     setSaving(true);
     try {
-      if (u.role === 'patroller' && u.patroller_id) {
-        const { error } = await supabase
-          .from('patrollers')
-          .update({ name: editName.trim(), phone: editPhone.trim() || null, vehicle_plate: editPlate.trim() || null })
-          .eq('id', u.patroller_id);
-        if (error) throw error;
-      }
-      // Also update/upsert profile for all user types
-      const { error: profileErr } = await supabase
-        .from('profiles')
-        .upsert({
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: {
+          action: 'update_user',
           user_id: u.id,
+          email: editEmail.trim() !== u.email ? editEmail.trim() : undefined,
           name: editName.trim() || null,
           phone: editPhone.trim() || null,
-        }, { onConflict: 'user_id' });
-      if (profileErr) throw profileErr;
+          vehicle_plate: u.role === 'patroller' ? (editPlate.trim() || null) : undefined,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       toast.success('Usuário atualizado');
-      logActivity({ action: 'update', entityType: 'user', entityId: u.id, entityName: editName.trim(), details: { phone: editPhone } });
+      logActivity({ action: 'update', entityType: 'user', entityId: u.id, entityName: editName.trim(), details: { email: editEmail, phone: editPhone } });
       setEditingId(null);
       fetchUsers();
     } catch (err: any) {
