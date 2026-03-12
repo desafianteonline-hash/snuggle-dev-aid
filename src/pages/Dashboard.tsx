@@ -165,7 +165,7 @@ const Dashboard = () => {
 
       <div className="flex flex-1 overflow-hidden relative">
         {/* Sidebar */}
-        {isMobile ? (
+        {isMobile || tvMode ? (
           <AnimatePresence>
             {sidebarOpen && (
               <motion.div
