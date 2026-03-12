@@ -7,7 +7,7 @@ import { useOfflineAlerts } from '@/hooks/useOfflineAlerts';
 import PatrolMap from '@/components/PatrolMap';
 import PatrollerSidebar from '@/components/PatrollerSidebar';
 import PlatformBrand from '@/components/PlatformBrand';
-import { Shield, LogOut, Menu, X, Wifi, WifiOff, RefreshCw, Share2, Route } from 'lucide-react';
+import { Shield, LogOut, Menu, X, Wifi, WifiOff, RefreshCw, Share2, Route, Volume2, VolumeX } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,7 +21,8 @@ const Dashboard = () => {
   const { patrollers, loading, realtimeConnected } = usePatrolLocations();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { route } = useRouteHistory(selectedId);
-  useOfflineAlerts(patrollers);
+  const [alertSound, setAlertSound] = useState(() => localStorage.getItem('codseg-alert-sound') !== 'off');
+  useOfflineAlerts(patrollers, alertSound);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number } | null>(null);
   const isMobile = useIsMobile();
@@ -115,6 +116,18 @@ const Dashboard = () => {
             </span>
           </div>
           <span className="text-xs text-muted-foreground hidden sm:block">{user?.email}</span>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              const next = !alertSound;
+              setAlertSound(next);
+              localStorage.setItem('codseg-alert-sound', next ? 'on' : 'off');
+            }}
+            title={alertSound ? 'Som de alerta: ATIVADO' : 'Som de alerta: DESATIVADO'}
+          >
+            {alertSound ? <Volume2 className="h-4 w-4 text-primary" /> : <VolumeX className="h-4 w-4 text-muted-foreground" />}
+          </Button>
           <ThemeToggle />
           <Button variant="ghost" size="icon" onClick={signOut}>
             <LogOut className="h-4 w-4" />

@@ -5,10 +5,38 @@ import { useToast } from '@/hooks/use-toast';
 const OFFLINE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
 const CHECK_INTERVAL_MS = 30_000; // check every 30s
 
-export function useOfflineAlerts(patrollers: PatrollerWithLocation[]) {
+// Generate alert beep using Web Audio API
+function playAlertSound() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const playBeep = (freq: number, start: number, duration: number) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'square';
+      gain.gain.setValueAtTime(0.15, ctx.currentTime + start);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + duration);
+      osc.start(ctx.currentTime + start);
+      osc.stop(ctx.currentTime + start + duration);
+    };
+    // 3 urgent beeps
+    playBeep(880, 0, 0.15);
+    playBeep(880, 0.2, 0.15);
+    playBeep(1100, 0.4, 0.3);
+    setTimeout(() => ctx.close(), 1500);
+  } catch {
+    // Audio not supported
+  }
+}
+
+export function useOfflineAlerts(patrollers: PatrollerWithLocation[], soundEnabled: boolean) {
   const notifiedRef = useRef<Set<string>>(new Set());
   const { toast } = useToast();
   const permissionRef = useRef<NotificationPermission>('default');
+  const soundEnabledRef = useRef(soundEnabled);
+  soundEnabledRef.current = soundEnabled;
 
   // Request notification permission on mount
   useEffect(() => {
@@ -26,6 +54,11 @@ export function useOfflineAlerts(patrollers: PatrollerWithLocation[]) {
     const title = '⚠️ Patrulheiro Offline';
     const body = `${patrollerName} está offline há ${minutesOffline} minutos`;
 
+    // Play sound if enabled
+    if (soundEnabledRef.current) {
+      playAlertSound();
+    }
+
     // In-app toast always
     toast({
       title,
@@ -41,7 +74,7 @@ export function useOfflineAlerts(patrollers: PatrollerWithLocation[]) {
           body,
           icon: '/pwa-192x192.png',
           badge: '/pwa-192x192.png',
-          tag: `offline-${patrollerName}`, // prevents duplicate notifications
+          tag: `offline-${patrollerName}`,
           requireInteraction: true,
         });
       } catch {
@@ -62,17 +95,15 @@ export function useOfflineAlerts(patrollers: PatrollerWithLocation[]) {
         const minutesOffline = Math.floor(elapsed / 60000);
 
         if (elapsed > OFFLINE_THRESHOLD_MS && !notifiedRef.current.has(p.id)) {
-          // Patroller went offline — notify
           notifiedRef.current.add(p.id);
           sendNotification(p.name, minutesOffline);
         } else if (elapsed <= OFFLINE_THRESHOLD_MS && notifiedRef.current.has(p.id)) {
-          // Patroller came back online — clear notification flag
           notifiedRef.current.delete(p.id);
         }
       }
     };
 
-    check(); // immediate check
+    check();
     const interval = setInterval(check, CHECK_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [patrollers, sendNotification]);
