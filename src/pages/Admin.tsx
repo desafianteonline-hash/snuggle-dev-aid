@@ -453,7 +453,7 @@ const Admin = () => {
                           </div>
                           <Input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Nome" className="bg-secondary border-border h-9 text-sm" />
                           <div className={`grid gap-2 ${u.role === 'patroller' ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                            <Input value={editPhone} onChange={e => setEditPhone(e.target.value)} placeholder="Telefone" className="bg-secondary border-border h-9 text-sm" />
+                            <Input value={editPhone} onChange={e => setEditPhone(formatPhone(e.target.value))} placeholder="(00) 00000-0000" className="bg-secondary border-border h-9 text-sm" maxLength={15} />
                             {u.role === 'patroller' && (
                               <Input value={editPlate} onChange={e => setEditPlate(e.target.value)} placeholder="Placa" className="bg-secondary border-border h-9 text-sm" />
                             )}
