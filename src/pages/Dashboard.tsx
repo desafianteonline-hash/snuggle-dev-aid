@@ -163,6 +163,10 @@ const Dashboard = () => {
               onCancel={() => setPendingGeofenceLocation(null)}
               onDelete={handleGeofenceDelete}
               onUpdate={handleGeofenceUpdate}
+              pendingRadius={pendingRadius}
+              pendingColor={pendingColor}
+              onPendingRadiusChange={setPendingRadius}
+              onPendingColorChange={setPendingColor}
             />
             <Button variant="outline" size="icon" onClick={() => navigate('/install')} title="Compartilhar App">
               <Share2 className="h-3.5 w-3.5" />
