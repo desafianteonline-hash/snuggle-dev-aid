@@ -66,6 +66,7 @@ const Admin = () => {
 
   // Edit form
   const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editPlate, setEditPlate] = useState('');
   const [saving, setSaving] = useState(false);
