@@ -12,8 +12,18 @@ import { motion } from 'framer-motion';
 const CONSENT_KEY = 'patrol_consent_given';
 
 const Patrol = () => {
-  const { user, signOut } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const { settings } = usePlatformSettings();
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Shield className="h-8 w-8 animate-pulse text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/login" replace />;
   const [patrollerId, setPatrollerId] = useState<string | null>(null);
   const [patrollerName, setPatrollerName] = useState('');
   const [consentGiven, setConsentGiven] = useState(() => localStorage.getItem(CONSENT_KEY) === 'true');
