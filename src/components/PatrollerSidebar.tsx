@@ -262,16 +262,21 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
   };
 
   const handleRemovePoint = async (id: string, pointName: string) => {
-    const confirmed = window.confirm(`Tem certeza que deseja excluir o ponto "${pointName}"?`);
-    if (!confirmed) return;
-
-    const { error } = await removeWatchPoint(id);
-    if (error) {
-      toast({ title: 'Erro ao remover ponto', description: error, variant: 'destructive' });
-      return;
-    }
-
-    toast({ title: 'Ponto removido com sucesso' });
+    setConfirmDialog({
+      open: true,
+      title: 'Excluir ponto',
+      description: `Tem certeza que deseja excluir o ponto "${pointName}"?`,
+      variant: 'destructive',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        const { error } = await removeWatchPoint(id);
+        if (error) {
+          toast({ title: 'Erro ao remover ponto', description: error, variant: 'destructive' });
+          return;
+        }
+        toast({ title: 'Ponto removido com sucesso' });
+      },
+    });
   };
 
   const startEditing = (p: PatrollerWithLocation) => {
