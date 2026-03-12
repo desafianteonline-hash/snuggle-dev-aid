@@ -21,6 +21,25 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number } | null>(null);
   const isMobile = useIsMobile();
+  const { toast } = useToast();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleForceRefresh = useCallback(async () => {
+    setRefreshing(true);
+    const channel = supabase.channel('force-location-update');
+    await channel.subscribe();
+    await channel.send({
+      type: 'broadcast',
+      event: 'request_location',
+      payload: { requested_at: new Date().toISOString() },
+    });
+    supabase.removeChannel(channel);
+    toast({
+      title: 'Solicitação enviada',
+      description: 'Aguardando atualização dos patrulheiros...',
+    });
+    setTimeout(() => setRefreshing(false), 3000);
+  }, [toast]);
 
   const handleFlyTo = useCallback((lat: number, lng: number) => {
     // Force re-trigger by creating a new object each time
