@@ -185,6 +185,35 @@ export function PlatformSettingsProvider({ children }: { children: React.ReactNo
 
   useEffect(() => {
     fetchSettings();
+
+    // Realtime: auto-update settings across all screens
+    const channel = supabase
+      .channel('platform-settings-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'platform_settings' },
+        (payload) => {
+          console.log('[PlatformSettings] Realtime update received');
+          const s = payload.new as PlatformSettings;
+          setSettings(s);
+          document.title = s.page_title || 'PatrolTrack';
+          if (s.favicon_url) {
+            let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+            if (!link) {
+              link = document.createElement('link');
+              link.rel = 'icon';
+              document.head.appendChild(link);
+            }
+            link.href = s.favicon_url;
+          }
+          applyThemeColors(s);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return (
