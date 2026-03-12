@@ -10,7 +10,7 @@ import PatrolMap from '@/components/PatrolMap';
 import PatrollerSidebar from '@/components/PatrollerSidebar';
 import PlatformBrand from '@/components/PlatformBrand';
 import GeofenceControls from '@/components/GeofenceControls';
-import { Shield, LogOut, Menu, X, Wifi, WifiOff, RefreshCw, Share2, Route, Volume2, VolumeX, BarChart3, Monitor, Minimize, Clock } from 'lucide-react';
+import { Shield, LogOut, Menu, X, Wifi, WifiOff, RefreshCw, Share2, Route, Volume2, VolumeX, BarChart3, Monitor, Minimize } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -169,16 +169,6 @@ const Dashboard = () => {
             onDelete={handleGeofenceDelete}
             onUpdate={handleGeofenceUpdate}
           />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/geofence-timeline')}
-            title="Timeline de cercas virtuais"
-            className="gap-1.5"
-          >
-            <Clock className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Timeline</span>
-          </Button>
           <Button
             variant="outline"
             size="sm"
