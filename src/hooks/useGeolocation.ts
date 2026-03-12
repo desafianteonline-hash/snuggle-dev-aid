@@ -301,7 +301,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
         }
         bgWatcherRef.current = null;
       } catch (err) {
-        console.error('[PatrolTrack] Erro ao parar rastreamento nativo:', err);
+        console.error('[CODSEG GPS] Erro ao parar rastreamento nativo:', err);
       }
     }
   }, []);
