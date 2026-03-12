@@ -57,6 +57,13 @@ const Dashboard = () => {
     }
   }, [patrollers, handleFlyTo]);
 
+  const companyLocation = useMemo(() => {
+    if (settings.company_latitude != null && settings.company_longitude != null) {
+      return { lat: settings.company_latitude, lng: settings.company_longitude };
+    }
+    return null;
+  }, [settings.company_latitude, settings.company_longitude]);
+
   return (
     <div className="flex h-screen flex-col bg-background">
       {/* Top Bar */}
