@@ -263,7 +263,6 @@ export function GeofenceControls({
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
-                          </Button>
                         </div>
                       </div>
                     )}

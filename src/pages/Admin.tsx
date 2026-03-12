@@ -664,6 +664,7 @@ const Admin = () => {
                           <Upload className="h-3.5 w-3.5 mr-1.5" />
                           {uploadingLogo ? 'Enviando...' : 'Upload Logo'}
                         </Button>
+                        {settings.logo_url && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="ghost" size="sm" className="text-destructive text-xs">
