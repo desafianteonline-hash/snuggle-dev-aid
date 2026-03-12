@@ -32,6 +32,16 @@ const Dashboard = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 text-xs" title={realtimeConnected ? 'Conexão em tempo real ativa' : 'Usando polling como fallback'}>
+            {realtimeConnected ? (
+              <Wifi className="h-3.5 w-3.5 text-[hsl(var(--status-online))]" />
+            ) : (
+              <WifiOff className="h-3.5 w-3.5 text-[hsl(var(--status-on-call))]" />
+            )}
+            <span className="hidden sm:inline text-muted-foreground">
+              {realtimeConnected ? 'Tempo real' : 'Polling'}
+            </span>
+          </div>
           <span className="text-xs text-muted-foreground hidden sm:block">{user?.email}</span>
           <Button variant="ghost" size="icon" onClick={signOut}>
             <LogOut className="h-4 w-4" />
