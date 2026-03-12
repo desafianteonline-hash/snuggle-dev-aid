@@ -20,9 +20,9 @@ export interface PlatformSettings {
 
 const defaultSettings: PlatformSettings = {
   id: '',
-  platform_name: 'PATROL',
-  platform_name_accent: 'TRACK',
-  page_title: 'PatrolTrack - Monitoramento',
+  platform_name: 'COD',
+  platform_name_accent: 'SEG GPS',
+  page_title: 'CODSEG GPS - Monitoramento',
   logo_url: null,
   favicon_url: null,
   primary_color: '142 70% 45%',
