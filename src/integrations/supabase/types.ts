@@ -14,7 +14,80 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      patrol_locations: {
+        Row: {
+          accuracy: number | null
+          heading: number | null
+          id: string
+          latitude: number
+          longitude: number
+          patroller_id: string
+          recorded_at: string
+          speed: number | null
+        }
+        Insert: {
+          accuracy?: number | null
+          heading?: number | null
+          id?: string
+          latitude: number
+          longitude: number
+          patroller_id: string
+          recorded_at?: string
+          speed?: number | null
+        }
+        Update: {
+          accuracy?: number | null
+          heading?: number | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          patroller_id?: string
+          recorded_at?: string
+          speed?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patrol_locations_patroller_id_fkey"
+            columns: ["patroller_id"]
+            isOneToOne: false
+            referencedRelation: "patrollers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patrollers: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          phone: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+          vehicle_plate: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          phone?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          vehicle_plate?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          vehicle_plate?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
