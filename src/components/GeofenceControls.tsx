@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Shield, Plus, Trash2, Pencil, MapPin, GripHorizontal, X } from 'lucide-react';
-import { Shield, Plus, Trash2, Pencil, MapPin } from 'lucide-react';
+import { Shield, Plus, Trash2, Pencil, MapPin, GripHorizontal, X } from 'lucide-react';
 import type { Geofence } from '@/hooks/useGeofences';
 
 interface GeofenceControlsProps {
