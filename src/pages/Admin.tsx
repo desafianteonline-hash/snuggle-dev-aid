@@ -148,21 +148,32 @@ const Admin = () => {
 
   const startEdit = (u: UserRecord) => {
     setEditingId(u.id);
-    setEditName(u.patroller_name || '');
+    setEditName(u.role === 'patroller' ? (u.patroller_name || '') : (u.profile_name || ''));
     setEditPhone(u.phone || '');
     setEditPlate(u.vehicle_plate || '');
   };
 
   const handleSaveEdit = async (u: UserRecord) => {
-    if (!u.patroller_id) return;
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('patrollers')
-        .update({ name: editName.trim(), phone: editPhone.trim() || null, vehicle_plate: editPlate.trim() || null })
-        .eq('id', u.patroller_id);
-      if (error) throw error;
-      toast.success('Patrulheiro atualizado');
+      if (u.role === 'patroller' && u.patroller_id) {
+        const { error } = await supabase
+          .from('patrollers')
+          .update({ name: editName.trim(), phone: editPhone.trim() || null, vehicle_plate: editPlate.trim() || null })
+          .eq('id', u.patroller_id);
+        if (error) throw error;
+      }
+      // Also update/upsert profile for all user types
+      const { error: profileErr } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: u.id,
+          name: editName.trim() || null,
+          phone: editPhone.trim() || null,
+        }, { onConflict: 'user_id' });
+      if (profileErr) throw profileErr;
+
+      toast.success('Usuário atualizado');
       setEditingId(null);
       fetchUsers();
     } catch (err: any) {
