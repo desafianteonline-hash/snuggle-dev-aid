@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { MapPin, Clock, Gauge, Radio, User, Car, Bike, Search, Filter, ChevronRight, Navigation, Phone, Eye, EyeOff, Pencil, Save, X } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MapPin, Clock, Gauge, Radio, User, Car, Bike, Search, Filter, ChevronRight, Navigation, Phone, Eye, EyeOff, Pencil, Save, X, Plus, Trash2, ChevronDown } from 'lucide-react';
 import type { PatrollerWithLocation } from '@/hooks/usePatrolLocations';
+import { useWatchPoints } from '@/hooks/useWatchPoints';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
