@@ -157,7 +157,8 @@ const RouteHistory = () => {
     [locations]
   );
 
-  const patrollerName = patrollers.find(p => p.id === selectedPatroller)?.name || '';
+  const patrollerObj = patrollers.find(p => p.id === selectedPatroller);
+  const patrollerName = patrollerObj?.name || '';
 
   // Generate last 30 days for date options
   const dateOptions = useMemo(() => {
@@ -172,6 +173,99 @@ const RouteHistory = () => {
     }
     return dates;
   }, []);
+
+  // --- Export CSV ---
+  const exportCSV = useCallback(() => {
+    if (locations.length === 0) return;
+    const header = 'Data/Hora,Latitude,Longitude,Precisão (m),Velocidade (km/h),Direção (°)\n';
+    const rows = locations.map(l =>
+      `${format(new Date(l.recorded_at), 'dd/MM/yyyy HH:mm:ss')},${l.latitude},${l.longitude},${l.accuracy ?? ''},${l.speed != null ? (l.speed * 3.6).toFixed(1) : ''},${l.heading?.toFixed(0) ?? ''}`
+    ).join('\n');
+    const blob = new Blob(['\uFEFF' + header + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rota_${patrollerName}_${selectedDate}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [locations, patrollerName, selectedDate]);
+
+  // --- Export PDF (HTML-based print) ---
+  const exportPDF = useCallback(() => {
+    if (locations.length === 0) return;
+
+    // Calculate stats for PDF
+    let totalDistKm = 0;
+    let maxSpeed = 0;
+    for (let i = 1; i < locations.length; i++) {
+      const p1 = locations[i - 1], p2 = locations[i];
+      const R = 6371;
+      const dLat = (p2.latitude - p1.latitude) * Math.PI / 180;
+      const dLon = (p2.longitude - p1.longitude) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(p1.latitude * Math.PI / 180) * Math.cos(p2.latitude * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+      totalDistKm += R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      if (p2.speed != null && p2.speed * 3.6 > maxSpeed) maxSpeed = p2.speed * 3.6;
+    }
+
+    const startTime = format(new Date(locations[0].recorded_at), 'HH:mm:ss');
+    const endTime = format(new Date(locations[locations.length - 1].recorded_at), 'HH:mm:ss');
+    const durationMs = new Date(locations[locations.length - 1].recorded_at).getTime() - new Date(locations[0].recorded_at).getTime();
+    const hours = Math.floor(durationMs / 3600000);
+    const minutes = Math.floor((durationMs % 3600000) / 60000);
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html><head><title>Relatório de Rota - ${patrollerName}</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 30px; color: #333; }
+        h1 { font-size: 20px; border-bottom: 2px solid #22c55e; padding-bottom: 8px; }
+        .info { display: flex; flex-wrap: wrap; gap: 20px; margin: 16px 0; }
+        .info-card { background: #f5f5f5; border-radius: 8px; padding: 12px 16px; min-width: 120px; }
+        .info-card .label { font-size: 11px; color: #888; text-transform: uppercase; }
+        .info-card .value { font-size: 16px; font-weight: bold; margin-top: 2px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+        th { background: #22c55e; color: #fff; padding: 8px; text-align: left; }
+        td { padding: 6px 8px; border-bottom: 1px solid #eee; }
+        tr:nth-child(even) { background: #fafafa; }
+        .footer { margin-top: 30px; font-size: 10px; color: #aaa; text-align: center; }
+      </style></head><body>
+      <h1>📍 Relatório de Rota — CODSEG GPS</h1>
+      <div class="info">
+        <div class="info-card"><div class="label">Patrulheiro</div><div class="value">${patrollerName}</div></div>
+        <div class="info-card"><div class="label">Placa</div><div class="value">${patrollerObj?.vehicle_plate || '—'}</div></div>
+        <div class="info-card"><div class="label">Data</div><div class="value">${format(new Date(selectedDate), 'dd/MM/yyyy')}</div></div>
+        <div class="info-card"><div class="label">Início</div><div class="value">${startTime}</div></div>
+        <div class="info-card"><div class="label">Fim</div><div class="value">${endTime}</div></div>
+        <div class="info-card"><div class="label">Duração</div><div class="value">${hours}h ${minutes}min</div></div>
+        <div class="info-card"><div class="label">Distância</div><div class="value">${totalDistKm < 1 ? Math.round(totalDistKm * 1000) + 'm' : totalDistKm.toFixed(1) + ' km'}</div></div>
+        <div class="info-card"><div class="label">Vel. Máxima</div><div class="value">${maxSpeed.toFixed(0)} km/h</div></div>
+        <div class="info-card"><div class="label">Pontos</div><div class="value">${locations.length}</div></div>
+      </div>
+      <table>
+        <thead><tr><th>#</th><th>Horário</th><th>Latitude</th><th>Longitude</th><th>Precisão</th><th>Velocidade</th><th>Direção</th></tr></thead>
+        <tbody>
+          ${locations.map((l, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${format(new Date(l.recorded_at), 'HH:mm:ss')}</td>
+              <td>${l.latitude.toFixed(6)}</td>
+              <td>${l.longitude.toFixed(6)}</td>
+              <td>${l.accuracy != null ? l.accuracy.toFixed(0) + 'm' : '—'}</td>
+              <td>${l.speed != null ? (l.speed * 3.6).toFixed(1) + ' km/h' : '—'}</td>
+              <td>${l.heading != null ? l.heading.toFixed(0) + '°' : '—'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      <div class="footer">Gerado por CODSEG GPS em ${format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
+      </body></html>
+    `);
+    printWindow.document.close();
+    setTimeout(() => printWindow.print(), 500);
+  }, [locations, patrollerName, patrollerObj, selectedDate]);
 
   return (
     <div className="flex h-screen flex-col bg-background">
