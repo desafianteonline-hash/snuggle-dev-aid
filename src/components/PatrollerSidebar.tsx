@@ -148,24 +148,29 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
     setLoadingCep(false);
   };
 
-  const geocodeAddress = async (viaData: any, number: string) => {
-    if (!viaData) return;
+  const geocodeAddress = async (viaData: any, number: string): Promise<{ lat: string; lng: string } | null> => {
+    if (!viaData) return null;
     const street = viaData.logradouro || '';
     const numberPart = number ? `, ${number}` : '';
     const query = encodeURIComponent(`${street}${numberPart}, ${viaData.bairro || ''}, ${viaData.localidade}, ${viaData.uf}, Brazil`);
+
     try {
-      const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`, {
-        headers: { 'User-Agent': 'PatrolTrack/1.0' },
-      });
+      const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`);
       const geoData = await geoRes.json();
+
       if (geoData.length > 0) {
-        setNewPointLat(geoData[0].lat);
-        setNewPointLng(geoData[0].lon);
-      } else {
-        toast({ title: 'Coordenadas não encontradas', description: 'Verifique o endereço ou preencha manualmente', variant: 'destructive' });
+        const lat = geoData[0].lat as string;
+        const lng = geoData[0].lon as string;
+        setNewPointLat(lat);
+        setNewPointLng(lng);
+        return { lat, lng };
       }
+
+      toast({ title: 'Coordenadas não encontradas', description: 'Verifique o CEP e o número', variant: 'destructive' });
+      return null;
     } catch {
       toast({ title: 'Erro ao geocodificar', variant: 'destructive' });
+      return null;
     }
   };
 
@@ -176,12 +181,42 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
   };
 
   const handleAddPoint = async () => {
-    const lat = parseFloat(newPointLat);
-    const lng = parseFloat(newPointLng);
-    if (!newPointName.trim() || isNaN(lat) || isNaN(lng)) {
+    if (!newPointName.trim()) {
+      toast({ title: 'Informe o nome do ponto', variant: 'destructive' });
+      return;
+    }
+
+    let lat = parseFloat(newPointLat);
+    let lng = parseFloat(newPointLng);
+
+    // In CEP mode, guarantee CEP + number and force geocode before save
+    if (addMode === 'cep') {
+      const cleanedCep = newPointCep.replace(/\D/g, '');
+      if (cleanedCep.length !== 8 || !newPointNumber.trim()) {
+        toast({ title: 'Preencha CEP + número do endereço', variant: 'destructive' });
+        return;
+      }
+
+      if (isNaN(lat) || isNaN(lng)) {
+        setLoadingCep(true);
+        const coords = await geocodeAddress(cepDataRef.current, newPointNumber.trim());
+        setLoadingCep(false);
+
+        if (!coords) {
+          toast({ title: 'Não foi possível salvar', description: 'Não conseguimos obter coordenadas para esse CEP + número', variant: 'destructive' });
+          return;
+        }
+
+        lat = parseFloat(coords.lat);
+        lng = parseFloat(coords.lng);
+      }
+    }
+
+    if (isNaN(lat) || isNaN(lng)) {
       toast({ title: 'Preencha todos os campos corretamente', variant: 'destructive' });
       return;
     }
+
     setSavingPoint(true);
     const { error } = await addWatchPoint(newPointName.trim(), lat, lng);
     if (error) {
@@ -635,7 +670,7 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
                     <Input
                       placeholder="Nº"
                       value={newPointNumber}
-                      onChange={e => setNewPointNumber(e.target.value)}
+                      onChange={e => setNewPointNumber(e.target.value.replace(/\D/g, ''))}
                       onBlur={handleNumberBlur}
                       className="h-8 text-xs w-20"
                     />
