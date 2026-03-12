@@ -69,6 +69,11 @@ const Dashboard = () => {
     toast({ title: 'Cerca removida' });
   }, [removeGeofence, toast]);
 
+  const handleGeofenceUpdate = useCallback(async (id: string, updates: Partial<Geofence>) => {
+    await updateGeofence(id, updates);
+    toast({ title: 'Cerca atualizada' });
+  }, [updateGeofence, toast]);
+
   const toggleTvMode = useCallback(() => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => {});
