@@ -37,6 +37,10 @@ const defaultSettings: PlatformSettings = {
   company_latitude: null,
   company_longitude: null,
   company_address: null,
+  max_speed_limit: 60,
+  patrol_interval_seconds: 15,
+  idle_timeout_minutes: 30,
+  min_accuracy_meters: 50,
 };
 
 // Preset themes (dark-mode base colors)
