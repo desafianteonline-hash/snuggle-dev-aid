@@ -33,6 +33,7 @@ interface UserRecord {
   patroller_name: string | null;
   phone: string | null;
   vehicle_plate: string | null;
+  profile_name: string | null;
 }
 
 const Admin = () => {
@@ -112,8 +113,8 @@ const Admin = () => {
       const { data, error } = await supabase.functions.invoke('create-user', {
         body: {
           action: 'create', email, password, role: selectedRole,
-          name: selectedRole === 'patroller' ? name : undefined,
-          phone: selectedRole === 'patroller' ? phone : undefined,
+          name: name || undefined,
+          phone: phone || undefined,
           vehicle_plate: selectedRole === 'patroller' ? vehiclePlate : undefined,
         },
       });
@@ -147,21 +148,32 @@ const Admin = () => {
 
   const startEdit = (u: UserRecord) => {
     setEditingId(u.id);
-    setEditName(u.patroller_name || '');
+    setEditName(u.role === 'patroller' ? (u.patroller_name || '') : (u.profile_name || ''));
     setEditPhone(u.phone || '');
     setEditPlate(u.vehicle_plate || '');
   };
 
   const handleSaveEdit = async (u: UserRecord) => {
-    if (!u.patroller_id) return;
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('patrollers')
-        .update({ name: editName.trim(), phone: editPhone.trim() || null, vehicle_plate: editPlate.trim() || null })
-        .eq('id', u.patroller_id);
-      if (error) throw error;
-      toast.success('Patrulheiro atualizado');
+      if (u.role === 'patroller' && u.patroller_id) {
+        const { error } = await supabase
+          .from('patrollers')
+          .update({ name: editName.trim(), phone: editPhone.trim() || null, vehicle_plate: editPlate.trim() || null })
+          .eq('id', u.patroller_id);
+        if (error) throw error;
+      }
+      // Also update/upsert profile for all user types
+      const { error: profileErr } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: u.id,
+          name: editName.trim() || null,
+          phone: editPhone.trim() || null,
+        }, { onConflict: 'user_id' });
+      if (profileErr) throw profileErr;
+
+      toast.success('Usuário atualizado');
       setEditingId(null);
       fetchUsers();
     } catch (err: any) {
@@ -333,23 +345,19 @@ const Admin = () => {
                         </button>
                       </div>
                     </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Nome</Label>
+                      <Input value={name} onChange={e => setName(e.target.value)} className="bg-secondary border-border" placeholder="Nome completo" required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Telefone</Label>
+                      <Input value={phone} onChange={e => setPhone(e.target.value)} className="bg-secondary border-border" placeholder="(00) 00000-0000" />
+                    </div>
                     {selectedRole === 'patroller' && (
-                      <>
-                        <div className="space-y-2">
-                          <Label className="text-xs uppercase tracking-wider text-muted-foreground">Nome do Patrulheiro</Label>
-                          <Input value={name} onChange={e => setName(e.target.value)} className="bg-secondary border-border" placeholder="Nome completo" required />
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-2">
-                            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Telefone</Label>
-                            <Input value={phone} onChange={e => setPhone(e.target.value)} className="bg-secondary border-border" placeholder="(00) 00000-0000" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Placa</Label>
-                            <Input value={vehiclePlate} onChange={e => setVehiclePlate(e.target.value)} className="bg-secondary border-border" placeholder="ABC-1234" />
-                          </div>
-                        </div>
-                      </>
+                      <div className="space-y-2">
+                        <Label className="text-xs uppercase tracking-wider text-muted-foreground">Placa do Veículo</Label>
+                        <Input value={vehiclePlate} onChange={e => setVehiclePlate(e.target.value)} className="bg-secondary border-border" placeholder="ABC-1234" />
+                      </div>
                     )}
                     <Button type="submit" className="w-full font-semibold" disabled={creating}>
                       {creating ? 'Criando...' : 'Criar Usuário'}
@@ -374,7 +382,7 @@ const Admin = () => {
                   nonAdminUsers.map((u, i) => (
                     <motion.div key={u.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
                       className="rounded-lg border border-border bg-card p-4">
-                      {editingId === u.id && u.role === 'patroller' ? (
+                      {editingId === u.id ? (
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
                             <p className="text-xs text-muted-foreground">{u.email}</p>
@@ -384,9 +392,11 @@ const Admin = () => {
                             </div>
                           </div>
                           <Input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Nome" className="bg-secondary border-border h-9 text-sm" />
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className={`grid gap-2 ${u.role === 'patroller' ? 'grid-cols-2' : 'grid-cols-1'}`}>
                             <Input value={editPhone} onChange={e => setEditPhone(e.target.value)} placeholder="Telefone" className="bg-secondary border-border h-9 text-sm" />
-                            <Input value={editPlate} onChange={e => setEditPlate(e.target.value)} placeholder="Placa" className="bg-secondary border-border h-9 text-sm" />
+                            {u.role === 'patroller' && (
+                              <Input value={editPlate} onChange={e => setEditPlate(e.target.value)} placeholder="Placa" className="bg-secondary border-border h-9 text-sm" />
+                            )}
                           </div>
                         </div>
                       ) : (
@@ -396,12 +406,14 @@ const Admin = () => {
                               {u.role === 'patroller' ? 'P' : 'O'}
                             </div>
                             <div>
-                              <p className="text-sm font-medium">{u.patroller_name || u.email || u.id.slice(0, 8)}</p>
+                              <p className="text-sm font-medium">
+                                {u.patroller_name || u.profile_name || u.email || u.id.slice(0, 8)}
+                              </p>
                               <p className="text-xs text-muted-foreground">
                                 {u.role === 'patroller' ? 'Patrulheiro' : 'Operador'}
                                 {u.email && <span className="ml-1 opacity-60">· {u.email}</span>}
                               </p>
-                              {u.role === 'patroller' && (u.phone || u.vehicle_plate) && (
+                              {(u.phone || u.vehicle_plate) && (
                                 <div className="flex gap-3 mt-1 text-xs text-muted-foreground">
                                   {u.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {u.phone}</span>}
                                   {u.vehicle_plate && <span className="flex items-center gap-1"><Car className="h-3 w-3" /> {u.vehicle_plate}</span>}
@@ -410,9 +422,7 @@ const Admin = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-1">
-                            {u.role === 'patroller' && (
-                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => startEdit(u)}><Pencil className="h-3.5 w-3.5" /></Button>
-                            )}
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => startEdit(u)}><Pencil className="h-3.5 w-3.5" /></Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button>
@@ -420,7 +430,7 @@ const Admin = () => {
                               <AlertDialogContent className="bg-card border-border">
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Remover Usuário</AlertDialogTitle>
-                                  <AlertDialogDescription>Tem certeza que deseja remover {u.patroller_name || u.email}? Esta ação não pode ser desfeita.</AlertDialogDescription>
+                                  <AlertDialogDescription>Tem certeza que deseja remover {u.patroller_name || u.profile_name || u.email}? Esta ação não pode ser desfeita.</AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
