@@ -216,7 +216,7 @@ const GeofenceTimeline = () => {
       </div>
 
       {/* Stats */}
-      <div className="px-4 py-3 border-b border-border grid grid-cols-2 sm:grid-cols-5 gap-2">
+      <div className="px-4 py-3 border-b border-border grid grid-cols-3 sm:grid-cols-5 gap-2">
         {[
           { label: 'Total', value: stats.total, color: 'text-foreground' },
           { label: 'Entradas', value: stats.enters, color: 'text-primary' },
