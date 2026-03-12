@@ -464,7 +464,7 @@ const Reports = () => {
                           <td className="py-2 px-3 text-muted-foreground">{p.plate}</td>
                           <td className="py-2 px-3 text-right text-muted-foreground">{p.horas}h</td>
                           <td className="py-2 px-3 text-right text-muted-foreground">{p.distancia} km</td>
-                          <td className={cn("py-2 px-3 text-right font-semibold", p.maxSpeed > 60 ? "text-destructive" : "text-foreground")}>{p.maxSpeed} km/h</td>
+                          <td className={cn("py-2 px-3 text-right font-semibold", p.maxSpeed > speedLimit ? "text-destructive" : "text-foreground")}>{p.maxSpeed} km/h</td>
                           <td className="py-2 px-3 text-right text-muted-foreground">{p.avgSpeed} km/h</td>
                           <td className="py-2 px-3 text-right text-muted-foreground text-xs">
                             {p.maxSpeedAt ? format(new Date(p.maxSpeedAt), "dd/MM/yyyy HH:mm", { locale: ptBR }) : '—'}
