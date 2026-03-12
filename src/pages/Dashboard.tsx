@@ -6,6 +6,7 @@ import PatrolMap from '@/components/PatrolMap';
 import PatrollerSidebar from '@/components/PatrollerSidebar';
 import PlatformBrand from '@/components/PlatformBrand';
 import { Shield, LogOut, Menu, X, Wifi, WifiOff } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -43,6 +44,7 @@ const Dashboard = () => {
             </span>
           </div>
           <span className="text-xs text-muted-foreground hidden sm:block">{user?.email}</span>
+          <ThemeToggle />
           <Button variant="ghost" size="icon" onClick={signOut}>
             <LogOut className="h-4 w-4" />
           </Button>

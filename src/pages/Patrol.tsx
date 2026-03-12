@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { supabase } from '@/integrations/supabase/client';
 import { Shield, MapPin, Navigation, Wifi, WifiOff, AlertTriangle } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 
@@ -187,9 +188,12 @@ const Patrol = () => {
             </Button>
           )}
 
-          <Button variant="ghost" onClick={handleSignOut} className="w-full text-xs text-muted-foreground">
-            Encerrar Turno
-          </Button>
+          <div className="flex items-center justify-center gap-2">
+            <ThemeToggle />
+            <Button variant="ghost" onClick={handleSignOut} className="text-xs text-muted-foreground">
+              Encerrar Turno
+            </Button>
+          </div>
         </div>
       </motion.div>
     </div>
