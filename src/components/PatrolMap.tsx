@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -19,20 +19,44 @@ const statusColors: Record<string, string> = {
   on_call: '#f59e0b',
 };
 
-function createPatrollerIcon(status: string, isSelected: boolean) {
+const carSvg = (color: string, size: number) => `
+<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="3" y="7" width="18" height="10" rx="3" fill="${color}" opacity="0.9"/>
+  <rect x="5" y="4" width="14" height="6" rx="2" fill="${color}"/>
+  <circle cx="7.5" cy="17" r="2" fill="hsl(220,18%,10%)" stroke="${color}" stroke-width="1"/>
+  <circle cx="16.5" cy="17" r="2" fill="hsl(220,18%,10%)" stroke="${color}" stroke-width="1"/>
+  <rect x="6" y="8" width="4" height="3" rx="0.5" fill="hsl(220,18%,10%)" opacity="0.5"/>
+  <rect x="14" y="8" width="4" height="3" rx="0.5" fill="hsl(220,18%,10%)" opacity="0.5"/>
+</svg>`;
+
+const motorcycleSvg = (color: string, size: number) => `
+<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="5" cy="16" r="3" fill="hsl(220,18%,10%)" stroke="${color}" stroke-width="1.5"/>
+  <circle cx="19" cy="16" r="3" fill="hsl(220,18%,10%)" stroke="${color}" stroke-width="1.5"/>
+  <path d="M5 16L10 8L14 8L19 16" stroke="${color}" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <rect x="9" y="6" width="6" height="3" rx="1" fill="${color}"/>
+  <circle cx="12" cy="7" r="1.5" fill="hsl(220,18%,10%)"/>
+</svg>`;
+
+function createPatrollerIcon(status: string, isSelected: boolean, vehicleType: string = 'car') {
   const color = statusColors[status] || '#6b7280';
-  const size = isSelected ? 22 : 16;
-  const ringSize = isSelected ? 40 : 32;
+  const size = isSelected ? 36 : 28;
+  const outerSize = size + 16;
+
+  const svg = vehicleType === 'motorcycle' ? motorcycleSvg(color, size) : carSvg(color, size);
+
   return L.divIcon({
     className: 'custom-marker',
     html: `
       <div style="position:relative;display:flex;align-items:center;justify-content:center;">
-        <div class="pulse-ring" style="position:absolute;width:${ringSize}px;height:${ringSize}px;border-radius:50%;border:2px solid ${color};opacity:${isSelected ? 0.8 : 0.5};"></div>
-        <div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:3px solid hsl(220,18%,10%);box-shadow:0 0 ${isSelected ? 14 : 8}px ${color}${isSelected ? 'cc' : '80'};"></div>
+        <div class="pulse-ring" style="position:absolute;width:${outerSize}px;height:${outerSize}px;border-radius:50%;border:2px solid ${color};opacity:${isSelected ? 0.8 : 0.4};"></div>
+        <div style="filter:drop-shadow(0 0 ${isSelected ? 8 : 4}px ${color}80);">
+          ${svg}
+        </div>
       </div>
     `,
-    iconSize: [ringSize, ringSize],
-    iconAnchor: [ringSize / 2, ringSize / 2],
+    iconSize: [outerSize, outerSize],
+    iconAnchor: [outerSize / 2, outerSize / 2],
   });
 }
 
@@ -73,14 +97,30 @@ function FitRoute({ route }: { route: LocationPoint[] }) {
   return null;
 }
 
+function FlyToHandler({ flyTo }: { flyTo: { lat: number; lng: number } | null }) {
+  const map = useMap();
+  const lastRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!flyTo) return;
+    const key = `${flyTo.lat},${flyTo.lng}`;
+    if (lastRef.current === key) return;
+    lastRef.current = key;
+    map.flyTo([flyTo.lat, flyTo.lng], 16, { duration: 1.2 });
+  }, [flyTo, map]);
+
+  return null;
+}
+
 interface PatrolMapProps {
   patrollers: PatrollerWithLocation[];
   selectedId?: string | null;
   onSelect?: (id: string) => void;
   route?: LocationPoint[];
+  flyTo?: { lat: number; lng: number } | null;
 }
 
-const PatrolMap = ({ patrollers, selectedId, onSelect, route = [] }: PatrolMapProps) => {
+const PatrolMap = ({ patrollers, selectedId, onSelect, route = [], flyTo = null }: PatrolMapProps) => {
   const defaultCenter: [number, number] = [-23.5505, -46.6333];
 
   const routePositions = route.map(l => [l.latitude, l.longitude] as [number, number]);
@@ -99,6 +139,7 @@ const PatrolMap = ({ patrollers, selectedId, onSelect, route = [] }: PatrolMapPr
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <FitBounds patrollers={patrollers} />
+      <FlyToHandler flyTo={flyTo} />
 
       {/* Route polyline */}
       {routePositions.length >= 2 && (
@@ -113,7 +154,6 @@ const PatrolMap = ({ patrollers, selectedId, onSelect, route = [] }: PatrolMapPr
               dashArray: '8 4',
             }}
           />
-          {/* Start marker */}
           <CircleMarker
             center={routePositions[0]}
             radius={5}
@@ -137,7 +177,7 @@ const PatrolMap = ({ patrollers, selectedId, onSelect, route = [] }: PatrolMapPr
           <Marker
             key={p.id}
             position={[p.latest_location.latitude, p.latest_location.longitude]}
-            icon={createPatrollerIcon(p.status, isSelected)}
+            icon={createPatrollerIcon(p.status, isSelected, (p as any).vehicle_type || 'car')}
             zIndexOffset={isSelected ? 1000 : 0}
             eventHandlers={{ click: () => onSelect?.(p.id) }}
           >
@@ -145,6 +185,9 @@ const PatrolMap = ({ patrollers, selectedId, onSelect, route = [] }: PatrolMapPr
               <div className="text-sm">
                 <p className="font-bold">{p.name}</p>
                 <p className="text-xs opacity-70">{p.vehicle_plate || 'Sem placa'}</p>
+                <p className="text-xs opacity-70">
+                  {(p as any).vehicle_type === 'motorcycle' ? '🏍️ Moto' : '🚗 Carro'}
+                </p>
                 <p className="text-xs opacity-70">
                   {new Date(p.latest_location.recorded_at).toLocaleTimeString('pt-BR')}
                 </p>
