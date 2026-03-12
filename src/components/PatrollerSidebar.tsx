@@ -557,7 +557,9 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
                       onClick={(e) => {
                         e.stopPropagation();
                         if (p.latest_location) {
-                          window.open(`https://www.google.com/maps?q=${p.latest_location.latitude},${p.latest_location.longitude}`, '_blank');
+                          const url = `https://www.google.com/maps?q=${p.latest_location.latitude},${p.latest_location.longitude}`;
+                          const w = window.top || window;
+                          w.open(url, '_blank', 'noopener,noreferrer');
                         }
                       }}
                     >
