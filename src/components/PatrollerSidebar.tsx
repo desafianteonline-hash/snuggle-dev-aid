@@ -17,13 +17,11 @@ import {
 const statusLabels: Record<string, string> = {
   online: 'Online',
   offline: 'Offline',
-  on_call: 'Em Ocorrência',
 };
 
 const statusClasses: Record<string, string> = {
   online: 'bg-[hsl(var(--status-online))]',
   offline: 'bg-[hsl(var(--status-offline))]',
-  on_call: 'bg-[hsl(var(--status-on-call))]',
 };
 
 const vehicleIcons: Record<string, typeof Car> = {
