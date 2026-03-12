@@ -1,8 +1,7 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePatrolLocations } from '@/hooks/usePatrolLocations';
 import { useRouteHistory } from '@/hooks/useRouteHistory';
-import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 import PatrolMap from '@/components/PatrolMap';
 import PatrollerSidebar from '@/components/PatrollerSidebar';
 import PlatformBrand from '@/components/PlatformBrand';
