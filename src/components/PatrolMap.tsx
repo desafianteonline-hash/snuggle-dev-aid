@@ -20,22 +20,29 @@ const statusColors: Record<string, string> = {
 };
 
 const carSvg = (color: string, size: number) => `
-<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="3" y="7" width="18" height="10" rx="3" fill="${color}" opacity="0.9"/>
-  <rect x="5" y="4" width="14" height="6" rx="2" fill="${color}"/>
-  <circle cx="7.5" cy="17" r="2" fill="hsl(220,18%,10%)" stroke="${color}" stroke-width="1"/>
-  <circle cx="16.5" cy="17" r="2" fill="hsl(220,18%,10%)" stroke="${color}" stroke-width="1"/>
-  <rect x="6" y="8" width="4" height="3" rx="0.5" fill="hsl(220,18%,10%)" opacity="0.5"/>
-  <rect x="14" y="8" width="4" height="3" rx="0.5" fill="hsl(220,18%,10%)" opacity="0.5"/>
+<svg width="${size}" height="${size}" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M4 18C4 16 5 14 6 13L9 8C10 6.5 11.5 6 13 6H19C20.5 6 22 6.5 23 8L26 13C27 14 28 16 28 18V22C28 23.1 27.1 24 26 24H6C4.9 24 4 23.1 4 22V18Z" fill="${color}"/>
+  <path d="M9.5 13L11.5 8.5C12 7.5 12.5 7.5 13 7.5H19C19.5 7.5 20 7.5 20.5 8.5L22.5 13" stroke="rgba(0,0,0,0.3)" stroke-width="0.8" fill="rgba(180,220,255,0.4)"/>
+  <rect x="5" y="14" width="3" height="2" rx="1" fill="rgba(255,255,200,0.9)"/>
+  <rect x="24" y="14" width="3" height="2" rx="1" fill="rgba(255,255,200,0.9)"/>
+  <circle cx="9.5" cy="24" r="3" fill="#1a1a2e" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+  <circle cx="9.5" cy="24" r="1.2" fill="rgba(255,255,255,0.15)"/>
+  <circle cx="22.5" cy="24" r="3" fill="#1a1a2e" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+  <circle cx="22.5" cy="24" r="1.2" fill="rgba(255,255,255,0.15)"/>
 </svg>`;
 
 const motorcycleSvg = (color: string, size: number) => `
-<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="5" cy="16" r="3" fill="hsl(220,18%,10%)" stroke="${color}" stroke-width="1.5"/>
-  <circle cx="19" cy="16" r="3" fill="hsl(220,18%,10%)" stroke="${color}" stroke-width="1.5"/>
-  <path d="M5 16L10 8L14 8L19 16" stroke="${color}" stroke-width="2" stroke-linecap="round" fill="none"/>
-  <rect x="9" y="6" width="6" height="3" rx="1" fill="${color}"/>
-  <circle cx="12" cy="7" r="1.5" fill="hsl(220,18%,10%)"/>
+<svg width="${size}" height="${size}" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="6" cy="22" r="4.5" fill="#1a1a2e" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+  <circle cx="6" cy="22" r="1.5" fill="rgba(255,255,255,0.15)"/>
+  <circle cx="26" cy="22" r="4.5" fill="#1a1a2e" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+  <circle cx="26" cy="22" r="1.5" fill="rgba(255,255,255,0.15)"/>
+  <path d="M6 22L12 12L18 10L26 22" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <ellipse cx="15" cy="13" rx="4" ry="2.5" fill="${color}"/>
+  <path d="M13 11C13 10 14 9 16 9C18 9 19.5 10 19 11" stroke="${color}" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <path d="M18 10L20 7M18 10L22 8" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="21" cy="7.5" r="1.5" fill="rgba(255,255,200,0.9)"/>
+  <path d="M8 20L4 21" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/>
 </svg>`;
 
 function createPatrollerIcon(status: string, isSelected: boolean, vehicleType: string = 'car', name: string = '', plate: string = '') {
