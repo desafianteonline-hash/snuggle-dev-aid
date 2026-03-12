@@ -425,8 +425,16 @@ const Admin = () => {
 
   const handleSaveLocation = async () => {
     if (!settings.id) return;
-    const confirmed = window.confirm('Deseja salvar a localização da empresa?');
-    if (!confirmed) return;
+    setConfirmDialog({
+      open: true, title: 'Salvar localização', description: 'Deseja salvar a localização da empresa?', variant: 'default',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        await doSaveLocation();
+      },
+    });
+  };
+
+  const doSaveLocation = async () => {
 
     setSavingLocation(true);
     try {
