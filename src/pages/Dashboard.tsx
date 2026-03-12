@@ -69,6 +69,17 @@ const Dashboard = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleForceRefresh}
+            disabled={refreshing}
+            title="Forçar atualização de localização"
+            className="gap-1.5"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{refreshing ? 'Atualizando...' : 'Atualizar'}</span>
+          </Button>
           <div className="flex items-center gap-1 text-xs" title={realtimeConnected ? 'Conexão em tempo real ativa' : 'Usando polling como fallback'}>
             {realtimeConnected ? (
               <Wifi className="h-3.5 w-3.5 text-[hsl(var(--status-online))]" />
