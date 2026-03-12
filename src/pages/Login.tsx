@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 import { Navigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +11,7 @@ import { toast } from 'sonner';
 
 const Login = () => {
   const { user, loading, signIn } = useAuth();
+  const { settings } = usePlatformSettings();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -42,10 +44,16 @@ const Login = () => {
         className="w-full max-w-sm"
       >
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
-            <Shield className="h-8 w-8 text-primary" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 overflow-hidden">
+            {settings.logo_url ? (
+              <img src={settings.logo_url} alt="Logo" className="h-10 w-10 object-contain" />
+            ) : (
+              <Shield className="h-8 w-8 text-primary" />
+            )}
           </div>
-          <h1 className="text-2xl font-bold tracking-tight font-mono">PATROL<span className="text-primary">TRACK</span></h1>
+          <h1 className="text-2xl font-bold tracking-tight font-mono">
+            {settings.platform_name}<span className="text-primary">{settings.platform_name_accent}</span>
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">Sistema de Monitoramento</p>
         </div>
 

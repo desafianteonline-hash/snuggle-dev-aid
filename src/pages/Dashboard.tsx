@@ -4,6 +4,7 @@ import { usePatrolLocations } from '@/hooks/usePatrolLocations';
 import { useRouteHistory } from '@/hooks/useRouteHistory';
 import PatrolMap from '@/components/PatrolMap';
 import PatrollerSidebar from '@/components/PatrollerSidebar';
+import PlatformBrand from '@/components/PlatformBrand';
 import { Shield, LogOut, Menu, X, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -27,10 +28,7 @@ const Dashboard = () => {
               {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           )}
-          <Shield className="h-5 w-5 text-primary" />
-          <h1 className="text-sm font-bold tracking-wider font-mono">
-            PATROL<span className="text-primary">TRACK</span>
-          </h1>
+          <PlatformBrand />
         </div>
 
         <div className="flex items-center gap-2">
