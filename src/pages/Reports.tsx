@@ -205,7 +205,7 @@ const Reports = () => {
       speedRanges,
       speedAlerts,
     };
-  }, [locations, dateFrom, dateTo, patrollers]);
+  }, [locations, dateFrom, dateTo, patrollers, speedLimit]);
 
   const summaryCards = stats ? [
     { icon: Clock, label: 'Horas Patrulhadas', value: `${stats.totalHours}h`, color: 'text-primary' },
