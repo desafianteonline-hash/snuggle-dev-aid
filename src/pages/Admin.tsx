@@ -705,9 +705,23 @@ const Admin = () => {
                           {uploadingFavicon ? 'Enviando...' : 'Upload Favicon'}
                         </Button>
                         {settings.favicon_url && (
-                          <Button variant="ghost" size="sm" className="text-destructive text-xs" onClick={() => removeBrandingFile('favicon')}>
-                            Remover favicon
-                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="text-destructive text-xs">
+                                Remover favicon
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="bg-card border-border">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Remover Favicon</AlertDialogTitle>
+                                <AlertDialogDescription>Tem certeza que deseja remover o favicon da plataforma?</AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => removeBrandingFile('favicon')} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Remover</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         )}
                       </div>
                     </div>
