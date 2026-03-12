@@ -112,7 +112,8 @@ const RouteHistory = () => {
   const { user } = useAuth();
   const [patrollers, setPatrollers] = useState<Patroller[]>([]);
   const [selectedPatroller, setSelectedPatroller] = useState<string>('');
-  const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
+  const [dateFrom, setDateFrom] = useState<Date>(startOfDay(new Date()));
+  const [dateTo, setDateTo] = useState<Date>(endOfDay(new Date()));
   const [locations, setLocations] = useState<LocationPoint[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingPatrollers, setLoadingPatrollers] = useState(true);
@@ -127,29 +128,26 @@ const RouteHistory = () => {
     fetch();
   }, []);
 
-  // Fetch route for selected patroller + date
+  // Fetch route for selected patroller + date range
   const fetchRoute = useCallback(async () => {
-    if (!selectedPatroller || !selectedDate) {
+    if (!selectedPatroller) {
       setLocations([]);
       return;
     }
     setLoading(true);
 
-    const startOfDay = new Date(`${selectedDate}T00:00:00`);
-    const endOfDay = new Date(`${selectedDate}T23:59:59`);
-
     const { data } = await supabase
       .from('patrol_locations')
       .select('*')
       .eq('patroller_id', selectedPatroller)
-      .gte('recorded_at', startOfDay.toISOString())
-      .lte('recorded_at', endOfDay.toISOString())
+      .gte('recorded_at', startOfDay(dateFrom).toISOString())
+      .lte('recorded_at', endOfDay(dateTo).toISOString())
       .order('recorded_at', { ascending: true })
       .limit(1000);
 
     setLocations(data || []);
     setLoading(false);
-  }, [selectedPatroller, selectedDate]);
+  }, [selectedPatroller, dateFrom, dateTo]);
 
   useEffect(() => {
     fetchRoute();
@@ -162,20 +160,9 @@ const RouteHistory = () => {
 
   const patrollerObj = patrollers.find(p => p.id === selectedPatroller);
   const patrollerName = patrollerObj?.name || '';
-
-  // Generate last 30 days for date options
-  const dateOptions = useMemo(() => {
-    const dates: { value: string; label: string }[] = [];
-    for (let i = 0; i < 30; i++) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      dates.push({
-        value: format(d, 'yyyy-MM-dd'),
-        label: i === 0 ? 'Hoje' : i === 1 ? 'Ontem' : format(d, "dd 'de' MMMM", { locale: ptBR }),
-      });
-    }
-    return dates;
-  }, []);
+  const dateLabel = format(dateFrom, 'dd/MM/yyyy') === format(dateTo, 'dd/MM/yyyy')
+    ? format(dateFrom, 'dd/MM/yyyy')
+    : `${format(dateFrom, 'dd/MM/yyyy')} - ${format(dateTo, 'dd/MM/yyyy')}`;
 
   // --- Export CSV ---
   const exportCSV = useCallback(() => {
