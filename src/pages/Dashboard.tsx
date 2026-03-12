@@ -128,72 +128,94 @@ const Dashboard = () => {
           <PlatformBrand />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <Button
             variant="outline"
-            size="sm"
+            size="icon"
             onClick={handleForceRefresh}
             disabled={refreshing}
-            title="Forçar atualização de localização"
-            className="gap-1.5"
+            title="Forçar atualização"
+            className="h-8 w-8"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{refreshing ? 'Atualizando...' : 'Atualizar'}</span>
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/history')}
-            title="Histórico de rotas"
-            className="gap-1.5"
-          >
-            <Route className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Histórico</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/reports')}
-            title="Relatórios"
-            className="gap-1.5"
-          >
-            <BarChart3 className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Relatórios</span>
-          </Button>
-          <GeofenceControls
-            geofences={geofences}
-            addMode={geofenceAddMode}
-            onToggleAddMode={() => { setGeofenceAddMode(!geofenceAddMode); setPendingGeofenceLocation(null); }}
-            pendingLocation={pendingGeofenceLocation}
-            onConfirm={handleGeofenceConfirm}
-            onCancel={() => setPendingGeofenceLocation(null)}
-            onDelete={handleGeofenceDelete}
-            onUpdate={handleGeofenceUpdate}
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/install')}
-            title="Compartilhar app do patrulheiro"
-            className="gap-1.5"
-          >
-            <Share2 className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Compartilhar App</span>
-          </Button>
-          <div className="flex items-center gap-1 text-xs" title={realtimeConnected ? 'Conexão em tempo real ativa' : 'Usando polling como fallback'}>
+
+          {/* Navigation buttons - visible on desktop */}
+          <div className="hidden md:flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate('/history')} className="gap-1.5">
+              <Route className="h-3.5 w-3.5" />
+              Histórico
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/reports')} className="gap-1.5">
+              <BarChart3 className="h-3.5 w-3.5" />
+              Relatórios
+            </Button>
+            <GeofenceControls
+              geofences={geofences}
+              addMode={geofenceAddMode}
+              onToggleAddMode={() => { setGeofenceAddMode(!geofenceAddMode); setPendingGeofenceLocation(null); }}
+              pendingLocation={pendingGeofenceLocation}
+              onConfirm={handleGeofenceConfirm}
+              onCancel={() => setPendingGeofenceLocation(null)}
+              onDelete={handleGeofenceDelete}
+              onUpdate={handleGeofenceUpdate}
+            />
+            <Button variant="outline" size="sm" onClick={() => navigate('/install')} className="gap-1.5">
+              <Share2 className="h-3.5 w-3.5" />
+              Compartilhar App
+            </Button>
+          </div>
+
+          {/* Mobile navigation dropdown */}
+          <div className="md:hidden flex items-center gap-1">
+            <GeofenceControls
+              geofences={geofences}
+              addMode={geofenceAddMode}
+              onToggleAddMode={() => { setGeofenceAddMode(!geofenceAddMode); setPendingGeofenceLocation(null); }}
+              pendingLocation={pendingGeofenceLocation}
+              onConfirm={handleGeofenceConfirm}
+              onCancel={() => setPendingGeofenceLocation(null)}
+              onDelete={handleGeofenceDelete}
+              onUpdate={handleGeofenceUpdate}
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="h-8 w-8">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => navigate('/history')}>
+                  <Route className="h-4 w-4 mr-2" /> Histórico
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/reports')}>
+                  <BarChart3 className="h-4 w-4 mr-2" /> Relatórios
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/install')}>
+                  <Share2 className="h-4 w-4 mr-2" /> Compartilhar App
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={toggleTvMode}>
+                  <Monitor className="h-4 w-4 mr-2" /> {tvMode ? 'Sair Modo TV' : 'Modo TV'}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          <div className="hidden sm:flex items-center gap-1 text-xs" title={realtimeConnected ? 'Conexão em tempo real ativa' : 'Usando polling como fallback'}>
             {realtimeConnected ? (
               <Wifi className="h-3.5 w-3.5 text-[hsl(var(--status-online))]" />
             ) : (
               <WifiOff className="h-3.5 w-3.5 text-[hsl(var(--status-on-call))]" />
             )}
-            <span className="hidden sm:inline text-muted-foreground">
+            <span className="hidden lg:inline text-muted-foreground">
               {realtimeConnected ? 'Tempo real' : 'Polling'}
             </span>
           </div>
-          <span className="text-xs text-muted-foreground hidden sm:block">{user?.email}</span>
+          <span className="text-xs text-muted-foreground hidden lg:block">{user?.email}</span>
           <Button
             variant="ghost"
             size="icon"
+            className="h-8 w-8"
             onClick={() => {
               const next = !alertSound;
               setAlertSound(next);
@@ -203,16 +225,11 @@ const Dashboard = () => {
           >
             {alertSound ? <Volume2 className="h-4 w-4 text-primary" /> : <VolumeX className="h-4 w-4 text-muted-foreground" />}
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleTvMode}
-            title={tvMode ? 'Sair do modo TV' : 'Modo TV (fullscreen)'}
-          >
+          <Button variant="ghost" size="icon" className="hidden md:flex h-8 w-8" onClick={toggleTvMode} title={tvMode ? 'Sair do modo TV' : 'Modo TV'}>
             {tvMode ? <Minimize className="h-4 w-4" /> : <Monitor className="h-4 w-4" />}
           </Button>
           <ThemeToggle />
-          <Button variant="ghost" size="icon" onClick={signOut}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={signOut}>
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
