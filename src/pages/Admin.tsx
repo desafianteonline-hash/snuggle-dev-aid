@@ -397,6 +397,9 @@ const Admin = () => {
 
   const handleSaveLocation = async () => {
     if (!settings.id) return;
+    const confirmed = window.confirm('Deseja salvar a localização da empresa?');
+    if (!confirmed) return;
+
     setSavingLocation(true);
     try {
       const lat = companyLat.trim() ? parseFloat(companyLat) : null;
