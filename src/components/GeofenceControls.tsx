@@ -380,6 +380,14 @@ export function GeofenceControls({
         confirmLabel="Salvar"
         onConfirm={confirmSaveEdit}
       />
+      <ConfirmDialog
+        open={confirmCreateOpen}
+        onOpenChange={setConfirmCreateOpen}
+        title="Criar cerca virtual"
+        description={`Deseja criar a cerca "${name.trim()}" com raio de ${pendingRadius}m?`}
+        confirmLabel="Criar"
+        onConfirm={doCreateGeofence}
+      />
     </>
   );
 }

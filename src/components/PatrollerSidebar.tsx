@@ -240,8 +240,24 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
       return;
     }
 
+    // Show confirmation dialog before creating
+    setPendingNewPoint({ name: newPointName.trim(), lat, lng });
+    setConfirmDialog({
+      open: true,
+      title: 'Criar ponto de referência',
+      description: `Deseja cadastrar o ponto "${newPointName.trim()}"?`,
+      variant: 'default',
+      onConfirm: () => {}, // will be set with the actual handler
+    });
+  };
+
+  const [pendingNewPoint, setPendingNewPoint] = useState<{ name: string; lat: number; lng: number } | null>(null);
+
+  const doAddPoint = async () => {
+    if (!pendingNewPoint) return;
+    setConfirmDialog(prev => ({ ...prev, open: false }));
     setSavingPoint(true);
-    const { error } = await addWatchPoint(newPointName.trim(), lat, lng);
+    const { error } = await addWatchPoint(pendingNewPoint.name, pendingNewPoint.lat, pendingNewPoint.lng);
     setSavingPoint(false);
 
     if (error) {
