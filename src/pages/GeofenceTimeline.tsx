@@ -123,8 +123,8 @@ const GeofenceTimeline = () => {
       </header>
 
       {/* Filters */}
-      <div className="border-b border-border px-4 py-3 bg-card/50 flex flex-wrap gap-3 items-end">
-        <div className="min-w-[160px]">
+      <div className="border-b border-border px-4 py-3 bg-card/50 grid grid-cols-2 sm:flex sm:flex-wrap gap-3 items-end">
+        <div className="col-span-2 sm:col-span-1 sm:min-w-[160px]">
           <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Patrulheiro</label>
           <Select value={filterPatroller} onValueChange={setFilterPatroller}>
             <SelectTrigger className="bg-secondary border-border text-sm">
