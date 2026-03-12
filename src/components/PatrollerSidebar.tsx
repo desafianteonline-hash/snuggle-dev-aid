@@ -117,7 +117,7 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
     [watchPoints, onlinePatrollers]
   );
 
-  const cepDataRef = { current: null as any };
+  const cepDataRef = useRef<any>(null);
 
   const handleCepLookup = async (cep: string) => {
     const cleaned = cep.replace(/\D/g, '');
