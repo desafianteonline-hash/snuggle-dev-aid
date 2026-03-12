@@ -670,7 +670,7 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
                     <Input
                       placeholder="Nº"
                       value={newPointNumber}
-                      onChange={e => setNewPointNumber(e.target.value)}
+                      onChange={e => setNewPointNumber(e.target.value.replace(/\D/g, ''))}
                       onBlur={handleNumberBlur}
                       className="h-8 text-xs w-20"
                     />
