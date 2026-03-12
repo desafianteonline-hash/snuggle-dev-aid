@@ -78,6 +78,7 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
   const [newPointLat, setNewPointLat] = useState('');
   const [newPointLng, setNewPointLng] = useState('');
   const [newPointCep, setNewPointCep] = useState('');
+  const [newPointNumber, setNewPointNumber] = useState('');
   const [cepAddress, setCepAddress] = useState('');
   const [loadingCep, setLoadingCep] = useState(false);
   const [savingPoint, setSavingPoint] = useState(false);
