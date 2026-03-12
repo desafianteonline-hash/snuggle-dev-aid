@@ -180,7 +180,7 @@ const PatrolMap = ({ patrollers, selectedId, onSelect, route = [], flyTo = null 
           <Marker
             key={p.id}
             position={[p.latest_location.latitude, p.latest_location.longitude]}
-            icon={createPatrollerIcon(p.status, isSelected, p.vehicle_type || 'car')}
+            icon={createPatrollerIcon(p.status, isSelected, p.vehicle_type || 'car', p.name, p.vehicle_plate || '')}
             zIndexOffset={isSelected ? 1000 : 0}
             eventHandlers={{ click: () => onSelect?.(p.id) }}
           >
