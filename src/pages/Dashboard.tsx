@@ -3,14 +3,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePatrolLocations } from '@/hooks/usePatrolLocations';
 import PatrolMap from '@/components/PatrolMap';
 import PatrollerSidebar from '@/components/PatrollerSidebar';
-import { Shield, LogOut, Menu, X } from 'lucide-react';
+import { Shield, LogOut, Menu, X, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
-  const { patrollers, loading } = usePatrolLocations();
+  const { patrollers, loading, realtimeConnected } = usePatrolLocations();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
