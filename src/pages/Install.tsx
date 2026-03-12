@@ -20,7 +20,9 @@ const Install = () => {
   const [isInstalled, setIsInstalled] = useState(false);
   const [installing, setInstalling] = useState(false);
 
-  const appUrl = `${window.location.origin}/patrol`;
+  // Use published URL to avoid Lovable auth redirect
+  const publishedOrigin = 'https://snuggle-dev-aid.lovable.app';
+  const appUrl = `${publishedOrigin}/patrol`;
 
   // Listen for PWA install prompt
   useEffect(() => {
