@@ -245,7 +245,36 @@ const Admin = () => {
     setDeletingId(null);
   };
 
-  const startEdit = (u: UserRecord) => {
+  const handleResetPassword = async () => {
+    if (!resetPasswordUser || !newPassword.trim()) return;
+    setConfirmDialog({
+      open: true,
+      title: 'Resetar senha',
+      description: `Deseja resetar a senha de ${resetPasswordUser.patroller_name || resetPasswordUser.profile_name || resetPasswordUser.email}?`,
+      variant: 'default',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        setResettingPassword(true);
+        try {
+          const { data, error } = await supabase.functions.invoke('create-user', {
+            body: { action: 'reset_password', user_id: resetPasswordUser.id, new_password: newPassword.trim() },
+          });
+          if (error) throw error;
+          if (data?.error) throw new Error(data.error);
+          toast.success('Senha resetada com sucesso');
+          logActivity({ action: 'reset_password', entityType: 'user', entityId: resetPasswordUser.id, entityName: resetPasswordUser.email });
+          setResetPasswordUser(null);
+          setNewPassword('');
+          setShowNewPassword(false);
+        } catch (err: any) {
+          toast.error('Erro ao resetar senha: ' + (err?.message || 'Erro inesperado'));
+        }
+        setResettingPassword(false);
+      },
+    });
+  };
+
+
     setEditingId(u.id);
     setEditName(u.role === 'patroller' ? (u.patroller_name || '') : (u.profile_name || ''));
     setEditEmail(u.email || '');
