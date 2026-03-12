@@ -198,7 +198,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
         }));
       },
       (err) => {
-        console.error('[PatrolTrack] Erro GPS:', err.message);
+        console.error('[CODSEG GPS] Erro GPS:', err.message);
         setState(s => ({ ...s, error: `Erro GPS: ${err.message}` }));
         if (shouldTrack.current) {
           setTimeout(startGPSWatch, 5000);
