@@ -97,7 +97,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
         });
       }
     } catch (err) {
-      console.warn('[PatrolTrack] Wake Lock não disponível:', err);
+      console.warn('[CODSEG GPS] Wake Lock não disponível:', err);
     }
   }, [isNative]);
 
