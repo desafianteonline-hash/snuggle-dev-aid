@@ -293,6 +293,7 @@ const Dashboard = () => {
               onGeofenceDelete={handleGeofenceDelete}
               geofenceAddMode={geofenceAddMode}
               onGeofenceMapClick={handleGeofenceMapClick}
+              pendingGeofenceLocation={pendingGeofenceLocation}
             />
           )}
         </div>

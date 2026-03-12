@@ -216,7 +216,7 @@ export function GeofenceControls({
 
       {/* Dialog for new geofence after map click */}
       <Dialog open={!!pendingLocation} onOpenChange={() => onCancel()}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md z-[1100]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" />

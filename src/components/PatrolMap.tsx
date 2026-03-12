@@ -159,6 +159,7 @@ const PatrolMap = ({ patrollers, selectedId, onSelect, route = [], flyTo = null,
         onDelete={onGeofenceDelete}
         onMapClick={onGeofenceMapClick}
         addMode={geofenceAddMode}
+        pendingLocation={pendingGeofenceLocation}
       />
 
       {/* Route polyline */}
