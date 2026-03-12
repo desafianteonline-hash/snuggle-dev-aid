@@ -213,8 +213,12 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     try {
       // Access native plugin via Capacitor's global registry (avoids Vite build issues)
       const BackgroundGeolocation = (window as any).Capacitor?.Plugins?.BackgroundGeolocation;
+      if (!BackgroundGeolocation) {
+        console.warn('[PatrolTrack] Plugin BackgroundGeolocation não encontrado, usando GPS web');
+        startGPSWatch();
+        return;
+      }
 
-      bgWatcherRef.current = await BackgroundGeolocation.addWatcher(
         {
           backgroundMessage: 'Rastreamento de patrulha ativo',
           backgroundTitle: 'PatrolTrack',
