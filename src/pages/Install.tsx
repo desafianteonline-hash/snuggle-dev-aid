@@ -159,6 +159,17 @@ const Install = () => {
             </div>
           )}
 
+          {/* QR Code */}
+          <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Escaneie para instalar</p>
+            <div className="flex justify-center">
+              <div className="bg-white p-3 rounded-xl">
+                <QRCodeSVG value={appUrl} size={180} level="H" />
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground">Aponte a câmera do celular para o QR Code acima</p>
+          </div>
+
           {/* Link & Share */}
           <div className="space-y-3">
             <div className="rounded-xl border border-border bg-card p-3">
