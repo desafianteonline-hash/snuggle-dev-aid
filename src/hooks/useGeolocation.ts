@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { Capacitor } from '@capacitor/core';
 
 interface GeoState {
   latitude: number | null;
@@ -11,8 +12,9 @@ interface GeoState {
   error: string | null;
   lastSentAt: string | null;
   pendingQueue: number;
-  motionSpeed: number | null; // speed estimated from accelerometer
-  isMoving: boolean; // detected via device motion
+  motionSpeed: number | null;
+  isMoving: boolean;
+  isNative: boolean;
 }
 
 interface QueuedLocation {
@@ -25,13 +27,15 @@ interface QueuedLocation {
   recorded_at: string;
 }
 
-const SEND_INTERVAL_MS = 30000; // Send location every 30 seconds
+const SEND_INTERVAL_MS = 30000;
 const RETRY_DELAY_MS = 5000;
 const MAX_QUEUE_SIZE = 200;
 const QUEUE_STORAGE_KEY = 'patrol_offline_queue';
-const WATCHDOG_INTERVAL_MS = 30000; // Check every 30s if GPS is still alive
+const WATCHDOG_INTERVAL_MS = 30000;
 
 export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INTERVAL_MS) {
+  const isNative = Capacitor.isNativePlatform();
+
   const [state, setState] = useState<GeoState>({
     latitude: null,
     longitude: null,
@@ -44,6 +48,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     pendingQueue: 0,
     motionSpeed: null,
     isMoving: false,
+    isNative,
   });
 
   const watchId = useRef<number | null>(null);
@@ -58,8 +63,9 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
   const shouldTrack = useRef(false);
   const velocityRef = useRef<number>(0);
   const lastMotionTime = useRef<number>(0);
+  const bgWatcherRef = useRef<any>(null);
 
-  // Persist queue to localStorage for survival across page refreshes
+  // Persist queue to localStorage
   const persistQueue = useCallback(() => {
     try {
       localStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify(queueRef.current));
@@ -79,24 +85,21 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     } catch {}
   }, []);
 
-  // Request Wake Lock to prevent screen from sleeping
+  // Wake Lock (web only)
   const requestWakeLock = useCallback(async () => {
+    if (isNative) return; // Not needed on native
     try {
       if ('wakeLock' in navigator) {
         wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
         console.log('[PatrolTrack] Wake Lock ativado');
         wakeLockRef.current.addEventListener('release', () => {
-          console.log('[PatrolTrack] Wake Lock liberado, re-solicitando...');
-          // Re-request when released (e.g., tab switch)
-          if (shouldTrack.current) {
-            setTimeout(requestWakeLock, 1000);
-          }
+          if (shouldTrack.current) setTimeout(requestWakeLock, 1000);
         });
       }
     } catch (err) {
       console.warn('[PatrolTrack] Wake Lock não disponível:', err);
     }
-  }, []);
+  }, [isNative]);
 
   const releaseWakeLock = useCallback(() => {
     if (wakeLockRef.current) {
@@ -105,16 +108,13 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     }
   }, []);
 
-  // Flush the queue - send all pending locations
+  // Flush queue
   const flushQueue = useCallback(async () => {
     if (isSending.current || queueRef.current.length === 0) return;
     isSending.current = true;
-
     const batch = [...queueRef.current];
-
     try {
       const { error } = await supabase.from('patrol_locations').insert(batch);
-
       if (error) {
         console.error('[PatrolTrack] Erro ao enviar lote:', error);
         scheduleRetry();
@@ -132,7 +132,6 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
       console.error('[PatrolTrack] Falha na rede:', err);
       scheduleRetry();
     }
-
     isSending.current = false;
   }, [persistQueue]);
 
@@ -144,37 +143,45 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     }, RETRY_DELAY_MS);
   }, [flushQueue]);
 
-  // Add current position to queue
-  const enqueueLocation = useCallback(() => {
-    const pos = lastPosition.current;
-    if (!pos || !patrollerId) return;
-
+  // Enqueue a location entry
+  const enqueueEntry = useCallback((lat: number, lng: number, accuracy: number | null, speed: number | null, heading: number | null) => {
+    if (!patrollerId) return;
     const entry: QueuedLocation = {
       patroller_id: patrollerId,
-      latitude: pos.coords.latitude,
-      longitude: pos.coords.longitude,
-      accuracy: pos.coords.accuracy,
-      speed: pos.coords.speed,
-      heading: pos.coords.heading,
+      latitude: lat,
+      longitude: lng,
+      accuracy,
+      speed,
+      heading,
       recorded_at: new Date().toISOString(),
     };
-
     if (queueRef.current.length >= MAX_QUEUE_SIZE) {
       queueRef.current = queueRef.current.slice(queueRef.current.length - MAX_QUEUE_SIZE + 1);
     }
-
     queueRef.current.push(entry);
     persistQueue();
     setState(s => ({ ...s, pendingQueue: queueRef.current.length }));
-
     flushQueue();
   }, [patrollerId, flushQueue, persistQueue]);
 
+  // Enqueue from web geolocation
+  const enqueueLocation = useCallback(() => {
+    const pos = lastPosition.current;
+    if (!pos || !patrollerId) return;
+    enqueueEntry(
+      pos.coords.latitude,
+      pos.coords.longitude,
+      pos.coords.accuracy,
+      pos.coords.speed,
+      pos.coords.heading,
+    );
+  }, [patrollerId, enqueueEntry]);
+
+  // --- Web GPS ---
   const startGPSWatch = useCallback(() => {
     if (watchId.current !== null) {
       navigator.geolocation.clearWatch(watchId.current);
     }
-
     watchId.current = navigator.geolocation.watchPosition(
       (position) => {
         lastPosition.current = position;
@@ -193,29 +200,91 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
       (err) => {
         console.error('[PatrolTrack] Erro GPS:', err.message);
         setState(s => ({ ...s, error: `Erro GPS: ${err.message}` }));
-        // Auto-restart GPS after error
         if (shouldTrack.current) {
-          setTimeout(() => {
-            console.log('[PatrolTrack] Auto-reiniciando GPS após erro...');
-            startGPSWatch();
-          }, 5000);
+          setTimeout(startGPSWatch, 5000);
         }
       },
-      {
-        enableHighAccuracy: true,
-        maximumAge: 3000,
-        timeout: 20000,
-      }
+      { enableHighAccuracy: true, maximumAge: 3000, timeout: 20000 },
     );
   }, []);
 
-  // DeviceMotion handler for accelerometer-based speed estimation
+  // --- Capacitor Background Geolocation ---
+  const startNativeTracking = useCallback(async () => {
+    try {
+      const bgModule = await import('@capacitor-community/background-geolocation') as any;
+      const BackgroundGeolocation = bgModule.BackgroundGeolocation || bgModule.default;
+
+      bgWatcherRef.current = await BackgroundGeolocation.addWatcher(
+        {
+          backgroundMessage: 'Rastreamento de patrulha ativo',
+          backgroundTitle: 'PatrolTrack',
+          requestPermissions: true,
+          stale: false,
+          distanceFilter: 10, // minimum 10m between updates
+        },
+        (location, error) => {
+          if (error) {
+            console.error('[PatrolTrack Native] Erro:', error);
+            if (error.code === 'NOT_AUTHORIZED') {
+              setState(s => ({ ...s, error: 'Permissão de localização negada. Ative nas configurações.' }));
+            }
+            return;
+          }
+          if (location) {
+            lastPositionTime.current = Date.now();
+            setState(s => ({
+              ...s,
+              latitude: location.latitude,
+              longitude: location.longitude,
+              accuracy: location.accuracy,
+              speed: location.speed,
+              heading: location.bearing,
+              tracking: true,
+              error: null,
+              isMoving: (location.speed || 0) > 0.5,
+            }));
+
+            // Enqueue directly from native location
+            enqueueEntry(
+              location.latitude,
+              location.longitude,
+              location.accuracy,
+              location.speed,
+              location.bearing,
+            );
+          }
+        },
+      );
+
+      console.log('[PatrolTrack] Background Geolocation nativo iniciado');
+      setState(s => ({ ...s, tracking: true }));
+    } catch (err) {
+      console.error('[PatrolTrack] Erro ao iniciar rastreamento nativo:', err);
+      setState(s => ({ ...s, error: 'Erro ao iniciar GPS nativo' }));
+      // Fallback to web GPS
+      startGPSWatch();
+    }
+  }, [enqueueEntry, startGPSWatch]);
+
+  const stopNativeTracking = useCallback(async () => {
+    if (bgWatcherRef.current != null) {
+      try {
+        const bgModule = await import('@capacitor-community/background-geolocation') as any;
+        const BackgroundGeolocation = bgModule.BackgroundGeolocation || bgModule.default;
+        await BackgroundGeolocation.removeWatcher({ id: bgWatcherRef.current });
+        bgWatcherRef.current = null;
+      } catch (err) {
+        console.error('[PatrolTrack] Erro ao parar rastreamento nativo:', err);
+      }
+    }
+  }, []);
+
+  // --- DeviceMotion (web only) ---
   const motionHandlerRef = useRef<((e: DeviceMotionEvent) => void) | null>(null);
 
   const startDeviceMotion = useCallback(() => {
-    if (!window.DeviceMotionEvent) return;
+    if (isNative || !window.DeviceMotionEvent) return;
 
-    // Request permission on iOS 13+
     const requestPermission = async () => {
       if (typeof (DeviceMotionEvent as any).requestPermission === 'function') {
         try {
@@ -224,35 +293,26 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
         } catch { return; }
       }
 
-      const ACCEL_THRESHOLD = 0.5; // m/s² - threshold to detect movement
-      const DECAY = 0.95; // velocity decay factor to prevent drift
+      const ACCEL_THRESHOLD = 0.5;
+      const DECAY = 0.95;
 
       const handler = (event: DeviceMotionEvent) => {
         const accel = event.accelerationIncludingGravity;
         if (!accel || accel.x == null || accel.y == null || accel.z == null) return;
-
         const now = Date.now();
         const dt = lastMotionTime.current ? (now - lastMotionTime.current) / 1000 : 0;
         lastMotionTime.current = now;
-
-        if (dt <= 0 || dt > 1) return; // skip first tick or huge gaps
-
-        // Remove approximate gravity and compute linear acceleration magnitude
+        if (dt <= 0 || dt > 1) return;
         const linMag = Math.sqrt(accel.x ** 2 + accel.y ** 2 + (accel.z - 9.81) ** 2);
-
         if (linMag > ACCEL_THRESHOLD) {
           velocityRef.current += linMag * dt;
         } else {
           velocityRef.current *= DECAY;
         }
-
-        // Clamp to reasonable values (max ~200 km/h = ~55 m/s)
         velocityRef.current = Math.min(velocityRef.current, 55);
         if (velocityRef.current < 0.3) velocityRef.current = 0;
-
         const isMoving = velocityRef.current > 0.5;
         const motionSpeedKmh = velocityRef.current * 3.6;
-
         setState(s => ({
           ...s,
           motionSpeed: motionSpeedKmh > 0 ? motionSpeedKmh : null,
@@ -266,7 +326,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     };
 
     requestPermission();
-  }, []);
+  }, [isNative]);
 
   const stopDeviceMotion = useCallback(() => {
     if (motionHandlerRef.current) {
@@ -277,77 +337,75 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     lastMotionTime.current = 0;
   }, []);
 
+  // --- Start / Stop ---
   const startTracking = useCallback(() => {
-    if (!navigator.geolocation) {
-      setState(s => ({ ...s, error: 'Geolocalização não suportada neste dispositivo' }));
-      return;
-    }
-
     shouldTrack.current = true;
-
-    // Load any persisted offline queue
     loadPersistedQueue();
 
-    // Start GPS
-    startGPSWatch();
-
-    // Start device motion sensors
-    startDeviceMotion();
-
-    // Send location on interval
-    if (sendInterval.current) clearInterval(sendInterval.current);
-    sendInterval.current = setInterval(enqueueLocation, intervalMs);
-
-    // Send first location after brief delay
-    setTimeout(enqueueLocation, 3000);
-
-    // Watchdog: if no GPS update in 30s, restart the watch
-    if (watchdogInterval.current) clearInterval(watchdogInterval.current);
-    watchdogInterval.current = setInterval(() => {
-      if (shouldTrack.current && Date.now() - lastPositionTime.current > WATCHDOG_INTERVAL_MS) {
-        console.warn('[PatrolTrack] Watchdog: GPS silencioso, reiniciando...');
-        startGPSWatch();
+    if (isNative) {
+      // Use Capacitor background geolocation (works even when app is closed)
+      startNativeTracking();
+    } else {
+      // Web fallback
+      if (!navigator.geolocation) {
+        setState(s => ({ ...s, error: 'Geolocalização não suportada neste dispositivo' }));
+        return;
       }
-    }, WATCHDOG_INTERVAL_MS);
+      startGPSWatch();
+      startDeviceMotion();
 
-    // Request Wake Lock
-    requestWakeLock();
+      // Send location on interval (web only - native sends on each location update)
+      if (sendInterval.current) clearInterval(sendInterval.current);
+      sendInterval.current = setInterval(enqueueLocation, intervalMs);
+      setTimeout(enqueueLocation, 3000);
+
+      // Watchdog
+      if (watchdogInterval.current) clearInterval(watchdogInterval.current);
+      watchdogInterval.current = setInterval(() => {
+        if (shouldTrack.current && Date.now() - lastPositionTime.current > WATCHDOG_INTERVAL_MS) {
+          console.warn('[PatrolTrack] Watchdog: GPS silencioso, reiniciando...');
+          startGPSWatch();
+        }
+      }, WATCHDOG_INTERVAL_MS);
+
+      requestWakeLock();
+    }
 
     setState(s => ({ ...s, tracking: true }));
-  }, [enqueueLocation, intervalMs, startGPSWatch, startDeviceMotion, loadPersistedQueue, requestWakeLock]);
+  }, [isNative, enqueueLocation, intervalMs, startGPSWatch, startNativeTracking, startDeviceMotion, loadPersistedQueue, requestWakeLock]);
 
   const stopTracking = useCallback(() => {
     shouldTrack.current = false;
 
-    if (watchId.current !== null) {
-      navigator.geolocation.clearWatch(watchId.current);
-      watchId.current = null;
+    if (isNative) {
+      stopNativeTracking();
+    } else {
+      if (watchId.current !== null) {
+        navigator.geolocation.clearWatch(watchId.current);
+        watchId.current = null;
+      }
+      if (sendInterval.current) {
+        clearInterval(sendInterval.current);
+        sendInterval.current = null;
+      }
+      if (watchdogInterval.current) {
+        clearInterval(watchdogInterval.current);
+        watchdogInterval.current = null;
+      }
+      releaseWakeLock();
+      stopDeviceMotion();
     }
-    if (sendInterval.current) {
-      clearInterval(sendInterval.current);
-      sendInterval.current = null;
-    }
+
     if (retryTimeout.current) {
       clearTimeout(retryTimeout.current);
       retryTimeout.current = null;
     }
-    if (watchdogInterval.current) {
-      clearInterval(watchdogInterval.current);
-      watchdogInterval.current = null;
-    }
 
-    releaseWakeLock();
-    stopDeviceMotion();
-
-    // Send any remaining queued locations
-    if (queueRef.current.length > 0) {
-      flushQueue();
-    }
-
+    if (queueRef.current.length > 0) flushQueue();
     setState(s => ({ ...s, tracking: false }));
-  }, [flushQueue, releaseWakeLock]);
+  }, [isNative, flushQueue, releaseWakeLock, stopNativeTracking, stopDeviceMotion]);
 
-  // Handle online/offline events
+  // Handle online/offline
   useEffect(() => {
     const handleOnline = () => {
       console.log('[PatrolTrack] Dispositivo online - reenviando fila');
@@ -357,26 +415,24 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     return () => window.removeEventListener('online', handleOnline);
   }, [flushQueue]);
 
-  // Handle visibility change - re-request wake lock and restart GPS if needed
+  // Visibility change (web only)
   useEffect(() => {
+    if (isNative) return;
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && shouldTrack.current) {
         console.log('[PatrolTrack] App visível novamente, verificando GPS...');
         requestWakeLock();
-        // If GPS has been silent, restart
-        if (Date.now() - lastPositionTime.current > 15000) {
-          startGPSWatch();
-        }
-        // Flush any queued data
+        if (Date.now() - lastPositionTime.current > 15000) startGPSWatch();
         flushQueue();
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [requestWakeLock, startGPSWatch, flushQueue]);
+  }, [isNative, requestWakeLock, startGPSWatch, flushQueue]);
 
-  // Send remaining data on page unload via sendBeacon
+  // sendBeacon on unload (web only)
   useEffect(() => {
+    if (isNative) return;
     const handleBeforeUnload = () => {
       if (queueRef.current.length > 0 && patrollerId) {
         try {
@@ -391,19 +447,24 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [patrollerId]);
+  }, [isNative, patrollerId]);
 
   // Cleanup
   useEffect(() => {
-    return () => {
-      stopTracking();
-    };
+    return () => { stopTracking(); };
   }, [stopTracking]);
 
   const forceImmediateSend = useCallback(() => {
     console.log('[PatrolTrack] Envio imediato solicitado');
-    enqueueLocation();
-  }, [enqueueLocation]);
+    if (isNative) {
+      // On native, the last state values are the current position
+      if (state.latitude && state.longitude) {
+        enqueueEntry(state.latitude, state.longitude, state.accuracy, state.speed, state.heading);
+      }
+    } else {
+      enqueueLocation();
+    }
+  }, [isNative, state.latitude, state.longitude, state.accuracy, state.speed, state.heading, enqueueEntry, enqueueLocation]);
 
   return { ...state, startTracking, stopTracking, forceImmediateSend };
 }
