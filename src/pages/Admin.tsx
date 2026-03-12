@@ -392,6 +392,9 @@ const Admin = () => {
               <TabsTrigger value="theme" className="gap-1.5">
                 <Palette className="h-3.5 w-3.5" /> Tema
               </TabsTrigger>
+              <TabsTrigger value="location" className="gap-1.5">
+                <MapPin className="h-3.5 w-3.5" /> Localização
+              </TabsTrigger>
             </TabsList>
 
             {/* ===== TEAM TAB ===== */}
