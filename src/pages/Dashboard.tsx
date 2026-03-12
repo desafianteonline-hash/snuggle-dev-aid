@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePatrolLocations } from '@/hooks/usePatrolLocations';
 import { useRouteHistory } from '@/hooks/useRouteHistory';
 import { useOfflineAlerts } from '@/hooks/useOfflineAlerts';
-import { useGeofences } from '@/hooks/useGeofences';
+import { useGeofences, type Geofence } from '@/hooks/useGeofences';
 import { useGeofenceDetection } from '@/hooks/useGeofenceDetection';
 import PatrolMap from '@/components/PatrolMap';
 import PatrollerSidebar from '@/components/PatrollerSidebar';
@@ -34,7 +34,7 @@ const Dashboard = () => {
   const [tvMode, setTvMode] = useState(false);
   const [geofenceAddMode, setGeofenceAddMode] = useState(false);
   const [pendingGeofenceLocation, setPendingGeofenceLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const { geofences, addGeofence, removeGeofence } = useGeofences();
+  const { geofences, addGeofence, removeGeofence, updateGeofence } = useGeofences();
 
   useGeofenceDetection(patrollers, geofences, (event) => {
     toast({
@@ -68,6 +68,11 @@ const Dashboard = () => {
     await removeGeofence(id);
     toast({ title: 'Cerca removida' });
   }, [removeGeofence, toast]);
+
+  const handleGeofenceUpdate = useCallback(async (id: string, updates: Partial<Geofence>) => {
+    await updateGeofence(id, updates);
+    toast({ title: 'Cerca atualizada' });
+  }, [updateGeofence, toast]);
 
   const toggleTvMode = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -155,11 +160,14 @@ const Dashboard = () => {
             <span className="hidden sm:inline">Relatórios</span>
           </Button>
           <GeofenceControls
+            geofences={geofences}
             addMode={geofenceAddMode}
             onToggleAddMode={() => { setGeofenceAddMode(!geofenceAddMode); setPendingGeofenceLocation(null); }}
             pendingLocation={pendingGeofenceLocation}
             onConfirm={handleGeofenceConfirm}
             onCancel={() => setPendingGeofenceLocation(null)}
+            onDelete={handleGeofenceDelete}
+            onUpdate={handleGeofenceUpdate}
           />
           <Button
             variant="outline"

@@ -2,24 +2,42 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Shield, Plus, X } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Shield, Plus, Trash2, Pencil, MapPin } from 'lucide-react';
+import type { Geofence } from '@/hooks/useGeofences';
 
 interface GeofenceControlsProps {
+  geofences: Geofence[];
   addMode: boolean;
   onToggleAddMode: () => void;
   pendingLocation: { lat: number; lng: number } | null;
   onConfirm: (name: string, radius: number, color: string) => void;
   onCancel: () => void;
+  onDelete: (id: string) => void;
+  onUpdate: (id: string, updates: Partial<Geofence>) => void;
 }
 
 const COLORS = ['#3b82f6', '#22c55e', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899'];
 
-export function GeofenceControls({ addMode, onToggleAddMode, pendingLocation, onConfirm, onCancel }: GeofenceControlsProps) {
+export function GeofenceControls({
+  geofences,
+  addMode,
+  onToggleAddMode,
+  pendingLocation,
+  onConfirm,
+  onCancel,
+  onDelete,
+  onUpdate,
+}: GeofenceControlsProps) {
   const [name, setName] = useState('');
   const [radius, setRadius] = useState(200);
   const [color, setColor] = useState(COLORS[0]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editRadius, setEditRadius] = useState(200);
+  const [editColor, setEditColor] = useState(COLORS[0]);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const handleConfirm = () => {
     if (!name.trim()) return;
@@ -29,19 +47,174 @@ export function GeofenceControls({ addMode, onToggleAddMode, pendingLocation, on
     setColor(COLORS[0]);
   };
 
+  const startEdit = (g: Geofence) => {
+    setEditingId(g.id);
+    setEditName(g.name);
+    setEditRadius(g.radius_meters);
+    setEditColor(g.color);
+  };
+
+  const saveEdit = () => {
+    if (!editingId || !editName.trim()) return;
+    onUpdate(editingId, { name: editName.trim(), radius_meters: editRadius, color: editColor });
+    setEditingId(null);
+  };
+
   return (
     <>
-      <Button
-        variant={addMode ? 'destructive' : 'outline'}
-        size="sm"
-        onClick={onToggleAddMode}
-        className="gap-1.5"
-        title="Adicionar cerca virtual"
-      >
-        {addMode ? <X className="h-3.5 w-3.5" /> : <Shield className="h-3.5 w-3.5" />}
-        <span className="hidden sm:inline">{addMode ? 'Cancelar' : 'Cercas'}</span>
-      </Button>
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetTrigger asChild>
+          <Button
+            variant={addMode ? 'destructive' : 'outline'}
+            size="sm"
+            className="gap-1.5"
+            title="Gerenciar cercas virtuais"
+          >
+            <Shield className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Cercas</span>
+            {geofences.length > 0 && (
+              <span className="ml-1 bg-primary/20 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                {geofences.length}
+              </span>
+            )}
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-80 sm:w-96 z-[1001]">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              Cercas Virtuais
+            </SheetTitle>
+          </SheetHeader>
 
+          <div className="mt-4 space-y-3">
+            <Button
+              onClick={() => {
+                onToggleAddMode();
+                setSheetOpen(false);
+              }}
+              variant={addMode ? 'destructive' : 'default'}
+              className="w-full gap-2"
+            >
+              {addMode ? (
+                <>Cancelar seleção no mapa</>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" />
+                  Adicionar nova cerca
+                </>
+              )}
+            </Button>
+
+            {addMode && (
+              <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 text-sm text-primary">
+                <MapPin className="h-4 w-4 inline mr-1" />
+                Clique no mapa para selecionar o local da cerca
+              </div>
+            )}
+
+            {geofences.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Shield className="h-10 w-10 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">Nenhuma cerca cadastrada</p>
+                <p className="text-xs mt-1">Clique em "Adicionar" e depois no mapa</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                  {geofences.length} cerca{geofences.length > 1 ? 's' : ''} ativa{geofences.length > 1 ? 's' : ''}
+                </p>
+                {geofences.map(g => (
+                  <div
+                    key={g.id}
+                    className="bg-card border border-border rounded-lg p-3"
+                  >
+                    {editingId === g.id ? (
+                      <div className="space-y-3">
+                        <Input
+                          value={editName}
+                          onChange={e => setEditName(e.target.value)}
+                          placeholder="Nome da cerca"
+                          autoFocus
+                        />
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Raio: {editRadius}m</Label>
+                          <input
+                            type="range"
+                            min={50}
+                            max={2000}
+                            step={50}
+                            value={editRadius}
+                            onChange={e => setEditRadius(Number(e.target.value))}
+                            className="w-full mt-1"
+                            style={{ accentColor: editColor }}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          {COLORS.map(c => (
+                            <button
+                              key={c}
+                              onClick={() => setEditColor(c)}
+                              style={{
+                                width: 22,
+                                height: 22,
+                                borderRadius: '50%',
+                                background: c,
+                                border: c === editColor ? '2px solid white' : '2px solid transparent',
+                                boxShadow: c === editColor ? `0 0 0 2px ${c}` : 'none',
+                                cursor: 'pointer',
+                              }}
+                            />
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={saveEdit} disabled={!editName.trim()}>Salvar</Button>
+                          <Button size="sm" variant="outline" onClick={() => setEditingId(null)}>Cancelar</Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div
+                            className="w-3 h-3 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: g.color }}
+                          />
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-foreground truncate">{g.name}</p>
+                            <p className="text-xs text-muted-foreground">Raio: {g.radius_meters}m</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-1 flex-shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => startEdit(g)}
+                            title="Editar"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-destructive hover:text-destructive"
+                            onClick={() => onDelete(g.id)}
+                            title="Excluir"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Dialog for new geofence after map click */}
       <Dialog open={!!pendingLocation} onOpenChange={() => onCancel()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
