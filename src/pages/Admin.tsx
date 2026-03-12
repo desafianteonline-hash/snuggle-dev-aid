@@ -368,6 +368,9 @@ const Admin = () => {
 
   const handleSaveTheme = async () => {
     if (!settings.id) return;
+    const confirmed = window.confirm('Deseja aplicar e salvar este tema?');
+    if (!confirmed) return;
+
     setSavingTheme(true);
     try {
       const { error } = await supabase
