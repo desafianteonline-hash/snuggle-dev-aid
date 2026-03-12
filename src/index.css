@@ -111,22 +111,26 @@
 
 /* Leaflet overrides for dark theme */
 .leaflet-container {
-  background: hsl(220 20% 7%) !important;
+  background: hsl(var(--background)) !important;
 }
 
 .leaflet-tile-pane {
   filter: brightness(0.7) contrast(1.1) saturate(0.8);
 }
 
+.light .leaflet-tile-pane {
+  filter: none;
+}
+
 .leaflet-control-zoom a {
-  background: hsl(220 18% 10%) !important;
-  color: hsl(210 20% 92%) !important;
-  border-color: hsl(220 14% 18%) !important;
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+  border-color: hsl(var(--border)) !important;
 }
 
 .leaflet-control-attribution {
-  background: hsl(220 18% 10% / 0.8) !important;
-  color: hsl(215 12% 50%) !important;
+  background: hsl(var(--card) / 0.8) !important;
+  color: hsl(var(--muted-foreground)) !important;
   font-size: 10px !important;
 }
 
