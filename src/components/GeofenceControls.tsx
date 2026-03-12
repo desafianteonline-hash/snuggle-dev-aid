@@ -33,10 +33,12 @@ export function GeofenceControls({
   onCancel,
   onDelete,
   onUpdate,
+  pendingRadius,
+  pendingColor,
+  onPendingRadiusChange,
+  onPendingColorChange,
 }: GeofenceControlsProps) {
   const [name, setName] = useState('');
-  const [radius, setRadius] = useState(200);
-  const [color, setColor] = useState(COLORS[0]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editRadius, setEditRadius] = useState(200);
