@@ -208,13 +208,34 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     );
   }, []);
 
+  // --- Request battery optimization exemption ---
+  const requestBatteryExemption = useCallback(async () => {
+    try {
+      const BatteryOptimization = (window as any).Capacitor?.Plugins?.BatteryOptimization;
+      if (BatteryOptimization) {
+        const { isIgnoring } = await BatteryOptimization.isIgnoringBatteryOptimization();
+        if (!isIgnoring) {
+          await BatteryOptimization.requestIgnoreBatteryOptimization();
+          console.log('[CODSEG GPS] Solicitação de isenção de bateria enviada');
+        } else {
+          console.log('[CODSEG GPS] Já isento de otimização de bateria');
+        }
+      }
+    } catch (err) {
+      console.warn('[CODSEG GPS] Erro ao solicitar isenção de bateria:', err);
+    }
+  }, []);
+
   // --- Capacitor Background Geolocation ---
   const startNativeTracking = useCallback(async () => {
     try {
+      // Request battery optimization exemption first
+      await requestBatteryExemption();
+
       // Access native plugin via Capacitor's global registry (avoids Vite build issues)
       const BackgroundGeolocation = (window as any).Capacitor?.Plugins?.BackgroundGeolocation;
       if (!BackgroundGeolocation) {
-        console.warn('[PatrolTrack] Plugin BackgroundGeolocation não encontrado, usando GPS web');
+        console.warn('[CODSEG GPS] Plugin BackgroundGeolocation não encontrado, usando GPS web');
         startGPSWatch();
         return;
       }
