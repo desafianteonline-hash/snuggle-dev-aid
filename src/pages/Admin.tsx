@@ -66,6 +66,7 @@ const Admin = () => {
 
   // Edit form
   const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editPlate, setEditPlate] = useState('');
   const [saving, setSaving] = useState(false);
@@ -242,6 +243,7 @@ const Admin = () => {
   const startEdit = (u: UserRecord) => {
     setEditingId(u.id);
     setEditName(u.role === 'patroller' ? (u.patroller_name || '') : (u.profile_name || ''));
+    setEditEmail(u.email || '');
     setEditPhone(u.phone || '');
     setEditPlate(u.vehicle_plate || '');
   };
@@ -258,28 +260,23 @@ const Admin = () => {
   };
 
   const doSaveEdit = async (u: UserRecord) => {
-
     setSaving(true);
     try {
-      if (u.role === 'patroller' && u.patroller_id) {
-        const { error } = await supabase
-          .from('patrollers')
-          .update({ name: editName.trim(), phone: editPhone.trim() || null, vehicle_plate: editPlate.trim() || null })
-          .eq('id', u.patroller_id);
-        if (error) throw error;
-      }
-      // Also update/upsert profile for all user types
-      const { error: profileErr } = await supabase
-        .from('profiles')
-        .upsert({
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: {
+          action: 'update_user',
           user_id: u.id,
+          email: editEmail.trim() !== u.email ? editEmail.trim() : undefined,
           name: editName.trim() || null,
           phone: editPhone.trim() || null,
-        }, { onConflict: 'user_id' });
-      if (profileErr) throw profileErr;
+          vehicle_plate: u.role === 'patroller' ? (editPlate.trim() || null) : undefined,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       toast.success('Usuário atualizado');
-      logActivity({ action: 'update', entityType: 'user', entityId: u.id, entityName: editName.trim(), details: { phone: editPhone } });
+      logActivity({ action: 'update', entityType: 'user', entityId: u.id, entityName: editName.trim(), details: { email: editEmail, phone: editPhone } });
       setEditingId(null);
       fetchUsers();
     } catch (err: any) {
@@ -672,12 +669,13 @@ const Admin = () => {
                       {editingId === u.id ? (
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <p className="text-xs text-muted-foreground">{u.email}</p>
+                            <p className="text-xs text-muted-foreground font-medium">Editando usuário</p>
                             <div className="flex gap-1">
                               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingId(null)}><X className="h-3.5 w-3.5" /></Button>
                               <Button variant="ghost" size="icon" className="h-7 w-7 text-primary" onClick={() => handleSaveEdit(u)} disabled={saving || !editName.trim()}><Check className="h-3.5 w-3.5" /></Button>
                             </div>
                           </div>
+                          <Input value={editEmail} onChange={e => setEditEmail(e.target.value)} placeholder="Email" type="email" className="bg-secondary border-border h-9 text-sm" />
                           <Input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Nome" className="bg-secondary border-border h-9 text-sm" />
                           <div className={`grid gap-2 ${u.role === 'patroller' ? 'grid-cols-2' : 'grid-cols-1'}`}>
                             <Input value={editPhone} onChange={e => setEditPhone(formatPhone(e.target.value))} placeholder="(00) 00000-0000" className="bg-secondary border-border h-9 text-sm" maxLength={15} />
