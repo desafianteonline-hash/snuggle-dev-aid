@@ -47,10 +47,10 @@ export function GeofenceControls({
 
   const handleConfirm = () => {
     if (!name.trim()) return;
-    onConfirm(name.trim(), radius, color);
+    onConfirm(name.trim(), pendingRadius, pendingColor);
     setName('');
-    setRadius(200);
-    setColor(COLORS[0]);
+    onPendingRadiusChange(200);
+    onPendingColorChange(COLORS[0]);
   };
 
   const startEdit = (g: Geofence) => {
