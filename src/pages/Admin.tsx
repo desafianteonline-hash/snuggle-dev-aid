@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PlatformBrand from '@/components/PlatformBrand';
-
+import ThemeToggle from '@/components/ThemeToggle';
 const formatPhone = (value: string) => {
   const digits = value.replace(/\D/g, '').slice(0, 11);
   if (digits.length <= 2) return digits.length ? `(${digits}` : '';
