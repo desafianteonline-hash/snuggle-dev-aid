@@ -128,6 +128,38 @@ serve(async (req) => {
       });
     }
 
+    if (action === 'update_user') {
+      const { user_id, email: newEmail, phone: newPhone, name: newName, vehicle_plate: newPlate } = body;
+      if (!user_id) throw new Error('user_id é obrigatório');
+
+      // Update auth email if provided
+      if (newEmail) {
+        const { error: authErr } = await supabaseAdmin.auth.admin.updateUserById(user_id, { email: newEmail, email_confirm: true });
+        if (authErr) throw authErr;
+      }
+
+      // Update profile
+      await supabaseAdmin.from('profiles').upsert({
+        user_id,
+        name: newName ?? null,
+        phone: newPhone ?? null,
+      }, { onConflict: 'user_id' });
+
+      // Update patroller if exists
+      const { data: patroller } = await supabaseAdmin.from('patrollers').select('id').eq('user_id', user_id).maybeSingle();
+      if (patroller) {
+        await supabaseAdmin.from('patrollers').update({
+          name: newName ?? undefined,
+          phone: newPhone ?? null,
+          vehicle_plate: newPlate ?? null,
+        }).eq('user_id', user_id);
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     throw new Error('Ação inválida');
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Erro desconhecido';
