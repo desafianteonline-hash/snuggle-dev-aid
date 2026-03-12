@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, LogOut, UserPlus, Trash2, Users, Eye, EyeOff } from 'lucide-react';
+import {
+  Shield, LogOut, UserPlus, Trash2, Users, Eye, EyeOff, Pencil, X, Check, Phone, Car,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import {
@@ -14,7 +16,19 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import {
   Select,
   SelectContent,
@@ -27,17 +41,23 @@ interface UserRecord {
   id: string;
   email: string;
   role: string;
-  patroller_name?: string;
+  patroller_id: string | null;
+  patroller_name: string | null;
+  phone: string | null;
+  vehicle_plate: string | null;
 }
 
 const Admin = () => {
   const { user, role, loading, signOut } = useAuth();
   const [users, setUsers] = useState<UserRecord[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Form state
+  // Create form
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [selectedRole, setSelectedRole] = useState<'patroller' | 'operator'>('patroller');
@@ -45,28 +65,29 @@ const Admin = () => {
   const [phone, setPhone] = useState('');
   const [vehiclePlate, setVehiclePlate] = useState('');
 
+  // Edit form
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editPlate, setEditPlate] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const fetchUsers = useCallback(async () => {
+    setLoadingUsers(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: { action: 'get_users' },
+      });
+      if (error) throw error;
+      if (data?.users) setUsers(data.users);
+    } catch (err) {
+      console.error('Erro ao buscar usuários:', err);
+    }
+    setLoadingUsers(false);
+  }, []);
+
   useEffect(() => {
     if (role === 'admin') fetchUsers();
-  }, [role]);
-
-  async function fetchUsers() {
-    // Get all user roles
-    const { data: roles } = await supabase.from('user_roles').select('*');
-    const { data: patrollers } = await supabase.from('patrollers').select('*');
-
-    if (!roles) return;
-
-    const userList: UserRecord[] = roles.map(r => {
-      const patroller = patrollers?.find(p => p.user_id === r.user_id);
-      return {
-        id: r.user_id,
-        email: '', // We can't access auth.users from client
-        role: r.role,
-        patroller_name: patroller?.name,
-      };
-    });
-    setUsers(userList);
-  }
+  }, [role, fetchUsers]);
 
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center bg-background">
@@ -81,8 +102,9 @@ const Admin = () => {
     setCreating(true);
 
     try {
-      const response = await supabase.functions.invoke('create-user', {
+      const { data, error } = await supabase.functions.invoke('create-user', {
         body: {
+          action: 'create',
           email,
           password,
           role: selectedRole,
@@ -92,21 +114,68 @@ const Admin = () => {
         },
       });
 
-      if (response.error) {
-        toast.error('Erro ao criar usuário: ' + response.error.message);
-      } else if (response.data?.error) {
-        toast.error('Erro: ' + response.data.error);
-      } else {
-        toast.success(`${selectedRole === 'patroller' ? 'Patrulheiro' : 'Operador'} criado com sucesso!`);
-        setDialogOpen(false);
-        resetForm();
-        fetchUsers();
-      }
-    } catch (err) {
-      toast.error('Erro inesperado');
-    }
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
+      toast.success(`${selectedRole === 'patroller' ? 'Patrulheiro' : 'Operador'} criado com sucesso!`);
+      setDialogOpen(false);
+      resetForm();
+      fetchUsers();
+    } catch (err: any) {
+      toast.error('Erro: ' + (err?.message || 'Erro inesperado'));
+    }
     setCreating(false);
+  };
+
+  const handleDelete = async (userId: string) => {
+    setDeletingId(userId);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: { action: 'delete', user_id: userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success('Usuário removido com sucesso');
+      fetchUsers();
+    } catch (err: any) {
+      toast.error('Erro ao remover: ' + (err?.message || 'Erro inesperado'));
+    }
+    setDeletingId(null);
+  };
+
+  const startEdit = (u: UserRecord) => {
+    setEditingId(u.id);
+    setEditName(u.patroller_name || '');
+    setEditPhone(u.phone || '');
+    setEditPlate(u.vehicle_plate || '');
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+  };
+
+  const handleSaveEdit = async (u: UserRecord) => {
+    if (!u.patroller_id) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('patrollers')
+        .update({
+          name: editName.trim(),
+          phone: editPhone.trim() || null,
+          vehicle_plate: editPlate.trim() || null,
+        })
+        .eq('id', u.patroller_id);
+
+      if (error) throw error;
+      toast.success('Patrulheiro atualizado');
+      setEditingId(null);
+      fetchUsers();
+    } catch (err: any) {
+      toast.error('Erro ao salvar: ' + (err?.message || 'Erro inesperado'));
+    }
+    setSaving(false);
   };
 
   function resetForm() {
@@ -118,6 +187,8 @@ const Admin = () => {
     setSelectedRole('patroller');
     setShowPassword(false);
   }
+
+  const nonAdminUsers = users.filter(u => u.role !== 'admin');
 
   return (
     <div className="flex h-screen flex-col bg-background">
@@ -142,13 +213,13 @@ const Admin = () => {
       </header>
 
       <div className="flex-1 overflow-auto p-6">
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div className="max-w-3xl mx-auto space-y-6">
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4">
             {[
-              { label: 'Total', count: users.length, icon: Users },
-              { label: 'Patrulheiros', count: users.filter(u => u.role === 'patroller').length, icon: Shield },
-              { label: 'Operadores', count: users.filter(u => u.role === 'operator').length, icon: Eye },
+              { label: 'Total', count: nonAdminUsers.length, icon: Users },
+              { label: 'Patrulheiros', count: nonAdminUsers.filter(u => u.role === 'patroller').length, icon: Shield },
+              { label: 'Operadores', count: nonAdminUsers.filter(u => u.role === 'operator').length, icon: Eye },
             ].map((stat, i) => (
               <motion.div
                 key={stat.label}
@@ -164,7 +235,7 @@ const Admin = () => {
             ))}
           </div>
 
-          {/* Create User Button */}
+          {/* Create User */}
           <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
               <Button className="w-full font-semibold">
@@ -175,6 +246,7 @@ const Admin = () => {
             <DialogContent className="bg-card border-border">
               <DialogHeader>
                 <DialogTitle>Novo Usuário</DialogTitle>
+                <DialogDescription>Preencha os dados para criar um novo usuário no sistema.</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleCreate} className="space-y-4">
                 <div className="space-y-2">
@@ -268,36 +340,137 @@ const Admin = () => {
 
           {/* User List */}
           <div className="space-y-2">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Usuários Cadastrados</h2>
-            {users.filter(u => u.role !== 'admin').map((u, i) => (
-              <motion.div
-                key={u.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="flex items-center justify-between rounded-lg border border-border bg-card p-3"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                    u.role === 'patroller' ? 'bg-primary/10 text-primary' : 'bg-accent text-accent-foreground'
-                  }`}>
-                    {u.role === 'patroller' ? 'P' : 'O'}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">{u.patroller_name || u.id.slice(0, 8)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {u.role === 'patroller' ? 'Patrulheiro' : 'Operador'}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+              Usuários Cadastrados ({nonAdminUsers.length})
+            </h2>
 
-            {users.filter(u => u.role !== 'admin').length === 0 && (
+            {loadingUsers ? (
+              <div className="flex justify-center py-8">
+                <Shield className="h-6 w-6 animate-pulse text-primary" />
+              </div>
+            ) : nonAdminUsers.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Users className="h-8 w-8 mx-auto mb-2 opacity-30" />
                 <p className="text-sm">Nenhum usuário cadastrado</p>
               </div>
+            ) : (
+              nonAdminUsers.map((u, i) => (
+                <motion.div
+                  key={u.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.03 }}
+                  className="rounded-lg border border-border bg-card p-4"
+                >
+                  {editingId === u.id && u.role === 'patroller' ? (
+                    /* Edit mode */
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-muted-foreground">{u.email}</p>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={cancelEdit}>
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-primary"
+                            onClick={() => handleSaveEdit(u)}
+                            disabled={saving || !editName.trim()}
+                          >
+                            <Check className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                      <Input
+                        value={editName}
+                        onChange={e => setEditName(e.target.value)}
+                        placeholder="Nome"
+                        className="bg-secondary border-border h-9 text-sm"
+                      />
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input
+                          value={editPhone}
+                          onChange={e => setEditPhone(e.target.value)}
+                          placeholder="Telefone"
+                          className="bg-secondary border-border h-9 text-sm"
+                        />
+                        <Input
+                          value={editPlate}
+                          onChange={e => setEditPlate(e.target.value)}
+                          placeholder="Placa"
+                          className="bg-secondary border-border h-9 text-sm"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    /* View mode */
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold ${
+                          u.role === 'patroller' ? 'bg-primary/10 text-primary' : 'bg-accent text-accent-foreground'
+                        }`}>
+                          {u.role === 'patroller' ? 'P' : 'O'}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">
+                            {u.patroller_name || u.email || u.id.slice(0, 8)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {u.role === 'patroller' ? 'Patrulheiro' : 'Operador'}
+                            {u.email && <span className="ml-1 opacity-60">· {u.email}</span>}
+                          </p>
+                          {u.role === 'patroller' && (u.phone || u.vehicle_plate) && (
+                            <div className="flex gap-3 mt-1 text-xs text-muted-foreground">
+                              {u.phone && (
+                                <span className="flex items-center gap-1">
+                                  <Phone className="h-3 w-3" /> {u.phone}
+                                </span>
+                              )}
+                              {u.vehicle_plate && (
+                                <span className="flex items-center gap-1">
+                                  <Car className="h-3 w-3" /> {u.vehicle_plate}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {u.role === 'patroller' && (
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => startEdit(u)}>
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="bg-card border-border">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Remover Usuário</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja remover {u.patroller_name || u.email}? Esta ação não pode ser desfeita.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(u.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                {deletingId === u.id ? 'Removendo...' : 'Remover'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              ))
             )}
           </div>
         </div>
