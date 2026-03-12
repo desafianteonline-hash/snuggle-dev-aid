@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Calendar, Loader2, Clock, Route, Gauge, Users, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Calendar, Loader2, Clock, Route, Gauge, Users, TrendingUp, AlertTriangle } from 'lucide-react';
 import { format, startOfDay, endOfDay, eachDayOfInterval, differenceInMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -140,10 +140,27 @@ const Reports = () => {
         dist += haversine(locs[i - 1].latitude, locs[i - 1].longitude, locs[i].latitude, locs[i].longitude);
       }
       const mins = locs.length >= 2 ? differenceInMinutes(new Date(locs[locs.length - 1].recorded_at), new Date(locs[0].recorded_at)) : 0;
+      
+      // Speed stats per patroller
+      const patrollerSpeeds = locs.filter(l => l.speed != null).map(l => ({ speed: l.speed! * 3.6, recorded_at: l.recorded_at }));
+      let maxSpeedRecord: { speed: number; recorded_at: string } | null = null;
+      let avgSpeedValue = 0;
+      if (patrollerSpeeds.length > 0) {
+        maxSpeedRecord = patrollerSpeeds.reduce((max, cur) => cur.speed > max.speed ? cur : max);
+        avgSpeedValue = Math.round(patrollerSpeeds.reduce((a, b) => a + b.speed, 0) / patrollerSpeeds.length);
+      }
+
+      const p = patrollers.find(pt => pt.id === id);
       return {
+        id,
         name: patrollerMap.get(id) || id.slice(0, 8),
+        plate: p?.vehicle_plate || '—',
+        vehicleType: p?.vehicle_type || 'car',
         distancia: Math.round(dist * 10) / 10,
         horas: Math.round(mins / 6) / 10,
+        maxSpeed: maxSpeedRecord ? Math.round(maxSpeedRecord.speed) : 0,
+        maxSpeedAt: maxSpeedRecord?.recorded_at || null,
+        avgSpeed: avgSpeedValue,
       };
     }).sort((a, b) => b.horas - a.horas);
 
@@ -157,6 +174,11 @@ const Reports = () => {
       { name: '80+', value: speeds.filter(s => s > 80).length },
     ].filter(r => r.value > 0);
 
+    // Top speed offenders (above 60 km/h)
+    const speedAlerts = perPatroller
+      .filter(p => p.maxSpeed > 60)
+      .sort((a, b) => b.maxSpeed - a.maxSpeed);
+
     return {
       dailyData,
       totalDist: Math.round(totalDist * 10) / 10,
@@ -167,6 +189,7 @@ const Reports = () => {
       avgSpeed: speeds.length > 0 ? Math.round(speeds.reduce((a, b) => a + b, 0) / speeds.length) : 0,
       perPatroller,
       speedRanges,
+      speedAlerts,
     };
   }, [locations, dateFrom, dateTo, patrollers]);
 
@@ -347,6 +370,42 @@ const Reports = () => {
               )}
             </div>
 
+            {/* Speed Alerts */}
+            {stats.speedAlerts.length > 0 && (
+              <div className="bg-card border border-destructive/30 rounded-lg p-4">
+                <h3 className="text-sm font-bold mb-4 text-destructive flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  Alertas de Velocidade (acima de 60 km/h)
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase">Patrulheiro</th>
+                        <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase">Placa</th>
+                        <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase">Vel. Máxima</th>
+                        <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase">Vel. Média</th>
+                        <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase">Data/Hora (Máx)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stats.speedAlerts.map((p, i) => (
+                        <tr key={i} className="border-b border-border/50">
+                          <td className="py-2 px-3 font-medium text-foreground">{p.name}</td>
+                          <td className="py-2 px-3 text-muted-foreground">{p.plate}</td>
+                          <td className="py-2 px-3 text-right font-bold text-destructive">{p.maxSpeed} km/h</td>
+                          <td className="py-2 px-3 text-right text-muted-foreground">{p.avgSpeed} km/h</td>
+                          <td className="py-2 px-3 text-right text-muted-foreground">
+                            {p.maxSpeedAt ? format(new Date(p.maxSpeedAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
             {/* Patroller Table */}
             {stats.perPatroller.length > 0 && (
               <div className="bg-card border border-border rounded-lg p-4">
@@ -356,16 +415,26 @@ const Reports = () => {
                     <thead>
                       <tr className="border-b border-border">
                         <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase">Patrulheiro</th>
+                        <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase">Placa</th>
                         <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase">Horas</th>
                         <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase">Distância</th>
+                        <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase">Vel. Máx</th>
+                        <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase">Vel. Média</th>
+                        <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase">Data/Hora (Máx)</th>
                       </tr>
                     </thead>
                     <tbody>
                       {stats.perPatroller.map((p, i) => (
                         <tr key={i} className="border-b border-border/50">
                           <td className="py-2 px-3 font-medium text-foreground">{p.name}</td>
+                          <td className="py-2 px-3 text-muted-foreground">{p.plate}</td>
                           <td className="py-2 px-3 text-right text-muted-foreground">{p.horas}h</td>
                           <td className="py-2 px-3 text-right text-muted-foreground">{p.distancia} km</td>
+                          <td className={cn("py-2 px-3 text-right font-semibold", p.maxSpeed > 60 ? "text-destructive" : "text-foreground")}>{p.maxSpeed} km/h</td>
+                          <td className="py-2 px-3 text-right text-muted-foreground">{p.avgSpeed} km/h</td>
+                          <td className="py-2 px-3 text-right text-muted-foreground text-xs">
+                            {p.maxSpeedAt ? format(new Date(p.maxSpeedAt), "dd/MM/yyyy HH:mm", { locale: ptBR }) : '—'}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
