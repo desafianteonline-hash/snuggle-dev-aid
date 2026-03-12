@@ -32,6 +32,42 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [refreshing, setRefreshing] = useState(false);
   const [tvMode, setTvMode] = useState(false);
+  const [geofenceAddMode, setGeofenceAddMode] = useState(false);
+  const [pendingGeofenceLocation, setPendingGeofenceLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const { geofences, addGeofence, removeGeofence } = useGeofences();
+
+  useGeofenceDetection(patrollers, geofences, (event) => {
+    toast({
+      title: event.type === 'enter' ? '🟢 Entrada em cerca' : '🔴 Saída de cerca',
+      description: `${event.patrollerName} ${event.type === 'enter' ? 'entrou em' : 'saiu de'} ${event.geofenceName}`,
+    });
+  });
+
+  const handleGeofenceMapClick = useCallback((lat: number, lng: number) => {
+    if (geofenceAddMode) {
+      setPendingGeofenceLocation({ lat, lng });
+    }
+  }, [geofenceAddMode]);
+
+  const handleGeofenceConfirm = useCallback(async (name: string, radius: number, color: string) => {
+    if (!pendingGeofenceLocation || !user) return;
+    await addGeofence({
+      name,
+      latitude: pendingGeofenceLocation.lat,
+      longitude: pendingGeofenceLocation.lng,
+      radius_meters: radius,
+      color,
+      created_by: user.id,
+    });
+    setPendingGeofenceLocation(null);
+    setGeofenceAddMode(false);
+    toast({ title: '✅ Cerca criada', description: `"${name}" adicionada com sucesso` });
+  }, [pendingGeofenceLocation, user, addGeofence, toast]);
+
+  const handleGeofenceDelete = useCallback(async (id: string) => {
+    await removeGeofence(id);
+    toast({ title: 'Cerca removida' });
+  }, [removeGeofence, toast]);
 
   const toggleTvMode = useCallback(() => {
     if (!document.fullscreenElement) {
