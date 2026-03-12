@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePatrolLocations } from '@/hooks/usePatrolLocations';
 import { useRouteHistory } from '@/hooks/useRouteHistory';
@@ -17,7 +17,22 @@ const Dashboard = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { route } = useRouteHistory(selectedId);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [flyTo, setFlyTo] = useState<{ lat: number; lng: number } | null>(null);
   const isMobile = useIsMobile();
+
+  const handleFlyTo = useCallback((lat: number, lng: number) => {
+    // Force re-trigger by creating a new object each time
+    setFlyTo({ lat, lng });
+    setTimeout(() => setFlyTo(null), 2000);
+  }, []);
+
+  const handleSelect = useCallback((id: string) => {
+    setSelectedId(id);
+    const p = patrollers.find(pt => pt.id === id);
+    if (p?.latest_location) {
+      handleFlyTo(p.latest_location.latitude, p.latest_location.longitude);
+    }
+  }, [patrollers, handleFlyTo]);
 
   return (
     <div className="flex h-screen flex-col bg-background">
@@ -66,7 +81,8 @@ const Dashboard = () => {
                 <PatrollerSidebar
                   patrollers={patrollers}
                   selectedId={selectedId}
-                  onSelect={(id) => { setSelectedId(id); setSidebarOpen(false); }}
+                  onSelect={(id) => { handleSelect(id); setSidebarOpen(false); }}
+                  onFlyTo={handleFlyTo}
                 />
               </motion.div>
             )}
@@ -76,7 +92,8 @@ const Dashboard = () => {
             <PatrollerSidebar
               patrollers={patrollers}
               selectedId={selectedId}
-              onSelect={setSelectedId}
+              onSelect={handleSelect}
+              onFlyTo={handleFlyTo}
             />
           </div>
         )}
@@ -91,8 +108,9 @@ const Dashboard = () => {
             <PatrolMap
               patrollers={patrollers}
               selectedId={selectedId}
-              onSelect={setSelectedId}
+              onSelect={handleSelect}
               route={route}
+              flyTo={flyTo}
             />
           )}
         </div>
