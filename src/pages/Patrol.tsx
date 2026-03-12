@@ -188,9 +188,12 @@ const Patrol = () => {
             </Button>
           )}
 
-          <Button variant="ghost" onClick={handleSignOut} className="w-full text-xs text-muted-foreground">
-            Encerrar Turno
-          </Button>
+          <div className="flex items-center justify-center gap-2">
+            <ThemeToggle />
+            <Button variant="ghost" onClick={handleSignOut} className="text-xs text-muted-foreground">
+              Encerrar Turno
+            </Button>
+          </div>
         </div>
       </motion.div>
     </div>
