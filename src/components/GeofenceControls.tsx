@@ -49,6 +49,7 @@ export function GeofenceControls({
   const [editColor, setEditColor] = useState(COLORS[0]);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
+  const [confirmCreateOpen, setConfirmCreateOpen] = useState(false);
 
   // Draggable panel state
   const [dragPos, setDragPos] = useState({ x: Math.max(0, (window.innerWidth - 340) / 2), y: Math.max(0, (window.innerHeight - 400) / 2) });
@@ -83,10 +84,15 @@ export function GeofenceControls({
 
   const handleConfirm = () => {
     if (!name.trim()) return;
+    setConfirmCreateOpen(true);
+  };
+
+  const doCreateGeofence = () => {
     onConfirm(name.trim(), pendingRadius, pendingColor);
     setName('');
     onPendingRadiusChange(200);
     onPendingColorChange(COLORS[0]);
+    setConfirmCreateOpen(false);
   };
 
   const startEdit = (g: Geofence) => {
@@ -373,6 +379,14 @@ export function GeofenceControls({
         description={`Deseja salvar as alterações da cerca "${editName.trim()}"?`}
         confirmLabel="Salvar"
         onConfirm={confirmSaveEdit}
+      />
+      <ConfirmDialog
+        open={confirmCreateOpen}
+        onOpenChange={setConfirmCreateOpen}
+        title="Criar cerca virtual"
+        description={`Deseja criar a cerca "${name.trim()}" com raio de ${pendingRadius}m?`}
+        confirmLabel="Criar"
+        onConfirm={doCreateGeofence}
       />
     </>
   );
