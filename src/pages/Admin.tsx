@@ -248,8 +248,16 @@ const Admin = () => {
 
   const handleSaveEdit = async (u: UserRecord) => {
     const targetName = editName.trim() || u.profile_name || u.patroller_name || u.email;
-    const confirmed = window.confirm(`Deseja salvar as alterações de ${targetName}?`);
-    if (!confirmed) return;
+    setConfirmDialog({
+      open: true, title: 'Salvar alterações', description: `Deseja salvar as alterações de ${targetName}?`, variant: 'default',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        await doSaveEdit(u);
+      },
+    });
+  };
+
+  const doSaveEdit = async (u: UserRecord) => {
 
     setSaving(true);
     try {
