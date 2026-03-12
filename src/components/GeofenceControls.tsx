@@ -365,6 +365,15 @@ export function GeofenceControls({
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmSaveOpen}
+        onOpenChange={setConfirmSaveOpen}
+        title="Salvar alterações"
+        description={`Deseja salvar as alterações da cerca "${editName.trim()}"?`}
+        confirmLabel="Salvar"
+        onConfirm={confirmSaveEdit}
+      />
     </>
   );
 }
