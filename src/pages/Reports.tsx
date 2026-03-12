@@ -244,7 +244,7 @@ const Reports = () => {
         </div>
 
         <div className="min-w-[140px]">
-          <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">De</label>
+          <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Data início</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className="w-full justify-start text-left font-normal bg-secondary border-border text-sm">
@@ -258,8 +258,18 @@ const Reports = () => {
           </Popover>
         </div>
 
+        <div className="min-w-[80px]">
+          <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Hora início</label>
+          <Input
+            type="time"
+            value={timeFrom}
+            onChange={e => setTimeFrom(e.target.value)}
+            className="bg-secondary border-border text-sm h-10"
+          />
+        </div>
+
         <div className="min-w-[140px]">
-          <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Até</label>
+          <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Data fim</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className="w-full justify-start text-left font-normal bg-secondary border-border text-sm">
@@ -273,7 +283,17 @@ const Reports = () => {
           </Popover>
         </div>
 
-        {loading && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
+        <div className="min-w-[80px]">
+          <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Hora fim</label>
+          <Input
+            type="time"
+            value={timeTo}
+            onChange={e => setTimeTo(e.target.value)}
+            className="bg-secondary border-border text-sm h-10"
+          />
+        </div>
+
+        {loading && <Loader2 className="h-5 w-5 animate-spin text-primary self-center" />}
       </div>
 
       {/* Content */}
