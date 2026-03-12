@@ -274,8 +274,8 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
   const stopNativeTracking = useCallback(async () => {
     if (bgWatcherRef.current != null) {
       try {
-        const bgModule = await import('@capacitor-community/background-geolocation') as any;
-        const BackgroundGeolocation = bgModule.BackgroundGeolocation || bgModule.default;
+        const BackgroundGeolocation = (window as any).Capacitor?.Plugins?.BackgroundGeolocation;
+        if (BackgroundGeolocation) {
         await BackgroundGeolocation.removeWatcher({ id: bgWatcherRef.current });
         bgWatcherRef.current = null;
       } catch (err) {
