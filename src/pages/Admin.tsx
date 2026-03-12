@@ -199,7 +199,7 @@ const Admin = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       toast.success(`${selectedRole === 'patroller' ? 'Patrulheiro' : 'Operador'} criado com sucesso!`);
-      setDialogOpen(false);
+      logActivity({ action: 'create', entityType: 'user', entityName: name || email, details: { role: selectedRole, email } });
       resetForm();
       fetchUsers();
     } catch (err: any) {
