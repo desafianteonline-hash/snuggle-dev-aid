@@ -13,7 +13,7 @@ export async function logActivity({ action, entityType, entityId, entityName, de
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    await supabase.from('activity_logs').insert({
+    await supabase.from('activity_logs' as any).insert({
       user_id: user.id,
       user_email: user.email || null,
       action,
@@ -21,7 +21,7 @@ export async function logActivity({ action, entityType, entityId, entityName, de
       entity_id: entityId || null,
       entity_name: entityName || null,
       details: details || {},
-    });
+    } as any);
   } catch (err) {
     console.error('Failed to log activity:', err);
   }
