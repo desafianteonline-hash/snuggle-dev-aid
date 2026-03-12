@@ -20,6 +20,7 @@ import {
   Settings, Upload, Image, Palette, MapPin, AlertTriangle, FileText, Gauge, Clock,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { logActivity } from '@/hooks/useActivityLog';
 import { motion } from 'framer-motion';
 import {
