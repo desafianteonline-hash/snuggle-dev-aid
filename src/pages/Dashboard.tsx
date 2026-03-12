@@ -18,6 +18,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logActivity } from '@/hooks/useActivityLog';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -67,16 +68,20 @@ const Dashboard = () => {
     setPendingGeofenceLocation(null);
     setGeofenceAddMode(false);
     toast({ title: '✅ Cerca criada', description: `"${name}" adicionada com sucesso` });
+    logActivity({ action: 'create', entityType: 'geofence', entityName: name, details: { lat: pendingGeofenceLocation.lat, lng: pendingGeofenceLocation.lng, radius } });
   }, [pendingGeofenceLocation, user, addGeofence, toast]);
 
   const handleGeofenceDelete = useCallback(async (id: string) => {
+    const geofence = geofences.find(g => g.id === id);
     await removeGeofence(id);
     toast({ title: 'Cerca removida' });
+    logActivity({ action: 'delete', entityType: 'geofence', entityId: id, entityName: geofence?.name });
   }, [removeGeofence, toast]);
 
   const handleGeofenceUpdate = useCallback(async (id: string, updates: Partial<Geofence>) => {
     await updateGeofence(id, updates);
     toast({ title: 'Cerca atualizada' });
+    logActivity({ action: 'update', entityType: 'geofence', entityId: id, details: updates as Record<string, unknown> });
   }, [updateGeofence, toast]);
 
   const toggleTvMode = useCallback(() => {

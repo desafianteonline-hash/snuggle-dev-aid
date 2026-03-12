@@ -17,9 +17,10 @@ const formatPhone = (value: string) => {
 };
 import {
   Shield, LogOut, UserPlus, Trash2, Users, Eye, EyeOff, Pencil, X, Check, Phone, Car,
-  Settings, Upload, Image, Palette, MapPin, AlertTriangle,
+  Settings, Upload, Image, Palette, MapPin, AlertTriangle, FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { logActivity } from '@/hooks/useActivityLog';
 import { motion } from 'framer-motion';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription,
@@ -198,7 +199,7 @@ const Admin = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       toast.success(`${selectedRole === 'patroller' ? 'Patrulheiro' : 'Operador'} criado com sucesso!`);
-      setDialogOpen(false);
+      logActivity({ action: 'create', entityType: 'user', entityName: name || email, details: { role: selectedRole, email } });
       resetForm();
       fetchUsers();
     } catch (err: any) {
@@ -216,7 +217,7 @@ const Admin = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       toast.success('Usuário removido com sucesso');
-      fetchUsers();
+      logActivity({ action: 'delete', entityType: 'user', entityId: userId, entityName: users.find(u => u.id === userId)?.email });
     } catch (err: any) {
       toast.error('Erro ao remover: ' + (err?.message || 'Erro inesperado'));
     }
@@ -251,6 +252,7 @@ const Admin = () => {
       if (profileErr) throw profileErr;
 
       toast.success('Usuário atualizado');
+      logActivity({ action: 'update', entityType: 'user', entityId: u.id, entityName: editName.trim(), details: { phone: editPhone } });
       setEditingId(null);
       fetchUsers();
     } catch (err: any) {
@@ -279,7 +281,7 @@ const Admin = () => {
         .eq('id', settings.id);
       if (error) throw error;
       toast.success('Personalização salva!');
-      refetchSettings();
+      logActivity({ action: 'update', entityType: 'branding', entityName: brandName.trim() });
     } catch (err: any) {
       toast.error('Erro ao salvar: ' + (err?.message || 'Erro'));
     }
@@ -362,7 +364,7 @@ const Admin = () => {
         .eq('id', settings.id);
       if (error) throw error;
       toast.success('Tema salvo! Recarregando...');
-      refetchSettings();
+      logActivity({ action: 'update', entityType: 'theme', entityName: selectedPreset });
     } catch (err: any) {
       toast.error('Erro ao salvar tema: ' + (err?.message || 'Erro'));
     }
@@ -398,7 +400,7 @@ const Admin = () => {
         .eq('id', settings.id);
       if (error) throw error;
       toast.success('Localização da empresa salva!');
-      refetchSettings();
+      logActivity({ action: 'update', entityType: 'location', details: { lat: companyLat, lng: companyLng, address: companyAddress } });
     } catch (err: any) {
       toast.error('Erro ao salvar: ' + (err?.message || 'Erro'));
     }
@@ -418,6 +420,9 @@ const Admin = () => {
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={() => window.location.href = '/dashboard'} className="text-xs">
             Ver Mapa
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => window.location.href = '/activity-log'} className="text-xs gap-1">
+            <FileText className="h-3 w-3" /> Log de Atividades
           </Button>
           <Button variant="outline" size="sm" onClick={() => window.open('/install', '_blank')} className="text-xs gap-1">
             <Upload className="h-3 w-3" /> Compartilhar App
