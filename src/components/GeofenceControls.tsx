@@ -265,14 +265,14 @@ export function GeofenceControls({
                 {COLORS.map(c => (
                   <button
                     key={c}
-                    onClick={() => setColor(c)}
+                    onClick={() => onPendingColorChange(c)}
                     style={{
                       width: 28,
                       height: 28,
                       borderRadius: '50%',
                       background: c,
-                      border: c === color ? '3px solid white' : '2px solid transparent',
-                      boxShadow: c === color ? `0 0 0 2px ${c}` : 'none',
+                      border: c === pendingColor ? '3px solid white' : '2px solid transparent',
+                      boxShadow: c === pendingColor ? `0 0 0 2px ${c}` : 'none',
                       cursor: 'pointer',
                     }}
                   />
