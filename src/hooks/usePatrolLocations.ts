@@ -141,6 +141,10 @@ export function usePatrolLocations() {
     // Initial full fetch
     fetchPatrollers();
 
+    // Listen for manual refresh events
+    const handleManualRefresh = () => fetchPatrollers();
+    window.addEventListener('patroller-updated', handleManualRefresh);
+
     // 1. Realtime subscription (primary)
     const channel = supabase
       .channel('patrol-locations-realtime')
@@ -193,10 +197,10 @@ export function usePatrolLocations() {
         console.log('[CODSEG GPS] Realtime status:', status, err);
         if (status === 'SUBSCRIBED') {
           setRealtimeConnected(true);
-          pollIntervalRef.current = 5000; // Relax polling when realtime is active
+          pollIntervalRef.current = 5000;
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
           setRealtimeConnected(false);
-          pollIntervalRef.current = 3000; // Increase polling frequency on realtime failure
+          pollIntervalRef.current = 3000;
           console.warn('[CODSEG GPS] Realtime falhou, polling ativo como fallback');
         }
       });
@@ -206,6 +210,7 @@ export function usePatrolLocations() {
 
     return () => {
       isActiveRef.current = false;
+      window.removeEventListener('patroller-updated', handleManualRefresh);
       if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
       supabase.removeChannel(channel);
     };
