@@ -1175,6 +1175,15 @@ const Admin = () => {
           </Tabs>
         </div>
       </div>
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog(prev => ({ ...prev, open }))}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        variant={confirmDialog.variant}
+        confirmLabel="Salvar"
+        onConfirm={confirmDialog.onConfirm}
+      />
     </div>
   );
 };
