@@ -139,7 +139,7 @@ const GeofenceTimeline = () => {
           </Select>
         </div>
 
-        <div className="min-w-[160px]">
+        <div>
           <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Cerca</label>
           <Select value={filterGeofence} onValueChange={setFilterGeofence}>
             <SelectTrigger className="bg-secondary border-border text-sm">
