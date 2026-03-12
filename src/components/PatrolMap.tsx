@@ -153,6 +153,12 @@ const PatrolMap = ({ patrollers, selectedId, onSelect, route = [], flyTo = null,
       <MapLayerControl />
       <FitBounds patrollers={patrollers} />
       <FlyToHandler flyTo={flyTo} />
+      <GeofenceLayer
+        geofences={geofences}
+        onDelete={onGeofenceDelete}
+        onMapClick={onGeofenceMapClick}
+        addMode={geofenceAddMode}
+      />
 
       {/* Route polyline */}
       {routePositions.length >= 2 && (
