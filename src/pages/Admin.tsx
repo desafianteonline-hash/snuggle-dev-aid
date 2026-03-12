@@ -846,6 +846,46 @@ const Admin = () => {
                 </div>
 
                 <div className="space-y-4">
+                  {/* CEP + Número */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="col-span-1 space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">CEP</Label>
+                      <Input
+                        value={companyCep}
+                        onChange={e => setCompanyCep(formatCep(e.target.value))}
+                        className="bg-secondary border-border"
+                        placeholder="01001-000"
+                        maxLength={9}
+                      />
+                    </div>
+                    <div className="col-span-1 space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Número</Label>
+                      <Input
+                        value={companyNumero}
+                        onChange={e => setCompanyNumero(e.target.value)}
+                        className="bg-secondary border-border"
+                        placeholder="123"
+                      />
+                    </div>
+                    <div className="col-span-1 flex items-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={handleCepSearch}
+                        disabled={searchingCep}
+                      >
+                        {searchingCep ? 'Buscando...' : 'Buscar CEP'}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="relative flex items-center gap-3">
+                    <div className="flex-1 border-t border-border" />
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground">ou preencha manualmente</span>
+                    <div className="flex-1 border-t border-border" />
+                  </div>
+
                   <div className="space-y-2">
                     <Label className="text-xs uppercase tracking-wider text-muted-foreground">Endereço (referência)</Label>
                     <Input
