@@ -108,9 +108,14 @@ const Login = () => {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          Acesso restrito a funcionários autorizados
-        </p>
+        <div className="mt-6 text-center space-y-1">
+          <p className="text-xs text-muted-foreground">
+            Não tem conta? Solicite suas credenciais ao seu supervisor.
+          </p>
+          <p className="text-xs text-muted-foreground/60">
+            Acesso restrito a funcionários autorizados
+          </p>
+        </div>
       </motion.div>
     </div>
   );
