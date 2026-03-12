@@ -99,14 +99,10 @@ function FitRoute({ route }: { route: LocationPoint[] }) {
 
 function FlyToHandler({ flyTo }: { flyTo: { lat: number; lng: number } | null }) {
   const map = useMap();
-  const lastRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!flyTo) return;
-    const key = `${flyTo.lat},${flyTo.lng}`;
-    if (lastRef.current === key) return;
-    lastRef.current = key;
-    map.flyTo([flyTo.lat, flyTo.lng], 16, { duration: 1.2 });
+    map.flyTo([flyTo.lat, flyTo.lng], 17, { duration: 1.2 });
   }, [flyTo, map]);
 
   return null;
