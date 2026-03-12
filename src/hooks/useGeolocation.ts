@@ -126,7 +126,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
           lastSentAt: new Date().toISOString(),
           pendingQueue: queueRef.current.length,
         }));
-        console.log(`[PatrolTrack] ${batch.length} localizações enviadas`);
+        console.log(`[CODSEG GPS] ${batch.length} localizações enviadas`);
       }
     } catch (err) {
       console.error('[PatrolTrack] Falha na rede:', err);
