@@ -98,12 +98,14 @@ export function GeofenceControls({
 
   const saveEdit = () => {
     if (!editingId || !editName.trim()) return;
+    setConfirmSaveOpen(true);
+  };
 
-    const confirmed = window.confirm(`Deseja salvar as alterações da cerca "${editName.trim()}"?`);
-    if (!confirmed) return;
-
+  const confirmSaveEdit = () => {
+    if (!editingId) return;
     onUpdate(editingId, { name: editName.trim(), radius_meters: editRadius, color: editColor });
     setEditingId(null);
+    setConfirmSaveOpen(false);
   };
 
   return (
