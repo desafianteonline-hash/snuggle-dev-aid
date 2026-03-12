@@ -44,6 +44,7 @@ const Dashboard = () => {
             </span>
           </div>
           <span className="text-xs text-muted-foreground hidden sm:block">{user?.email}</span>
+          <ThemeToggle />
           <Button variant="ghost" size="icon" onClick={signOut}>
             <LogOut className="h-4 w-4" />
           </Button>
