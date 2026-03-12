@@ -91,6 +91,54 @@ const Admin = () => {
   const [companyLng, setCompanyLng] = useState('');
   const [companyAddress, setCompanyAddress] = useState('');
   const [savingLocation, setSavingLocation] = useState(false);
+  const [companyCep, setCompanyCep] = useState('');
+  const [companyNumero, setCompanyNumero] = useState('');
+  const [searchingCep, setSearchingCep] = useState(false);
+
+  const formatCep = (value: string) => {
+    const digits = value.replace(/\D/g, '').slice(0, 8);
+    if (digits.length <= 5) return digits;
+    return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  };
+
+  const handleCepSearch = async () => {
+    const cepDigits = companyCep.replace(/\D/g, '');
+    if (cepDigits.length !== 8) {
+      toast.error('CEP deve ter 8 dígitos');
+      return;
+    }
+    setSearchingCep(true);
+    try {
+      const viaCepRes = await fetch(`https://viacep.com.br/ws/${cepDigits}/json/`);
+      const viaCepData = await viaCepRes.json();
+      if (viaCepData.erro) {
+        toast.error('CEP não encontrado');
+        setSearchingCep(false);
+        return;
+      }
+      const { logradouro, bairro, localidade, uf } = viaCepData;
+      const numero = companyNumero.trim();
+      const fullAddress = [logradouro, numero, bairro, `${localidade} - ${uf}`].filter(Boolean).join(', ');
+      setCompanyAddress(fullAddress);
+
+      // Geocode via Nominatim
+      const searchQuery = numero && logradouro
+        ? `${logradouro}, ${numero}, ${localidade}, ${uf}, Brazil`
+        : `${logradouro || bairro}, ${localidade}, ${uf}, Brazil`;
+      const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=1&countrycodes=br`);
+      const geoData = await geoRes.json();
+      if (geoData.length > 0) {
+        setCompanyLat(geoData[0].lat);
+        setCompanyLng(geoData[0].lon);
+        toast.success('Endereço encontrado! Coordenadas preenchidas.');
+      } else {
+        toast.warning('Endereço encontrado mas coordenadas não localizadas. Preencha manualmente.');
+      }
+    } catch {
+      toast.error('Erro ao buscar CEP');
+    }
+    setSearchingCep(false);
+  };
 
   // Sync branding form with loaded settings
   useEffect(() => {
@@ -798,6 +846,46 @@ const Admin = () => {
                 </div>
 
                 <div className="space-y-4">
+                  {/* CEP + Número */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="col-span-1 space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">CEP</Label>
+                      <Input
+                        value={companyCep}
+                        onChange={e => setCompanyCep(formatCep(e.target.value))}
+                        className="bg-secondary border-border"
+                        placeholder="01001-000"
+                        maxLength={9}
+                      />
+                    </div>
+                    <div className="col-span-1 space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Número</Label>
+                      <Input
+                        value={companyNumero}
+                        onChange={e => setCompanyNumero(e.target.value)}
+                        className="bg-secondary border-border"
+                        placeholder="123"
+                      />
+                    </div>
+                    <div className="col-span-1 flex items-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={handleCepSearch}
+                        disabled={searchingCep}
+                      >
+                        {searchingCep ? 'Buscando...' : 'Buscar CEP'}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="relative flex items-center gap-3">
+                    <div className="flex-1 border-t border-border" />
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground">ou preencha manualmente</span>
+                    <div className="flex-1 border-t border-border" />
+                  </div>
+
                   <div className="space-y-2">
                     <Label className="text-xs uppercase tracking-wider text-muted-foreground">Endereço (referência)</Label>
                     <Input
