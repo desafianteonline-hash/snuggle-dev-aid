@@ -234,6 +234,7 @@ const Admin = () => {
       if (data?.error) throw new Error(data.error);
       toast.success('Usuário removido com sucesso');
       logActivity({ action: 'delete', entityType: 'user', entityId: userId, entityName: users.find(u => u.id === userId)?.email });
+      fetchUsers();
     } catch (err: any) {
       toast.error('Erro ao remover: ' + (err?.message || 'Erro inesperado'));
     }
