@@ -137,9 +137,29 @@ export function GeofenceLayer({ geofences, onDelete, onMapClick, addMode, pendin
               <p style={{ fontSize: 11, opacity: 0.7, margin: 0 }}>
                 Raio: {g.radius_meters}m
               </p>
-              {onDelete && (
+              {onDelete && confirmDeleteId === g.id ? (
+                <div style={{ marginTop: 8 }}>
+                  <p style={{ fontSize: 11, color: '#ef4444', fontWeight: 600, margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <AlertTriangle size={12} /> Confirmar exclusão?
+                  </p>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button
+                      onClick={() => { onDelete(g.id); setConfirmDeleteId(null); }}
+                      style={{ fontSize: 11, color: '#fff', background: '#ef4444', border: 'none', borderRadius: 4, padding: '3px 10px', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      Sim, excluir
+                    </button>
+                    <button
+                      onClick={() => setConfirmDeleteId(null)}
+                      style={{ fontSize: 11, color: '#666', background: '#e5e7eb', border: 'none', borderRadius: 4, padding: '3px 10px', cursor: 'pointer' }}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : onDelete && (
                 <button
-                  onClick={() => onDelete(g.id)}
+                  onClick={() => setConfirmDeleteId(g.id)}
                   style={{
                     marginTop: 8,
                     display: 'flex',
