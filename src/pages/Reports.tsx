@@ -190,7 +190,7 @@ const Reports = () => {
 
     // Top speed offenders (above 60 km/h)
     const speedAlerts = perPatroller
-      .filter(p => p.maxSpeed > 60)
+      .filter(p => p.maxSpeed > speedLimit)
       .sort((a, b) => b.maxSpeed - a.maxSpeed);
 
     return {
