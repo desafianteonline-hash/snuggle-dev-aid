@@ -62,6 +62,7 @@ function createPinIcon(color: string) {
 
 export function GeofenceLayer({ geofences, onDelete, onMapClick, addMode, pendingLocation, pendingRadius = 200, pendingColor = '#3b82f6', onPendingLocationChange }: GeofenceLayerProps) {
   const [hoverPos, setHoverPos] = useState<{ lat: number; lng: number } | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const pinIcon = useMemo(() => createPinIcon(pendingColor), [pendingColor]);
 
