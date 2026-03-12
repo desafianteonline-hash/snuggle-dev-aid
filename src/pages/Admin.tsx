@@ -33,6 +33,7 @@ interface UserRecord {
   patroller_name: string | null;
   phone: string | null;
   vehicle_plate: string | null;
+  profile_name: string | null;
 }
 
 const Admin = () => {
