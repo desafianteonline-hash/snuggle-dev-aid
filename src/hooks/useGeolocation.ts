@@ -42,6 +42,8 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     error: null,
     lastSentAt: null,
     pendingQueue: 0,
+    motionSpeed: null,
+    isMoving: false,
   });
 
   const watchId = useRef<number | null>(null);
@@ -54,6 +56,8 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
   const isSending = useRef(false);
   const wakeLockRef = useRef<any>(null);
   const shouldTrack = useRef(false);
+  const velocityRef = useRef<number>(0);
+  const lastMotionTime = useRef<number>(0);
 
   // Persist queue to localStorage for survival across page refreshes
   const persistQueue = useCallback(() => {
