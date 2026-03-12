@@ -78,6 +78,7 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
   const [newPointLat, setNewPointLat] = useState('');
   const [newPointLng, setNewPointLng] = useState('');
   const [newPointCep, setNewPointCep] = useState('');
+  const [newPointNumber, setNewPointNumber] = useState('');
   const [cepAddress, setCepAddress] = useState('');
   const [loadingCep, setLoadingCep] = useState(false);
   const [savingPoint, setSavingPoint] = useState(false);
@@ -116,13 +117,16 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
     [watchPoints, onlinePatrollers]
   );
 
+  const cepDataRef = { current: null as any };
+
   const handleCepLookup = async (cep: string) => {
     const cleaned = cep.replace(/\D/g, '');
     if (cleaned.length !== 8) return;
     setLoadingCep(true);
     setCepAddress('');
+    setNewPointLat('');
+    setNewPointLng('');
     try {
-      // 1. Fetch address from ViaCEP
       const viaRes = await fetch(`https://viacep.com.br/ws/${cleaned}/json/`);
       const viaData = await viaRes.json();
       if (viaData.erro) {
@@ -130,14 +134,26 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
         setLoadingCep(false);
         return;
       }
+      cepDataRef.current = viaData;
       const addr = `${viaData.logradouro || ''}, ${viaData.bairro || ''}, ${viaData.localidade} - ${viaData.uf}`;
       setCepAddress(addr);
       if (!newPointName.trim()) {
         setNewPointName(`${viaData.bairro || viaData.localidade}`);
       }
+      // Geocode with number if available
+      await geocodeAddress(viaData, newPointNumber);
+    } catch {
+      toast({ title: 'Erro ao buscar CEP', variant: 'destructive' });
+    }
+    setLoadingCep(false);
+  };
 
-      // 2. Geocode via Nominatim
-      const query = encodeURIComponent(`${viaData.logradouro || ''}, ${viaData.bairro || ''}, ${viaData.localidade}, ${viaData.uf}, Brazil`);
+  const geocodeAddress = async (viaData: any, number: string) => {
+    if (!viaData) return;
+    const street = viaData.logradouro || '';
+    const numberPart = number ? `, ${number}` : '';
+    const query = encodeURIComponent(`${street}${numberPart}, ${viaData.bairro || ''}, ${viaData.localidade}, ${viaData.uf}, Brazil`);
+    try {
       const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`, {
         headers: { 'User-Agent': 'PatrolTrack/1.0' },
       });
@@ -146,12 +162,17 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
         setNewPointLat(geoData[0].lat);
         setNewPointLng(geoData[0].lon);
       } else {
-        toast({ title: 'Coordenadas não encontradas para este CEP', description: 'Preencha latitude/longitude manualmente', variant: 'destructive' });
+        toast({ title: 'Coordenadas não encontradas', description: 'Verifique o endereço ou preencha manualmente', variant: 'destructive' });
       }
     } catch {
-      toast({ title: 'Erro ao buscar CEP', variant: 'destructive' });
+      toast({ title: 'Erro ao geocodificar', variant: 'destructive' });
     }
-    setLoadingCep(false);
+  };
+
+  const handleNumberBlur = () => {
+    if (cepDataRef.current && newPointNumber.trim()) {
+      geocodeAddress(cepDataRef.current, newPointNumber);
+    }
   };
 
   const handleAddPoint = async () => {
@@ -172,6 +193,7 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
       setNewPointLat('');
       setNewPointLng('');
       setNewPointCep('');
+      setNewPointNumber('');
       setCepAddress('');
     }
     setSavingPoint(false);
@@ -610,11 +632,18 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
                       className="h-8 text-xs flex-1"
                       maxLength={9}
                     />
+                    <Input
+                      placeholder="Nº"
+                      value={newPointNumber}
+                      onChange={e => setNewPointNumber(e.target.value)}
+                      onBlur={handleNumberBlur}
+                      className="h-8 text-xs w-20"
+                    />
                     {loadingCep && <div className="flex items-center"><span className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>}
                   </div>
                   {cepAddress && (
                     <div className="rounded-lg bg-secondary/50 p-2 text-[10px] text-muted-foreground">
-                      📍 {cepAddress}
+                      📍 {cepAddress}{newPointNumber ? `, ${newPointNumber}` : ''}
                     </div>
                   )}
                 </div>
