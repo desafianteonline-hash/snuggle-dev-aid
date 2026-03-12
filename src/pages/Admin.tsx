@@ -281,7 +281,7 @@ const Admin = () => {
         .eq('id', settings.id);
       if (error) throw error;
       toast.success('Personalização salva!');
-      refetchSettings();
+      logActivity({ action: 'update', entityType: 'branding', entityName: brandName.trim() });
     } catch (err: any) {
       toast.error('Erro ao salvar: ' + (err?.message || 'Erro'));
     }
