@@ -337,6 +337,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     }
 
     releaseWakeLock();
+    stopDeviceMotion();
 
     // Send any remaining queued locations
     if (queueRef.current.length > 0) {
