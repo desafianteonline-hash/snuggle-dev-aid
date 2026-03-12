@@ -16,6 +16,10 @@ interface GeofenceControlsProps {
   onCancel: () => void;
   onDelete: (id: string) => void;
   onUpdate: (id: string, updates: Partial<Geofence>) => void;
+  pendingRadius: number;
+  pendingColor: string;
+  onPendingRadiusChange: (r: number) => void;
+  onPendingColorChange: (c: string) => void;
 }
 
 const COLORS = ['#3b82f6', '#22c55e', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899'];
