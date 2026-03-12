@@ -186,7 +186,7 @@ const PatrolMap = ({ patrollers, selectedId, onSelect, route = [], flyTo = null 
                 <p className="font-bold">{p.name}</p>
                 <p className="text-xs opacity-70">{p.vehicle_plate || 'Sem placa'}</p>
                 <p className="text-xs opacity-70">
-                  {(p as any).vehicle_type === 'motorcycle' ? '🏍️ Moto' : '🚗 Carro'}
+                  {p.vehicle_type === 'motorcycle' ? '🏍️ Moto' : '🚗 Carro'}
                 </p>
                 <p className="text-xs opacity-70">
                   {new Date(p.latest_location.recorded_at).toLocaleTimeString('pt-BR')}

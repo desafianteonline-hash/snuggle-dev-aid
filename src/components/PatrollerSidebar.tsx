@@ -227,7 +227,7 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
                       </Button>
                       <Button
                         size="sm"
-                        variant={(p as any).vehicle_type === 'motorcycle' ? 'default' : 'outline'}
+                        variant={p.vehicle_type === 'motorcycle' ? 'default' : 'outline'}
                         className="h-7 text-xs gap-1.5"
                         onClick={(e) => { e.stopPropagation(); handleVehicleTypeChange(p.id, 'motorcycle'); }}
                       >
