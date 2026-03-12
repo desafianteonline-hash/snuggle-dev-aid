@@ -482,7 +482,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
   }, [stopTracking]);
 
   const forceImmediateSend = useCallback(() => {
-    console.log('[PatrolTrack] Envio imediato solicitado');
+    console.log('[CODSEG GPS] Envio imediato solicitado');
     if (isNative) {
       // On native, the last state values are the current position
       if (state.latitude && state.longitude) {

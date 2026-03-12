@@ -197,7 +197,7 @@ export function usePatrolLocations() {
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
           setRealtimeConnected(false);
           pollIntervalRef.current = 3000; // Increase polling frequency on realtime failure
-          console.warn('[PatrolTrack] Realtime falhou, polling ativo como fallback');
+          console.warn('[CODSEG GPS] Realtime falhou, polling ativo como fallback');
         }
       });
 

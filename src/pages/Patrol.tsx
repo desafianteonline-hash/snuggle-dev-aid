@@ -41,7 +41,7 @@ const Patrol = () => {
     const channel = supabase.channel('force-location-update');
     channel
       .on('broadcast', { event: 'request_location' }, () => {
-        console.log('[PatrolTrack] Solicitação de atualização recebida do operador');
+        console.log('[CODSEG GPS] Solicitação de atualização recebida do operador');
         // Force immediate location send
         if (geo.tracking && patrollerId) {
           geo.forceImmediateSend?.();
