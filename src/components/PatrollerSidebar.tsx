@@ -140,10 +140,6 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo, companyLo
             <span className="h-2 w-2 rounded-full bg-[hsl(var(--status-online))]" />
             {online} online
           </button>
-          <button onClick={() => setStatusFilter(statusFilter === 'on_call' ? 'all' : 'on_call')} className={cn("flex items-center gap-1 rounded px-1.5 py-0.5 transition-colors", statusFilter === 'on_call' && 'bg-primary/20')}>
-            <span className="h-2 w-2 rounded-full bg-[hsl(var(--status-on-call))]" />
-            {onCall} em ocorrência
-          </button>
           <button onClick={() => setStatusFilter(statusFilter === 'offline' ? 'all' : 'offline')} className={cn("flex items-center gap-1 rounded px-1.5 py-0.5 transition-colors", statusFilter === 'offline' && 'bg-primary/20')}>
             <span className="h-2 w-2 rounded-full bg-[hsl(var(--status-offline))]" />
             {offline} offline
