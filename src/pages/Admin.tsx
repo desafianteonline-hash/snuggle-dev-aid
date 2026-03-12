@@ -243,6 +243,10 @@ const Admin = () => {
   };
 
   const handleSaveEdit = async (u: UserRecord) => {
+    const targetName = editName.trim() || u.profile_name || u.patroller_name || u.email;
+    const confirmed = window.confirm(`Deseja salvar as alterações de ${targetName}?`);
+    if (!confirmed) return;
+
     setSaving(true);
     try {
       if (u.role === 'patroller' && u.patroller_id) {
@@ -280,6 +284,9 @@ const Admin = () => {
   // --- Branding handlers ---
   const handleSaveBranding = async () => {
     if (!settings.id) return;
+    const confirmed = window.confirm('Deseja salvar as alterações de personalização da plataforma?');
+    if (!confirmed) return;
+
     setSavingBrand(true);
     try {
       const { error } = await supabase
@@ -361,6 +368,9 @@ const Admin = () => {
 
   const handleSaveTheme = async () => {
     if (!settings.id) return;
+    const confirmed = window.confirm('Deseja aplicar e salvar este tema?');
+    if (!confirmed) return;
+
     setSavingTheme(true);
     try {
       const { error } = await supabase
@@ -387,6 +397,9 @@ const Admin = () => {
 
   const handleSaveLocation = async () => {
     if (!settings.id) return;
+    const confirmed = window.confirm('Deseja salvar a localização da empresa?');
+    if (!confirmed) return;
+
     setSavingLocation(true);
     try {
       const lat = companyLat.trim() ? parseFloat(companyLat) : null;
@@ -420,6 +433,9 @@ const Admin = () => {
 
   const handleSaveOperational = async () => {
     if (!settings.id) return;
+    const confirmed = window.confirm('Deseja salvar as configurações operacionais?');
+    if (!confirmed) return;
+
     setSavingOperational(true);
     try {
       const { error } = await supabase
