@@ -17,9 +17,10 @@ const formatPhone = (value: string) => {
 };
 import {
   Shield, LogOut, UserPlus, Trash2, Users, Eye, EyeOff, Pencil, X, Check, Phone, Car,
-  Settings, Upload, Image, Palette, MapPin, AlertTriangle,
+  Settings, Upload, Image, Palette, MapPin, AlertTriangle, FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { logActivity } from '@/hooks/useActivityLog';
 import { motion } from 'framer-motion';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription,
