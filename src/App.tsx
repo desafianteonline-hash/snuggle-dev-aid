@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Patrol from "./pages/Patrol";
 import Admin from "./pages/Admin";
 import Install from "./pages/Install";
+import RouteHistory from "./pages/RouteHistory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/patrol" element={<Patrol />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/history" element={<RouteHistory />} />
             <Route path="/install" element={<Install />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
