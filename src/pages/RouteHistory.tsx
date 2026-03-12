@@ -7,14 +7,17 @@ import PlatformBrand from '@/components/PlatformBrand';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { MapContainer, TileLayer, Polyline, CircleMarker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { ArrowLeft, Calendar, Clock, Gauge, Navigation, Route, MapPin, Loader2, Download, FileText } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { format } from 'date-fns';
+import { format, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 type Patroller = Tables<'patrollers'>;
 type LocationPoint = Tables<'patrol_locations'>;
@@ -109,7 +112,8 @@ const RouteHistory = () => {
   const { user } = useAuth();
   const [patrollers, setPatrollers] = useState<Patroller[]>([]);
   const [selectedPatroller, setSelectedPatroller] = useState<string>('');
-  const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
+  const [dateFrom, setDateFrom] = useState<Date>(startOfDay(new Date()));
+  const [dateTo, setDateTo] = useState<Date>(endOfDay(new Date()));
   const [locations, setLocations] = useState<LocationPoint[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingPatrollers, setLoadingPatrollers] = useState(true);
@@ -124,29 +128,26 @@ const RouteHistory = () => {
     fetch();
   }, []);
 
-  // Fetch route for selected patroller + date
+  // Fetch route for selected patroller + date range
   const fetchRoute = useCallback(async () => {
-    if (!selectedPatroller || !selectedDate) {
+    if (!selectedPatroller) {
       setLocations([]);
       return;
     }
     setLoading(true);
 
-    const startOfDay = new Date(`${selectedDate}T00:00:00`);
-    const endOfDay = new Date(`${selectedDate}T23:59:59`);
-
     const { data } = await supabase
       .from('patrol_locations')
       .select('*')
       .eq('patroller_id', selectedPatroller)
-      .gte('recorded_at', startOfDay.toISOString())
-      .lte('recorded_at', endOfDay.toISOString())
+      .gte('recorded_at', startOfDay(dateFrom).toISOString())
+      .lte('recorded_at', endOfDay(dateTo).toISOString())
       .order('recorded_at', { ascending: true })
       .limit(1000);
 
     setLocations(data || []);
     setLoading(false);
-  }, [selectedPatroller, selectedDate]);
+  }, [selectedPatroller, dateFrom, dateTo]);
 
   useEffect(() => {
     fetchRoute();
@@ -159,20 +160,9 @@ const RouteHistory = () => {
 
   const patrollerObj = patrollers.find(p => p.id === selectedPatroller);
   const patrollerName = patrollerObj?.name || '';
-
-  // Generate last 30 days for date options
-  const dateOptions = useMemo(() => {
-    const dates: { value: string; label: string }[] = [];
-    for (let i = 0; i < 30; i++) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      dates.push({
-        value: format(d, 'yyyy-MM-dd'),
-        label: i === 0 ? 'Hoje' : i === 1 ? 'Ontem' : format(d, "dd 'de' MMMM", { locale: ptBR }),
-      });
-    }
-    return dates;
-  }, []);
+  const dateLabel = format(dateFrom, 'dd/MM/yyyy') === format(dateTo, 'dd/MM/yyyy')
+    ? format(dateFrom, 'dd/MM/yyyy')
+    : `${format(dateFrom, 'dd/MM/yyyy')} - ${format(dateTo, 'dd/MM/yyyy')}`;
 
   // --- Export CSV ---
   const exportCSV = useCallback(() => {
@@ -185,10 +175,10 @@ const RouteHistory = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `rota_${patrollerName}_${selectedDate}.csv`;
+    a.download = `rota_${patrollerName}_${dateLabel}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [locations, patrollerName, selectedDate]);
+  }, [locations, patrollerName, dateLabel]);
 
   // --- Export PDF (HTML-based print) ---
   const exportPDF = useCallback(() => {
@@ -236,7 +226,7 @@ const RouteHistory = () => {
       <div class="info">
         <div class="info-card"><div class="label">Patrulheiro</div><div class="value">${patrollerName}</div></div>
         <div class="info-card"><div class="label">Placa</div><div class="value">${patrollerObj?.vehicle_plate || '—'}</div></div>
-        <div class="info-card"><div class="label">Data</div><div class="value">${format(new Date(selectedDate), 'dd/MM/yyyy')}</div></div>
+        <div class="info-card"><div class="label">Período</div><div class="value">${dateLabel}</div></div>
         <div class="info-card"><div class="label">Início</div><div class="value">${startTime}</div></div>
         <div class="info-card"><div class="label">Fim</div><div class="value">${endTime}</div></div>
         <div class="info-card"><div class="label">Duração</div><div class="value">${hours}h ${minutes}min</div></div>
@@ -265,7 +255,7 @@ const RouteHistory = () => {
     `);
     printWindow.document.close();
     setTimeout(() => printWindow.print(), 500);
-  }, [locations, patrollerName, patrollerObj, selectedDate]);
+  }, [locations, patrollerName, patrollerObj, dateLabel]);
 
   return (
     <div className="flex h-screen flex-col bg-background">
@@ -299,20 +289,48 @@ const RouteHistory = () => {
           </Select>
         </div>
 
-        <div className="min-w-[160px]">
-          <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Data</label>
-          <Select value={selectedDate} onValueChange={setSelectedDate}>
-            <SelectTrigger className="bg-secondary border-border">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {dateOptions.map(d => (
-                <SelectItem key={d.value} value={d.value}>
-                  {d.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="min-w-[140px]">
+          <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">De</label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-full justify-start text-left font-normal bg-secondary border-border text-sm", !dateFrom && "text-muted-foreground")}>
+                <Calendar className="mr-2 h-3.5 w-3.5" />
+                {format(dateFrom, 'dd/MM/yyyy')}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComponent
+                mode="single"
+                selected={dateFrom}
+                onSelect={(d) => d && setDateFrom(startOfDay(d))}
+                disabled={(d) => d > new Date()}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div className="min-w-[140px]">
+          <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Até</label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-full justify-start text-left font-normal bg-secondary border-border text-sm", !dateTo && "text-muted-foreground")}>
+                <Calendar className="mr-2 h-3.5 w-3.5" />
+                {format(dateTo, 'dd/MM/yyyy')}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComponent
+                mode="single"
+                selected={dateTo}
+                onSelect={(d) => d && setDateTo(endOfDay(d))}
+                disabled={(d) => d > new Date() || d < dateFrom}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
         {loading && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
