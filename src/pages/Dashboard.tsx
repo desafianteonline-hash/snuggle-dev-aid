@@ -158,9 +158,8 @@ const Dashboard = () => {
               onDelete={handleGeofenceDelete}
               onUpdate={handleGeofenceUpdate}
             />
-            <Button variant="outline" size="sm" onClick={() => navigate('/install')} className="gap-1.5">
+            <Button variant="outline" size="icon" onClick={() => navigate('/install')} title="Compartilhar App">
               <Share2 className="h-3.5 w-3.5" />
-              Compartilhar App
             </Button>
           </div>
 
