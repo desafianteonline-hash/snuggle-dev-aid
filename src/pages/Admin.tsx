@@ -103,6 +103,9 @@ const Admin = () => {
       setCustomBackground(settings.background_color || '220 20% 7%');
       setCustomCard(settings.card_color || '220 18% 10%');
       setCustomAccent(settings.accent_color || '142 50% 30%');
+      setCompanyLat(settings.company_latitude != null ? String(settings.company_latitude) : '');
+      setCompanyLng(settings.company_longitude != null ? String(settings.company_longitude) : '');
+      setCompanyAddress(settings.company_address || '');
     }
   }, [settings]);
 
