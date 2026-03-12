@@ -17,13 +17,11 @@ import {
 const statusLabels: Record<string, string> = {
   online: 'Online',
   offline: 'Offline',
-  on_call: 'Em Ocorrência',
 };
 
 const statusClasses: Record<string, string> = {
   online: 'bg-[hsl(var(--status-online))]',
   offline: 'bg-[hsl(var(--status-offline))]',
-  on_call: 'bg-[hsl(var(--status-on-call))]',
 };
 
 const vehicleIcons: Record<string, typeof Car> = {
@@ -31,7 +29,7 @@ const vehicleIcons: Record<string, typeof Car> = {
   motorcycle: Bike,
 };
 
-type StatusFilter = 'all' | 'online' | 'offline' | 'on_call';
+type StatusFilter = 'all' | 'online' | 'offline';
 
 interface Props {
   patrollers: PatrollerWithLocation[];
@@ -73,7 +71,6 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo, companyLo
   const { toast } = useToast();
 
   const online = patrollers.filter(p => p.status === 'online').length;
-  const onCall = patrollers.filter(p => p.status === 'on_call').length;
   const offline = patrollers.filter(p => p.status === 'offline').length;
 
   const filtered = patrollers
@@ -83,8 +80,8 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo, companyLo
       return true;
     })
     .sort((a, b) => {
-      const order: Record<string, number> = { on_call: 0, online: 1, offline: 2 };
-      return (order[a.status] ?? 3) - (order[b.status] ?? 3);
+      const order: Record<string, number> = { online: 0, offline: 1 };
+      return (order[a.status] ?? 2) - (order[b.status] ?? 2);
     });
 
   // Calculate nearest patroller to company
@@ -142,10 +139,6 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo, companyLo
           <button onClick={() => setStatusFilter(statusFilter === 'online' ? 'all' : 'online')} className={cn("flex items-center gap-1 rounded px-1.5 py-0.5 transition-colors", statusFilter === 'online' && 'bg-primary/20')}>
             <span className="h-2 w-2 rounded-full bg-[hsl(var(--status-online))]" />
             {online} online
-          </button>
-          <button onClick={() => setStatusFilter(statusFilter === 'on_call' ? 'all' : 'on_call')} className={cn("flex items-center gap-1 rounded px-1.5 py-0.5 transition-colors", statusFilter === 'on_call' && 'bg-primary/20')}>
-            <span className="h-2 w-2 rounded-full bg-[hsl(var(--status-on-call))]" />
-            {onCall} em ocorrência
           </button>
           <button onClick={() => setStatusFilter(statusFilter === 'offline' ? 'all' : 'offline')} className={cn("flex items-center gap-1 rounded px-1.5 py-0.5 transition-colors", statusFilter === 'offline' && 'bg-primary/20')}>
             <span className="h-2 w-2 rounded-full bg-[hsl(var(--status-offline))]" />
