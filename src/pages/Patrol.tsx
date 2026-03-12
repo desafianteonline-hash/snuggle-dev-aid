@@ -36,6 +36,24 @@ const Patrol = () => {
     fetchPatroller();
   }, [user]);
 
+  // Listen for force-refresh broadcast from operator
+  useEffect(() => {
+    const channel = supabase.channel('force-location-update');
+    channel
+      .on('broadcast', { event: 'request_location' }, () => {
+        console.log('[PatrolTrack] Solicitação de atualização recebida do operador');
+        // Force immediate location send
+        if (geo.tracking && patrollerId) {
+          geo.forceImmediateSend?.();
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [geo.tracking, patrollerId]);
+
   // Auto-start tracking when consent is given and patrollerId is available
   useEffect(() => {
     if (consentGiven && patrollerId && !geo.tracking) {

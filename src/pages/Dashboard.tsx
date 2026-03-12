@@ -5,11 +5,13 @@ import { useRouteHistory } from '@/hooks/useRouteHistory';
 import PatrolMap from '@/components/PatrolMap';
 import PatrollerSidebar from '@/components/PatrollerSidebar';
 import PlatformBrand from '@/components/PlatformBrand';
-import { Shield, LogOut, Menu, X, Wifi, WifiOff } from 'lucide-react';
+import { Shield, LogOut, Menu, X, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
@@ -19,6 +21,25 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number } | null>(null);
   const isMobile = useIsMobile();
+  const { toast } = useToast();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleForceRefresh = useCallback(async () => {
+    setRefreshing(true);
+    const channel = supabase.channel('force-location-update');
+    await channel.subscribe();
+    await channel.send({
+      type: 'broadcast',
+      event: 'request_location',
+      payload: { requested_at: new Date().toISOString() },
+    });
+    supabase.removeChannel(channel);
+    toast({
+      title: 'Solicitação enviada',
+      description: 'Aguardando atualização dos patrulheiros...',
+    });
+    setTimeout(() => setRefreshing(false), 3000);
+  }, [toast]);
 
   const handleFlyTo = useCallback((lat: number, lng: number) => {
     // Force re-trigger by creating a new object each time
@@ -48,6 +69,17 @@ const Dashboard = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleForceRefresh}
+            disabled={refreshing}
+            title="Forçar atualização de localização"
+            className="gap-1.5"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{refreshing ? 'Atualizando...' : 'Atualizar'}</span>
+          </Button>
           <div className="flex items-center gap-1 text-xs" title={realtimeConnected ? 'Conexão em tempo real ativa' : 'Usando polling como fallback'}>
             {realtimeConnected ? (
               <Wifi className="h-3.5 w-3.5 text-[hsl(var(--status-online))]" />
