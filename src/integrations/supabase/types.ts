@@ -96,6 +96,9 @@ export type Database = {
           accent_color: string | null
           background_color: string | null
           card_color: string | null
+          company_address: string | null
+          company_latitude: number | null
+          company_longitude: number | null
           created_at: string
           favicon_url: string | null
           id: string
@@ -111,6 +114,9 @@ export type Database = {
           accent_color?: string | null
           background_color?: string | null
           card_color?: string | null
+          company_address?: string | null
+          company_latitude?: number | null
+          company_longitude?: number | null
           created_at?: string
           favicon_url?: string | null
           id?: string
@@ -126,6 +132,9 @@ export type Database = {
           accent_color?: string | null
           background_color?: string | null
           card_color?: string | null
+          company_address?: string | null
+          company_latitude?: number | null
+          company_longitude?: number | null
           created_at?: string
           favicon_url?: string | null
           id?: string
