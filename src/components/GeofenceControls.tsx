@@ -221,8 +221,11 @@ export function GeofenceControls({
       </Sheet>
 
       {/* Dialog for new geofence after map click */}
-      <Dialog open={!!pendingLocation} onOpenChange={() => onCancel()}>
-        <DialogContent className="sm:max-w-md" style={{ zIndex: 1100 }}>
+      <Dialog open={!!pendingLocation} onOpenChange={() => onCancel()} modal={false}>
+        <DialogContent
+          className="sm:max-w-sm fixed left-4 bottom-4 top-auto translate-x-0 translate-y-0 bg-card/85 backdrop-blur-md border-border/50 shadow-2xl"
+          style={{ zIndex: 1100 }}
+        >
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" />
