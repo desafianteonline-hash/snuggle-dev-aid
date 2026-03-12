@@ -289,24 +289,30 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
   };
 
   const handleSave = async (patrollerId: string) => {
-    const confirmed = window.confirm('Deseja salvar as alterações do patrulheiro?');
-    if (!confirmed) return;
+    setConfirmDialog({
+      open: true,
+      title: 'Salvar alterações',
+      description: 'Deseja salvar as alterações do patrulheiro?',
+      variant: 'default',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        setSaving(true);
+        const { error } = await supabase
+          .from('patrollers')
+          .update({ vehicle_type: editVehicleType })
+          .eq('id', patrollerId);
 
-    setSaving(true);
-    const { error } = await supabase
-      .from('patrollers')
-      .update({ vehicle_type: editVehicleType })
-      .eq('id', patrollerId);
-
-    if (error) {
-      toast({ title: 'Erro ao salvar', description: 'Verifique suas permissões.', variant: 'destructive' });
-    } else {
-      toast({ title: 'Alterações salvas com sucesso!' });
-      // Force immediate UI refresh
-      window.dispatchEvent(new CustomEvent('patroller-updated'));
-      setEditingId(null);
-    }
-    setSaving(false);
+        if (error) {
+          toast({ title: 'Erro ao salvar', description: 'Verifique suas permissões.', variant: 'destructive' });
+        } else {
+          toast({ title: 'Alterações salvas com sucesso!' });
+          window.dispatchEvent(new CustomEvent('patroller-updated'));
+          setEditingId(null);
+        }
+        setSaving(false);
+      },
+    });
+  };
   };
 
   const handleLocate = (p: PatrollerWithLocation) => {
