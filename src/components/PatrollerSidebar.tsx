@@ -723,11 +723,26 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
                 </p>
               )}
 
+              {/* Status feedback */}
+              {saveStatus && (
+                <div className={cn(
+                  "rounded-lg p-2 text-[11px] flex items-center gap-1.5 font-medium",
+                  saveStatus.type === 'success' ? "bg-[hsl(var(--status-online))]/15 text-[hsl(var(--status-online))]" : "bg-destructive/15 text-destructive"
+                )}>
+                  {saveStatus.type === 'success' ? <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" /> : <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />}
+                  {saveStatus.message}
+                </div>
+              )}
+
               <div className="flex gap-2">
                 <Button size="sm" className="flex-1 h-8 text-xs" onClick={handleAddPoint} disabled={savingPoint || loadingCep}>
-                  <Save className="h-3 w-3 mr-1" /> {savingPoint ? 'Salvando...' : 'Salvar'}
+                  {savingPoint ? (
+                    <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Salvando...</>
+                  ) : (
+                    <><Save className="h-3 w-3 mr-1" /> Salvar</>
+                  )}
                 </Button>
-                <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => { setAddingPoint(false); setNewPointCep(''); setCepAddress(''); }}>
+                <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => { setAddingPoint(false); setNewPointCep(''); setCepAddress(''); setSaveStatus(null); }}>
                   <X className="h-3 w-3" />
                 </Button>
               </div>
