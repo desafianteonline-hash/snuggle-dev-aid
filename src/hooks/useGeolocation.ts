@@ -390,7 +390,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
       if (watchdogInterval.current) clearInterval(watchdogInterval.current);
       watchdogInterval.current = setInterval(() => {
         if (shouldTrack.current && Date.now() - lastPositionTime.current > WATCHDOG_INTERVAL_MS) {
-          console.warn('[PatrolTrack] Watchdog: GPS silencioso, reiniciando...');
+          console.warn('[CODSEG GPS] Watchdog: GPS silencioso, reiniciando...');
           startGPSWatch();
         }
       }, WATCHDOG_INTERVAL_MS);
