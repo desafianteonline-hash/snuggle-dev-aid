@@ -167,6 +167,31 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo, companyLo
         </div>
       </div>
 
+      {/* Nearest patroller banner */}
+      {nearestPatroller && (
+        <div
+          className="mx-3 my-2 rounded-lg border border-primary/30 bg-primary/5 p-2.5 cursor-pointer hover:bg-primary/10 transition-colors"
+          onClick={() => {
+            onSelect(nearestPatroller.id);
+            if (nearestPatroller.latest_location && onFlyTo) {
+              onFlyTo(nearestPatroller.latest_location.latitude, nearestPatroller.latest_location.longitude);
+            }
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <Navigation className="h-4 w-4 text-primary flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] uppercase tracking-wider text-primary font-bold">Mais próximo da base</p>
+              <p className="text-xs font-semibold truncate">{nearestPatroller.name}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {formatDistance(nearestPatroller.distance)} • {nearestPatroller.vehicle_plate || 'Sem placa'}
+              </p>
+            </div>
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+          </div>
+        </div>
+      )}
+
       {/* List */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {filtered.map((p, i) => {
