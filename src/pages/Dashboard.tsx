@@ -18,6 +18,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logActivity } from '@/hooks/useActivityLog';
 
 const Dashboard = () => {
   const navigate = useNavigate();
