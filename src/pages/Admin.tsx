@@ -274,7 +274,7 @@ const Admin = () => {
     });
   };
 
-
+  const startEdit = (u: UserRecord) => {
     setEditingId(u.id);
     setEditName(u.role === 'patroller' ? (u.patroller_name || '') : (u.profile_name || ''));
     setEditEmail(u.email || '');
