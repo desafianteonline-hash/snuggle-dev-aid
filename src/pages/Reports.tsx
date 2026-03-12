@@ -42,6 +42,8 @@ const Reports = () => {
     const d = new Date(); d.setDate(d.getDate() - 6); return startOfDay(d);
   });
   const [dateTo, setDateTo] = useState<Date>(endOfDay(new Date()));
+  const [timeFrom, setTimeFrom] = useState('00:00');
+  const [timeTo, setTimeTo] = useState('23:59');
   const [locations, setLocations] = useState<LocationPoint[]>([]);
   const [loading, setLoading] = useState(false);
 
