@@ -96,6 +96,13 @@ const Admin = () => {
   const [companyNumero, setCompanyNumero] = useState('');
   const [searchingCep, setSearchingCep] = useState(false);
 
+  // Operational settings
+  const [maxSpeedLimit, setMaxSpeedLimit] = useState(60);
+  const [patrolInterval, setPatrolInterval] = useState(15);
+  const [idleTimeout, setIdleTimeout] = useState(30);
+  const [minAccuracy, setMinAccuracy] = useState(50);
+  const [savingOperational, setSavingOperational] = useState(false);
+
   const formatCep = (value: string) => {
     const digits = value.replace(/\D/g, '').slice(0, 8);
     if (digits.length <= 5) return digits;
