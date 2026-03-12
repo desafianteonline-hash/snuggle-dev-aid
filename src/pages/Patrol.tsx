@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { supabase } from '@/integrations/supabase/client';
 import { Shield, MapPin, Navigation, Wifi, WifiOff, AlertTriangle } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 
