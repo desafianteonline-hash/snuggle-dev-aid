@@ -447,7 +447,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     if (isNative) return;
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && shouldTrack.current) {
-        console.log('[PatrolTrack] App visível novamente, verificando GPS...');
+        console.log('[CODSEG GPS] App visível novamente, verificando GPS...');
         requestWakeLock();
         if (Date.now() - lastPositionTime.current > 15000) startGPSWatch();
         flushQueue();
