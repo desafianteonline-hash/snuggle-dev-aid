@@ -116,7 +116,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     try {
       const { error } = await supabase.from('patrol_locations').insert(batch);
       if (error) {
-        console.error('[PatrolTrack] Erro ao enviar lote:', error);
+        console.error('[CODSEG GPS] Erro ao enviar lote:', error);
         scheduleRetry();
       } else {
         queueRef.current = queueRef.current.slice(batch.length);
