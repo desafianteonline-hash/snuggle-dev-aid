@@ -6,7 +6,7 @@ import { useRouteHistory } from '@/hooks/useRouteHistory';
 import PatrolMap from '@/components/PatrolMap';
 import PatrollerSidebar from '@/components/PatrollerSidebar';
 import PlatformBrand from '@/components/PlatformBrand';
-import { Shield, LogOut, Menu, X, Wifi, WifiOff, RefreshCw, Share2 } from 'lucide-react';
+import { Shield, LogOut, Menu, X, Wifi, WifiOff, RefreshCw, Share2, Route } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
