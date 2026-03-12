@@ -289,20 +289,48 @@ const RouteHistory = () => {
           </Select>
         </div>
 
-        <div className="min-w-[160px]">
-          <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Data</label>
-          <Select value={selectedDate} onValueChange={setSelectedDate}>
-            <SelectTrigger className="bg-secondary border-border">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {dateOptions.map(d => (
-                <SelectItem key={d.value} value={d.value}>
-                  {d.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="min-w-[140px]">
+          <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">De</label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-full justify-start text-left font-normal bg-secondary border-border text-sm", !dateFrom && "text-muted-foreground")}>
+                <Calendar className="mr-2 h-3.5 w-3.5" />
+                {format(dateFrom, 'dd/MM/yyyy')}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComponent
+                mode="single"
+                selected={dateFrom}
+                onSelect={(d) => d && setDateFrom(startOfDay(d))}
+                disabled={(d) => d > new Date()}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div className="min-w-[140px]">
+          <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Até</label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-full justify-start text-left font-normal bg-secondary border-border text-sm", !dateTo && "text-muted-foreground")}>
+                <Calendar className="mr-2 h-3.5 w-3.5" />
+                {format(dateTo, 'dd/MM/yyyy')}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComponent
+                mode="single"
+                selected={dateTo}
+                onSelect={(d) => d && setDateTo(endOfDay(d))}
+                disabled={(d) => d > new Date() || d < dateFrom}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
         {loading && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
