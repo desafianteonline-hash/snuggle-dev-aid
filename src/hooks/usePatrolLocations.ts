@@ -23,7 +23,7 @@ export function usePatrolLocations() {
         .select('*');
 
       if (error || !patrollersData) {
-        console.error('[PatrolTrack] Erro ao buscar patrulheiros:', error);
+        console.error('[CODSEG GPS] Erro ao buscar patrulheiros:', error);
         return;
       }
 
