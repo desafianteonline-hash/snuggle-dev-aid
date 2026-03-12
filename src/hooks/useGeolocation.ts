@@ -11,6 +11,8 @@ interface GeoState {
   error: string | null;
   lastSentAt: string | null;
   pendingQueue: number;
+  motionSpeed: number | null; // speed estimated from accelerometer
+  isMoving: boolean; // detected via device motion
 }
 
 interface QueuedLocation {
