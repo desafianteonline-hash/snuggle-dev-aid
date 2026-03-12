@@ -16,7 +16,6 @@ L.Icon.Default.mergeOptions({
 const statusColors: Record<string, string> = {
   online: '#22c55e',
   offline: '#6b7280',
-  on_call: '#f59e0b',
 };
 
 const carSvg = (color: string, size: number) => `

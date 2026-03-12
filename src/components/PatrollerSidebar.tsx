@@ -29,7 +29,7 @@ const vehicleIcons: Record<string, typeof Car> = {
   motorcycle: Bike,
 };
 
-type StatusFilter = 'all' | 'online' | 'offline' | 'on_call';
+type StatusFilter = 'all' | 'online' | 'offline';
 
 interface Props {
   patrollers: PatrollerWithLocation[];
