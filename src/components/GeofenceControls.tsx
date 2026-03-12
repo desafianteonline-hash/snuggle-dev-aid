@@ -45,7 +45,7 @@ export function GeofenceControls({
   const [sheetOpen, setSheetOpen] = useState(false);
 
   // Draggable panel state
-  const [dragPos, setDragPos] = useState({ x: 16, y: window.innerHeight - 420 });
+  const [dragPos, setDragPos] = useState({ x: Math.max(0, (window.innerWidth - 340) / 2), y: Math.max(0, (window.innerHeight - 400) / 2) });
   const dragRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const dragOffset = useRef({ x: 0, y: 0 });
