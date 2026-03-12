@@ -30,6 +30,9 @@ const defaultSettings: PlatformSettings = {
   card_color: '220 18% 10%',
   accent_color: '142 50% 30%',
   theme_preset: 'default',
+  company_latitude: null,
+  company_longitude: null,
+  company_address: null,
 };
 
 // Preset themes (dark-mode base colors)
