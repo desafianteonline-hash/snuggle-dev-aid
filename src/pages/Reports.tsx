@@ -37,6 +37,8 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
 const Reports = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { settings } = usePlatformSettings();
+  const speedLimit = settings.max_speed_limit ?? 60;
   const [patrollers, setPatrollers] = useState<Patroller[]>([]);
   const [selectedPatroller, setSelectedPatroller] = useState<string>('all');
   const [dateFrom, setDateFrom] = useState<Date>(() => {
