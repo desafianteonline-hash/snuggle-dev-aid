@@ -313,7 +313,6 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
       },
     });
   };
-  };
 
   const handleLocate = (p: PatrollerWithLocation) => {
     if (p.latest_location && onFlyTo) {
