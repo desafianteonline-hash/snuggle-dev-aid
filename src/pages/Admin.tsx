@@ -664,10 +664,23 @@ const Admin = () => {
                           <Upload className="h-3.5 w-3.5 mr-1.5" />
                           {uploadingLogo ? 'Enviando...' : 'Upload Logo'}
                         </Button>
-                        {settings.logo_url && (
-                          <Button variant="ghost" size="sm" className="text-destructive text-xs" onClick={() => removeBrandingFile('logo')}>
-                            Remover logo
-                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="text-destructive text-xs">
+                                Remover logo
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="bg-card border-border">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Remover Logo</AlertDialogTitle>
+                                <AlertDialogDescription>Tem certeza que deseja remover o logo da plataforma?</AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => removeBrandingFile('logo')} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Remover</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         )}
                       </div>
                     </div>
