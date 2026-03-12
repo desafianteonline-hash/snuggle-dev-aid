@@ -228,27 +228,63 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
                   exit={{ height: 0, opacity: 0 }}
                   className="mx-3 mb-2 p-3 rounded-lg bg-secondary/50 space-y-3"
                 >
-                  {/* Vehicle type selector */}
+                  {/* Header with edit toggle */}
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Detalhes</p>
+                    {editingId !== p.id ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0"
+                        onClick={(e) => { e.stopPropagation(); startEditing(p); }}
+                        title="Editar"
+                      >
+                        <Pencil className="h-3 w-3 text-muted-foreground" />
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0"
+                        onClick={(e) => { e.stopPropagation(); cancelEditing(); }}
+                        title="Cancelar"
+                      >
+                        <X className="h-3 w-3 text-muted-foreground" />
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Vehicle type */}
                   <div>
                     <p className="text-xs text-muted-foreground mb-1.5">Tipo de veículo</p>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant={p.vehicle_type === 'car' || !p.vehicle_type ? 'default' : 'outline'}
-                        className="h-7 text-xs gap-1.5"
-                        onClick={(e) => { e.stopPropagation(); handleVehicleTypeChange(p.id, 'car'); }}
-                      >
-                        <Car className="h-3.5 w-3.5" /> Carro
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={p.vehicle_type === 'motorcycle' ? 'default' : 'outline'}
-                        className="h-7 text-xs gap-1.5"
-                        onClick={(e) => { e.stopPropagation(); handleVehicleTypeChange(p.id, 'motorcycle'); }}
-                      >
-                        <Bike className="h-3.5 w-3.5" /> Moto
-                      </Button>
-                    </div>
+                    {editingId === p.id ? (
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant={editVehicleType === 'car' ? 'default' : 'outline'}
+                          className="h-7 text-xs gap-1.5"
+                          onClick={(e) => { e.stopPropagation(); setEditVehicleType('car'); }}
+                        >
+                          <Car className="h-3.5 w-3.5" /> Carro
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={editVehicleType === 'motorcycle' ? 'default' : 'outline'}
+                          className="h-7 text-xs gap-1.5"
+                          onClick={(e) => { e.stopPropagation(); setEditVehicleType('motorcycle'); }}
+                        >
+                          <Bike className="h-3.5 w-3.5" /> Moto
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 text-xs">
+                        {(p.vehicle_type || 'car') === 'motorcycle' ? (
+                          <><Bike className="h-3.5 w-3.5 text-primary" /> Moto</>
+                        ) : (
+                          <><Car className="h-3.5 w-3.5 text-primary" /> Carro</>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Contact info */}
@@ -274,6 +310,16 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
 
                   {/* Actions */}
                   <div className="flex gap-2">
+                    {editingId === p.id && (
+                      <Button
+                        size="sm"
+                        className="h-7 text-xs gap-1.5 flex-1"
+                        disabled={saving}
+                        onClick={(e) => { e.stopPropagation(); handleSave(p.id); }}
+                      >
+                        <Save className="h-3 w-3" /> {saving ? 'Salvando...' : 'Salvar'}
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       variant="outline"
