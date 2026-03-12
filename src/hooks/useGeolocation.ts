@@ -138,7 +138,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
   const scheduleRetry = useCallback(() => {
     if (retryTimeout.current) clearTimeout(retryTimeout.current);
     retryTimeout.current = setTimeout(() => {
-      console.log('[PatrolTrack] Tentando reenviar fila...');
+      console.log('[CODSEG GPS] Tentando reenviar fila...');
       flushQueue();
     }, RETRY_DELAY_MS);
   }, [flushQueue]);
