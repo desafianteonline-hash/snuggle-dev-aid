@@ -63,10 +63,10 @@ const ActivityLogPage = () => {
     setLoadingLogs(true);
     try {
       let query = supabase
-        .from('activity_logs')
+        .from('activity_logs' as any)
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(200);
+        .limit(200) as any;
 
       if (filterEntity !== 'all') {
         query = query.eq('entity_type', filterEntity);
