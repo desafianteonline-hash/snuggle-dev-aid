@@ -243,6 +243,10 @@ const Admin = () => {
   };
 
   const handleSaveEdit = async (u: UserRecord) => {
+    const targetName = editName.trim() || u.profile_name || u.patroller_name || u.email;
+    const confirmed = window.confirm(`Deseja salvar as alterações de ${targetName}?`);
+    if (!confirmed) return;
+
     setSaving(true);
     try {
       if (u.role === 'patroller' && u.patroller_id) {
