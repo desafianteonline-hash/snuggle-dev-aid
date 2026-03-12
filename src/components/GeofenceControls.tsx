@@ -96,6 +96,10 @@ export function GeofenceControls({
 
   const saveEdit = () => {
     if (!editingId || !editName.trim()) return;
+
+    const confirmed = window.confirm(`Deseja salvar as alterações da cerca "${editName.trim()}"?`);
+    if (!confirmed) return;
+
     onUpdate(editingId, { name: editName.trim(), radius_meters: editRadius, color: editColor });
     setEditingId(null);
   };

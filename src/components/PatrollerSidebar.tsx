@@ -621,7 +621,7 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
                     </div>
                   </div>
                   <button
-                    onClick={() => handleRemovePoint(wp.id)}
+                    onClick={() => handleRemovePoint(wp.id, wp.name)}
                     className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive/10 rounded"
                   >
                     <Trash2 className="h-3.5 w-3.5 text-destructive" />
