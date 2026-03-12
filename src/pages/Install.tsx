@@ -110,8 +110,8 @@ const Install = () => {
               </ol>
             </div>
 
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 space-y-3">
-              <h2 className="text-sm font-bold flex items-center gap-2 text-amber-600 dark:text-amber-400">
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 space-y-3">
+              <h2 className="text-sm font-bold flex items-center gap-2 text-destructive">
                 <Shield className="h-4 w-4" />
                 Antes de compartilhar
               </h2>
