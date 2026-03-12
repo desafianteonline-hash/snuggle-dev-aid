@@ -409,7 +409,7 @@ const Reports = () => {
               <div className="bg-card border border-destructive/30 rounded-lg p-4">
                 <h3 className="text-sm font-bold mb-4 text-destructive flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4" />
-                  Alertas de Velocidade (acima de 60 km/h)
+                  Alertas de Velocidade (acima de {speedLimit} km/h)
                 </h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
