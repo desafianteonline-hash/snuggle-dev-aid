@@ -322,5 +322,10 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     };
   }, [stopTracking]);
 
-  return { ...state, startTracking, stopTracking };
+  const forceImmediateSend = useCallback(() => {
+    console.log('[PatrolTrack] Envio imediato solicitado');
+    enqueueLocation();
+  }, [enqueueLocation]);
+
+  return { ...state, startTracking, stopTracking, forceImmediateSend };
 }
