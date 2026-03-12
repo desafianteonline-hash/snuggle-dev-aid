@@ -194,7 +194,7 @@ const PatrolMap = ({ patrollers, selectedId, onSelect, route = [], flyTo = null,
         const isSelected = p.id === selectedId;
         return (
           <Marker
-            key={p.id}
+            key={`${p.id}-${p.vehicle_type}-${p.status}-${p.name}-${p.vehicle_plate}`}
             position={[p.latest_location.latitude, p.latest_location.longitude]}
             icon={createPatrollerIcon(p.status, isSelected, p.vehicle_type || 'car', p.name, p.vehicle_plate || '')}
             zIndexOffset={isSelected ? 1000 : 0}
