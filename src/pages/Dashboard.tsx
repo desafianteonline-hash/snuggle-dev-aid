@@ -264,6 +264,10 @@ const Dashboard = () => {
               onSelect={handleSelect}
               route={route}
               flyTo={flyTo}
+              geofences={geofences}
+              onGeofenceDelete={handleGeofenceDelete}
+              geofenceAddMode={geofenceAddMode}
+              onGeofenceMapClick={handleGeofenceMapClick}
             />
           )}
         </div>
