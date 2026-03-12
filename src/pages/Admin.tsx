@@ -71,12 +71,25 @@ const Admin = () => {
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
 
+  // Theme state
+  const [selectedPreset, setSelectedPreset] = useState('default');
+  const [customPrimary, setCustomPrimary] = useState('');
+  const [customBackground, setCustomBackground] = useState('');
+  const [customCard, setCustomCard] = useState('');
+  const [customAccent, setCustomAccent] = useState('');
+  const [savingTheme, setSavingTheme] = useState(false);
+
   // Sync branding form with loaded settings
   useEffect(() => {
     if (settings.id) {
       setBrandName(settings.platform_name);
       setBrandAccent(settings.platform_name_accent);
       setBrandPageTitle(settings.page_title);
+      setSelectedPreset(settings.theme_preset || 'default');
+      setCustomPrimary(settings.primary_color || '142 70% 45%');
+      setCustomBackground(settings.background_color || '220 20% 7%');
+      setCustomCard(settings.card_color || '220 18% 10%');
+      setCustomAccent(settings.accent_color || '142 50% 30%');
     }
   }, [settings]);
 
