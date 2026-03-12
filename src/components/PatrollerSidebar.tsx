@@ -127,7 +127,7 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
       {/* List */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {filtered.map((p, i) => {
-          const VehicleIcon = vehicleIcons[(p as any).vehicle_type || 'car'] || Car;
+          const VehicleIcon = vehicleIcons[p.vehicle_type || 'car'] || Car;
           const isExpanded = expandedId === p.id;
           const isSelected = selectedId === p.id;
 
@@ -219,7 +219,7 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
                     <div className="flex gap-2">
                       <Button
                         size="sm"
-                        variant={(p as any).vehicle_type === 'car' || !(p as any).vehicle_type ? 'default' : 'outline'}
+                        variant={p.vehicle_type === 'car' || !p.vehicle_type ? 'default' : 'outline'}
                         className="h-7 text-xs gap-1.5"
                         onClick={(e) => { e.stopPropagation(); handleVehicleTypeChange(p.id, 'car'); }}
                       >
@@ -227,7 +227,7 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
                       </Button>
                       <Button
                         size="sm"
-                        variant={(p as any).vehicle_type === 'motorcycle' ? 'default' : 'outline'}
+                        variant={p.vehicle_type === 'motorcycle' ? 'default' : 'outline'}
                         className="h-7 text-xs gap-1.5"
                         onClick={(e) => { e.stopPropagation(); handleVehicleTypeChange(p.id, 'motorcycle'); }}
                       >
