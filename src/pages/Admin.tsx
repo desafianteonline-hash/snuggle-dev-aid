@@ -754,6 +754,81 @@ const Admin = () => {
                 </div>
               </motion.div>
             </TabsContent>
+
+            {/* ===== LOCATION TAB ===== */}
+            <TabsContent value="location" className="space-y-6">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                className="rounded-xl border border-border bg-card p-6 space-y-6">
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-1">Localização da Empresa</h3>
+                  <p className="text-xs text-muted-foreground">Defina a localização da sede/base para calcular o patrulheiro mais próximo.</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase tracking-wider text-muted-foreground">Endereço (referência)</Label>
+                    <Input
+                      value={companyAddress}
+                      onChange={e => setCompanyAddress(e.target.value)}
+                      className="bg-secondary border-border"
+                      placeholder="Ex: Rua da Encruzilhada, 123 - Recife"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Latitude</Label>
+                      <Input
+                        type="number"
+                        step="any"
+                        value={companyLat}
+                        onChange={e => setCompanyLat(e.target.value)}
+                        className="bg-secondary border-border"
+                        placeholder="-23.5505"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Longitude</Label>
+                      <Input
+                        type="number"
+                        step="any"
+                        value={companyLng}
+                        onChange={e => setCompanyLng(e.target.value)}
+                        className="bg-secondary border-border"
+                        placeholder="-46.6333"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-border bg-secondary/50 p-3 text-xs text-muted-foreground space-y-1">
+                    <p className="font-medium">💡 Como obter as coordenadas:</p>
+                    <p>1. Abra o Google Maps no computador</p>
+                    <p>2. Clique com botão direito no local desejado</p>
+                    <p>3. Clique nas coordenadas que aparecem para copiar</p>
+                    <p>4. Cole a latitude e longitude nos campos acima</p>
+                  </div>
+
+                  {companyLat && companyLng && (
+                    <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium">Localização definida</p>
+                        <p className="text-xs text-muted-foreground font-mono">
+                          {companyLat}, {companyLng}
+                        </p>
+                        {companyAddress && (
+                          <p className="text-xs text-muted-foreground">{companyAddress}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <Button onClick={handleSaveLocation} className="w-full font-semibold" disabled={savingLocation}>
+                    {savingLocation ? 'Salvando...' : 'Salvar Localização'}
+                  </Button>
+                </div>
+              </motion.div>
+            </TabsContent>
           </Tabs>
         </div>
       </div>
