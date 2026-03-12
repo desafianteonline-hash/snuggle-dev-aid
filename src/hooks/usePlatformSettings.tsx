@@ -196,7 +196,7 @@ export function PlatformSettingsProvider({ children }: { children: React.ReactNo
           console.log('[PlatformSettings] Realtime update received');
           const s = payload.new as PlatformSettings;
           setSettings(s);
-          document.title = s.page_title || 'PatrolTrack';
+          document.title = s.page_title || 'CODSEG GPS';
           if (s.favicon_url) {
             let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
             if (!link) {

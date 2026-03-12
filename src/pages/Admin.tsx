@@ -717,7 +717,7 @@ const Admin = () => {
 
                   <div className="space-y-2">
                     <Label className="text-xs uppercase tracking-wider text-muted-foreground">Título da Página (aba do navegador)</Label>
-                    <Input value={brandPageTitle} onChange={e => setBrandPageTitle(e.target.value)} className="bg-secondary border-border" placeholder="PatrolTrack - Monitoramento" />
+                    <Input value={brandPageTitle} onChange={e => setBrandPageTitle(e.target.value)} className="bg-secondary border-border" placeholder="CODSEG GPS - Monitoramento" />
                   </div>
 
                   {/* Preview */}

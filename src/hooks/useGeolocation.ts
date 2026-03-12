@@ -222,7 +222,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
       bgWatcherRef.current = await BackgroundGeolocation.addWatcher(
         {
           backgroundMessage: 'Rastreamento de patrulha ativo',
-          backgroundTitle: 'PatrolTrack',
+          backgroundTitle: 'CODSEG GPS',
           requestPermissions: true,
           stale: false,
           distanceFilter: 10, // minimum 10m between updates
