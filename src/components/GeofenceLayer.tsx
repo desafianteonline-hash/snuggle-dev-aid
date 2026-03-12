@@ -1,6 +1,6 @@
+import { useState } from 'react';
 import { Circle, Popup, useMapEvents } from 'react-leaflet';
 import type { Geofence } from '@/hooks/useGeofences';
-import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
 
 interface GeofenceLayerProps {
@@ -13,19 +13,63 @@ interface GeofenceLayerProps {
   pendingColor?: string;
 }
 
-function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
+function MapClickHandler({ onMapClick, onHover, radius }: { onMapClick: (lat: number, lng: number) => void; onHover: (pos: { lat: number; lng: number } | null) => void; radius: number }) {
   useMapEvents({
     click(e) {
       onMapClick(e.latlng.lat, e.latlng.lng);
     },
+    mousemove(e) {
+      onHover({ lat: e.latlng.lat, lng: e.latlng.lng });
+    },
+    mouseout() {
+      onHover(null);
+    },
   });
+
+  // Change cursor to crosshair
+  const map = useMapEvents({} as any);
+  if (map) {
+    map.getContainer().style.cursor = 'crosshair';
+  }
+
+  return null;
+}
+
+function RestoreCursor() {
+  const map = useMapEvents({} as any);
+  if (map) {
+    map.getContainer().style.cursor = '';
+  }
   return null;
 }
 
 export function GeofenceLayer({ geofences, onDelete, onMapClick, addMode, pendingLocation, pendingRadius = 200, pendingColor = '#3b82f6' }: GeofenceLayerProps) {
+  const [hoverPos, setHoverPos] = useState<{ lat: number; lng: number } | null>(null);
+
   return (
     <>
-      {addMode && onMapClick && <MapClickHandler onMapClick={onMapClick} />}
+      {addMode && onMapClick ? (
+        <MapClickHandler onMapClick={onMapClick} onHover={setHoverPos} radius={pendingRadius} />
+      ) : (
+        <RestoreCursor />
+      )}
+
+      {/* Hover preview circle following cursor */}
+      {addMode && hoverPos && !pendingLocation && (
+        <Circle
+          center={[hoverPos.lat, hoverPos.lng]}
+          radius={pendingRadius}
+          pathOptions={{
+            color: pendingColor,
+            fillColor: pendingColor,
+            fillOpacity: 0.15,
+            weight: 2,
+            dashArray: '4 4',
+          }}
+        />
+      )}
+
+      {/* Confirmed pending location circle */}
       {pendingLocation && (
         <Circle
           center={[pendingLocation.lat, pendingLocation.lng]}
@@ -44,6 +88,7 @@ export function GeofenceLayer({ geofences, onDelete, onMapClick, addMode, pendin
           </Popup>
         </Circle>
       )}
+
       {geofences.map(g => (
         <Circle
           key={g.id}
