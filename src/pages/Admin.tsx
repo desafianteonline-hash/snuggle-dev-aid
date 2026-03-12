@@ -669,12 +669,13 @@ const Admin = () => {
                       {editingId === u.id ? (
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <p className="text-xs text-muted-foreground">{u.email}</p>
+                            <p className="text-xs text-muted-foreground font-medium">Editando usuário</p>
                             <div className="flex gap-1">
                               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingId(null)}><X className="h-3.5 w-3.5" /></Button>
                               <Button variant="ghost" size="icon" className="h-7 w-7 text-primary" onClick={() => handleSaveEdit(u)} disabled={saving || !editName.trim()}><Check className="h-3.5 w-3.5" /></Button>
                             </div>
                           </div>
+                          <Input value={editEmail} onChange={e => setEditEmail(e.target.value)} placeholder="Email" type="email" className="bg-secondary border-border h-9 text-sm" />
                           <Input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Nome" className="bg-secondary border-border h-9 text-sm" />
                           <div className={`grid gap-2 ${u.role === 'patroller' ? 'grid-cols-2' : 'grid-cols-1'}`}>
                             <Input value={editPhone} onChange={e => setEditPhone(formatPhone(e.target.value))} placeholder="(00) 00000-0000" className="bg-secondary border-border h-9 text-sm" maxLength={15} />
