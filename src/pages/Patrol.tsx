@@ -14,6 +14,10 @@ const CONSENT_KEY = 'patrol_consent_given';
 const Patrol = () => {
   const { user, loading, signOut } = useAuth();
   const { settings } = usePlatformSettings();
+  const [patrollerId, setPatrollerId] = useState<string | null>(null);
+  const [patrollerName, setPatrollerName] = useState('');
+  const [consentGiven, setConsentGiven] = useState(() => localStorage.getItem(CONSENT_KEY) === 'true');
+  const geo = useGeolocation(consentGiven ? patrollerId : null);
 
   if (loading) {
     return (
@@ -24,10 +28,6 @@ const Patrol = () => {
   }
 
   if (!user) return <Navigate to="/login" replace />;
-  const [patrollerId, setPatrollerId] = useState<string | null>(null);
-  const [patrollerName, setPatrollerName] = useState('');
-  const [consentGiven, setConsentGiven] = useState(() => localStorage.getItem(CONSENT_KEY) === 'true');
-  const geo = useGeolocation(consentGiven ? patrollerId : null);
 
   // Fetch patroller and auto-start tracking
   useEffect(() => {
