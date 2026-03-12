@@ -205,7 +205,14 @@ const Patrol = () => {
             <Navigation className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
             <p className="text-xs text-muted-foreground">Velocidade</p>
             <p className="text-sm font-mono font-medium">
-              {geo.speed != null ? `${(geo.speed * 3.6).toFixed(0)} km/h` : '---'}
+              {geo.speed != null
+                ? `${(geo.speed * 3.6).toFixed(0)} km/h`
+                : geo.motionSpeed != null
+                  ? `~${geo.motionSpeed.toFixed(0)} km/h`
+                  : '---'}
+            </p>
+            <p className="text-[10px] text-muted-foreground/60">
+              {geo.speed != null ? 'GPS' : geo.motionSpeed != null ? 'Sensor' : ''}
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-3 text-center">
@@ -221,6 +228,14 @@ const Patrol = () => {
             <p className="text-sm font-mono font-medium">{geo.pendingQueue}</p>
           </div>
         </div>
+
+        {/* Movement indicator */}
+        {geo.isMoving && (
+          <div className="flex items-center justify-center gap-1.5 text-xs text-primary">
+            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+            Em movimento
+          </div>
+        )}
 
         {/* Coordinates (small, informational) */}
         {geo.latitude && (

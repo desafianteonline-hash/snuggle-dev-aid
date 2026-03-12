@@ -11,6 +11,8 @@ interface GeoState {
   error: string | null;
   lastSentAt: string | null;
   pendingQueue: number;
+  motionSpeed: number | null; // speed estimated from accelerometer
+  isMoving: boolean; // detected via device motion
 }
 
 interface QueuedLocation {
@@ -40,6 +42,8 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     error: null,
     lastSentAt: null,
     pendingQueue: 0,
+    motionSpeed: null,
+    isMoving: false,
   });
 
   const watchId = useRef<number | null>(null);
@@ -52,6 +56,8 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
   const isSending = useRef(false);
   const wakeLockRef = useRef<any>(null);
   const shouldTrack = useRef(false);
+  const velocityRef = useRef<number>(0);
+  const lastMotionTime = useRef<number>(0);
 
   // Persist queue to localStorage for survival across page refreshes
   const persistQueue = useCallback(() => {
@@ -203,6 +209,74 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     );
   }, []);
 
+  // DeviceMotion handler for accelerometer-based speed estimation
+  const motionHandlerRef = useRef<((e: DeviceMotionEvent) => void) | null>(null);
+
+  const startDeviceMotion = useCallback(() => {
+    if (!window.DeviceMotionEvent) return;
+
+    // Request permission on iOS 13+
+    const requestPermission = async () => {
+      if (typeof (DeviceMotionEvent as any).requestPermission === 'function') {
+        try {
+          const perm = await (DeviceMotionEvent as any).requestPermission();
+          if (perm !== 'granted') return;
+        } catch { return; }
+      }
+
+      const ACCEL_THRESHOLD = 0.5; // m/s² - threshold to detect movement
+      const DECAY = 0.95; // velocity decay factor to prevent drift
+
+      const handler = (event: DeviceMotionEvent) => {
+        const accel = event.accelerationIncludingGravity;
+        if (!accel || accel.x == null || accel.y == null || accel.z == null) return;
+
+        const now = Date.now();
+        const dt = lastMotionTime.current ? (now - lastMotionTime.current) / 1000 : 0;
+        lastMotionTime.current = now;
+
+        if (dt <= 0 || dt > 1) return; // skip first tick or huge gaps
+
+        // Remove approximate gravity and compute linear acceleration magnitude
+        const linMag = Math.sqrt(accel.x ** 2 + accel.y ** 2 + (accel.z - 9.81) ** 2);
+
+        if (linMag > ACCEL_THRESHOLD) {
+          velocityRef.current += linMag * dt;
+        } else {
+          velocityRef.current *= DECAY;
+        }
+
+        // Clamp to reasonable values (max ~200 km/h = ~55 m/s)
+        velocityRef.current = Math.min(velocityRef.current, 55);
+        if (velocityRef.current < 0.3) velocityRef.current = 0;
+
+        const isMoving = velocityRef.current > 0.5;
+        const motionSpeedKmh = velocityRef.current * 3.6;
+
+        setState(s => ({
+          ...s,
+          motionSpeed: motionSpeedKmh > 0 ? motionSpeedKmh : null,
+          isMoving,
+        }));
+      };
+
+      motionHandlerRef.current = handler;
+      window.addEventListener('devicemotion', handler, { passive: true });
+      console.log('[PatrolTrack] DeviceMotion (acelerômetro) ativado');
+    };
+
+    requestPermission();
+  }, []);
+
+  const stopDeviceMotion = useCallback(() => {
+    if (motionHandlerRef.current) {
+      window.removeEventListener('devicemotion', motionHandlerRef.current);
+      motionHandlerRef.current = null;
+    }
+    velocityRef.current = 0;
+    lastMotionTime.current = 0;
+  }, []);
+
   const startTracking = useCallback(() => {
     if (!navigator.geolocation) {
       setState(s => ({ ...s, error: 'Geolocalização não suportada neste dispositivo' }));
@@ -216,6 +290,9 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
 
     // Start GPS
     startGPSWatch();
+
+    // Start device motion sensors
+    startDeviceMotion();
 
     // Send location on interval
     if (sendInterval.current) clearInterval(sendInterval.current);
@@ -237,7 +314,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     requestWakeLock();
 
     setState(s => ({ ...s, tracking: true }));
-  }, [enqueueLocation, intervalMs, startGPSWatch, loadPersistedQueue, requestWakeLock]);
+  }, [enqueueLocation, intervalMs, startGPSWatch, startDeviceMotion, loadPersistedQueue, requestWakeLock]);
 
   const stopTracking = useCallback(() => {
     shouldTrack.current = false;
@@ -260,6 +337,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     }
 
     releaseWakeLock();
+    stopDeviceMotion();
 
     // Send any remaining queued locations
     if (queueRef.current.length > 0) {
