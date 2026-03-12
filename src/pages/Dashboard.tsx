@@ -35,6 +35,8 @@ const Dashboard = () => {
   const [tvMode, setTvMode] = useState(false);
   const [geofenceAddMode, setGeofenceAddMode] = useState(false);
   const [pendingGeofenceLocation, setPendingGeofenceLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [pendingRadius, setPendingRadius] = useState(200);
+  const [pendingColor, setPendingColor] = useState('#3b82f6');
   const { geofences, addGeofence, removeGeofence, updateGeofence } = useGeofences();
 
   useGeofenceDetection(patrollers, geofences, (event) => {
