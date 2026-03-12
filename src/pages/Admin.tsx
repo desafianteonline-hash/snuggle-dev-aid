@@ -20,6 +20,7 @@ import {
   Settings, Upload, Image, Palette, MapPin, AlertTriangle, FileText, Gauge, Clock,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { logActivity } from '@/hooks/useActivityLog';
 import { motion } from 'framer-motion';
 import {
@@ -102,6 +103,9 @@ const Admin = () => {
   const [idleTimeout, setIdleTimeout] = useState(30);
   const [minAccuracy, setMinAccuracy] = useState(50);
   const [savingOperational, setSavingOperational] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean; title: string; description: string; variant: 'default' | 'destructive'; onConfirm: () => void;
+  }>({ open: false, title: '', description: '', variant: 'default', onConfirm: () => {} });
 
   const formatCep = (value: string) => {
     const digits = value.replace(/\D/g, '').slice(0, 8);
@@ -244,8 +248,16 @@ const Admin = () => {
 
   const handleSaveEdit = async (u: UserRecord) => {
     const targetName = editName.trim() || u.profile_name || u.patroller_name || u.email;
-    const confirmed = window.confirm(`Deseja salvar as alterações de ${targetName}?`);
-    if (!confirmed) return;
+    setConfirmDialog({
+      open: true, title: 'Salvar alterações', description: `Deseja salvar as alterações de ${targetName}?`, variant: 'default',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        await doSaveEdit(u);
+      },
+    });
+  };
+
+  const doSaveEdit = async (u: UserRecord) => {
 
     setSaving(true);
     try {
@@ -284,8 +296,16 @@ const Admin = () => {
   // --- Branding handlers ---
   const handleSaveBranding = async () => {
     if (!settings.id) return;
-    const confirmed = window.confirm('Deseja salvar as alterações de personalização da plataforma?');
-    if (!confirmed) return;
+    setConfirmDialog({
+      open: true, title: 'Salvar personalização', description: 'Deseja salvar as alterações de personalização da plataforma?', variant: 'default',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        await doSaveBranding();
+      },
+    });
+  };
+
+  const doSaveBranding = async () => {
 
     setSavingBrand(true);
     try {
@@ -368,8 +388,16 @@ const Admin = () => {
 
   const handleSaveTheme = async () => {
     if (!settings.id) return;
-    const confirmed = window.confirm('Deseja aplicar e salvar este tema?');
-    if (!confirmed) return;
+    setConfirmDialog({
+      open: true, title: 'Salvar tema', description: 'Deseja aplicar e salvar este tema?', variant: 'default',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        await doSaveTheme();
+      },
+    });
+  };
+
+  const doSaveTheme = async () => {
 
     setSavingTheme(true);
     try {
@@ -397,8 +425,16 @@ const Admin = () => {
 
   const handleSaveLocation = async () => {
     if (!settings.id) return;
-    const confirmed = window.confirm('Deseja salvar a localização da empresa?');
-    if (!confirmed) return;
+    setConfirmDialog({
+      open: true, title: 'Salvar localização', description: 'Deseja salvar a localização da empresa?', variant: 'default',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        await doSaveLocation();
+      },
+    });
+  };
+
+  const doSaveLocation = async () => {
 
     setSavingLocation(true);
     try {
@@ -433,8 +469,16 @@ const Admin = () => {
 
   const handleSaveOperational = async () => {
     if (!settings.id) return;
-    const confirmed = window.confirm('Deseja salvar as configurações operacionais?');
-    if (!confirmed) return;
+    setConfirmDialog({
+      open: true, title: 'Salvar configurações', description: 'Deseja salvar as configurações operacionais?', variant: 'default',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        await doSaveOperational();
+      },
+    });
+  };
+
+  const doSaveOperational = async () => {
 
     setSavingOperational(true);
     try {
@@ -1131,6 +1175,15 @@ const Admin = () => {
           </Tabs>
         </div>
       </div>
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog(prev => ({ ...prev, open }))}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        variant={confirmDialog.variant}
+        confirmLabel="Salvar"
+        onConfirm={confirmDialog.onConfirm}
+      />
     </div>
   );
 };

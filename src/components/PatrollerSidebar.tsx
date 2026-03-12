@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,6 +85,9 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
   const [savingPoint, setSavingPoint] = useState(false);
   const [saveStatus, setSaveStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [addMode, setAddMode] = useState<'cep' | 'coords'>('cep');
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean; title: string; description: string; variant: 'default' | 'destructive'; onConfirm: () => void;
+  }>({ open: false, title: '', description: '', variant: 'default', onConfirm: () => {} });
 
   const online = patrollers.filter(p => p.status === 'online').length;
   const offline = patrollers.filter(p => p.status === 'offline').length;
@@ -258,16 +262,21 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
   };
 
   const handleRemovePoint = async (id: string, pointName: string) => {
-    const confirmed = window.confirm(`Tem certeza que deseja excluir o ponto "${pointName}"?`);
-    if (!confirmed) return;
-
-    const { error } = await removeWatchPoint(id);
-    if (error) {
-      toast({ title: 'Erro ao remover ponto', description: error, variant: 'destructive' });
-      return;
-    }
-
-    toast({ title: 'Ponto removido com sucesso' });
+    setConfirmDialog({
+      open: true,
+      title: 'Excluir ponto',
+      description: `Tem certeza que deseja excluir o ponto "${pointName}"?`,
+      variant: 'destructive',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        const { error } = await removeWatchPoint(id);
+        if (error) {
+          toast({ title: 'Erro ao remover ponto', description: error, variant: 'destructive' });
+          return;
+        }
+        toast({ title: 'Ponto removido com sucesso' });
+      },
+    });
   };
 
   const startEditing = (p: PatrollerWithLocation) => {
@@ -280,24 +289,29 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
   };
 
   const handleSave = async (patrollerId: string) => {
-    const confirmed = window.confirm('Deseja salvar as alterações do patrulheiro?');
-    if (!confirmed) return;
+    setConfirmDialog({
+      open: true,
+      title: 'Salvar alterações',
+      description: 'Deseja salvar as alterações do patrulheiro?',
+      variant: 'default',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        setSaving(true);
+        const { error } = await supabase
+          .from('patrollers')
+          .update({ vehicle_type: editVehicleType })
+          .eq('id', patrollerId);
 
-    setSaving(true);
-    const { error } = await supabase
-      .from('patrollers')
-      .update({ vehicle_type: editVehicleType })
-      .eq('id', patrollerId);
-
-    if (error) {
-      toast({ title: 'Erro ao salvar', description: 'Verifique suas permissões.', variant: 'destructive' });
-    } else {
-      toast({ title: 'Alterações salvas com sucesso!' });
-      // Force immediate UI refresh
-      window.dispatchEvent(new CustomEvent('patroller-updated'));
-      setEditingId(null);
-    }
-    setSaving(false);
+        if (error) {
+          toast({ title: 'Erro ao salvar', description: 'Verifique suas permissões.', variant: 'destructive' });
+        } else {
+          toast({ title: 'Alterações salvas com sucesso!' });
+          window.dispatchEvent(new CustomEvent('patroller-updated'));
+          setEditingId(null);
+        }
+        setSaving(false);
+      },
+    });
   };
 
   const handleLocate = (p: PatrollerWithLocation) => {
@@ -790,6 +804,15 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
           )}
         </div>
       )}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog(prev => ({ ...prev, open }))}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        variant={confirmDialog.variant}
+        confirmLabel={confirmDialog.variant === 'destructive' ? 'Excluir' : 'Salvar'}
+        onConfirm={confirmDialog.onConfirm}
+      />
     </div>
   );
 };

@@ -7,6 +7,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { Shield, Plus, Trash2, Pencil, MapPin, GripHorizontal, X } from 'lucide-react';
 import type { Geofence } from '@/hooks/useGeofences';
 
@@ -47,6 +48,7 @@ export function GeofenceControls({
   const [editRadius, setEditRadius] = useState(200);
   const [editColor, setEditColor] = useState(COLORS[0]);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
 
   // Draggable panel state
   const [dragPos, setDragPos] = useState({ x: Math.max(0, (window.innerWidth - 340) / 2), y: Math.max(0, (window.innerHeight - 400) / 2) });
@@ -96,12 +98,14 @@ export function GeofenceControls({
 
   const saveEdit = () => {
     if (!editingId || !editName.trim()) return;
+    setConfirmSaveOpen(true);
+  };
 
-    const confirmed = window.confirm(`Deseja salvar as alterações da cerca "${editName.trim()}"?`);
-    if (!confirmed) return;
-
+  const confirmSaveEdit = () => {
+    if (!editingId) return;
     onUpdate(editingId, { name: editName.trim(), radius_meters: editRadius, color: editColor });
     setEditingId(null);
+    setConfirmSaveOpen(false);
   };
 
   return (
@@ -361,6 +365,15 @@ export function GeofenceControls({
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmSaveOpen}
+        onOpenChange={setConfirmSaveOpen}
+        title="Salvar alterações"
+        description={`Deseja salvar as alterações da cerca "${editName.trim()}"?`}
+        confirmLabel="Salvar"
+        onConfirm={confirmSaveEdit}
+      />
     </>
   );
 }
