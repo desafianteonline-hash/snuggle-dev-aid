@@ -21,7 +21,8 @@ const Dashboard = () => {
   const { patrollers, loading, realtimeConnected } = usePatrolLocations();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { route } = useRouteHistory(selectedId);
-  useOfflineAlerts(patrollers);
+  const [alertSound, setAlertSound] = useState(() => localStorage.getItem('codseg-alert-sound') !== 'off');
+  useOfflineAlerts(patrollers, alertSound);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number } | null>(null);
   const isMobile = useIsMobile();
