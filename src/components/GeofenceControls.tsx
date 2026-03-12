@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Shield, Plus, Trash2, Pencil, MapPin } from 'lucide-react';
+import { Shield, Plus, Trash2, Pencil, MapPin, GripHorizontal, X } from 'lucide-react';
 import type { Geofence } from '@/hooks/useGeofences';
 
 interface GeofenceControlsProps {
@@ -44,6 +43,37 @@ export function GeofenceControls({
   const [editRadius, setEditRadius] = useState(200);
   const [editColor, setEditColor] = useState(COLORS[0]);
   const [sheetOpen, setSheetOpen] = useState(false);
+
+  // Draggable panel state
+  const [dragPos, setDragPos] = useState({ x: 16, y: window.innerHeight - 420 });
+  const dragRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const dragOffset = useRef({ x: 0, y: 0 });
+
+  const onDragStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    isDragging.current = true;
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    dragOffset.current = { x: clientX - dragPos.x, y: clientY - dragPos.y };
+
+    const onMove = (ev: MouseEvent | TouchEvent) => {
+      if (!isDragging.current) return;
+      const cx = 'touches' in ev ? ev.touches[0].clientX : (ev as MouseEvent).clientX;
+      const cy = 'touches' in ev ? ev.touches[0].clientY : (ev as MouseEvent).clientY;
+      setDragPos({ x: cx - dragOffset.current.x, y: cy - dragOffset.current.y });
+    };
+    const onEnd = () => {
+      isDragging.current = false;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onEnd);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onEnd);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onEnd);
+    window.addEventListener('touchmove', onMove);
+    window.addEventListener('touchend', onEnd);
+  }, [dragPos]);
 
   const handleConfirm = () => {
     if (!name.trim()) return;
@@ -220,18 +250,29 @@ export function GeofenceControls({
         </SheetContent>
       </Sheet>
 
-      {/* Dialog for new geofence after map click */}
-      <Dialog open={!!pendingLocation} onOpenChange={() => onCancel()} modal={false}>
-        <DialogContent
-          className="sm:max-w-sm fixed left-4 bottom-4 top-auto translate-x-0 translate-y-0 bg-card/85 backdrop-blur-md border-border/50 shadow-2xl"
-          style={{ zIndex: 1100 }}
+      {/* Draggable panel for new geofence after map click */}
+      {pendingLocation && (
+        <div
+          ref={dragRef}
+          className="fixed sm:max-w-sm w-[340px] rounded-lg border border-border/50 bg-card/85 backdrop-blur-md shadow-2xl p-4"
+          style={{ zIndex: 1100, left: dragPos.x, top: dragPos.y }}
         >
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+          {/* Drag handle */}
+          <div
+            className="flex items-center justify-between mb-3 cursor-grab active:cursor-grabbing select-none"
+            onMouseDown={onDragStart}
+            onTouchStart={onDragStart}
+          >
+            <div className="flex items-center gap-2">
+              <GripHorizontal className="h-4 w-4 text-muted-foreground" />
               <Shield className="h-5 w-5 text-primary" />
-              Nova Cerca Virtual
-            </DialogTitle>
-          </DialogHeader>
+              <span className="text-lg font-semibold leading-none tracking-tight">Nova Cerca Virtual</span>
+            </div>
+            <button onClick={onCancel} className="rounded-sm opacity-70 hover:opacity-100 transition-opacity">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
           <div className="space-y-4">
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Nome</Label>
@@ -282,18 +323,16 @@ export function GeofenceControls({
                 ))}
               </div>
             </div>
-            {pendingLocation && (
-              <p className="text-xs text-muted-foreground">
-                📍 {pendingLocation.lat.toFixed(6)}, {pendingLocation.lng.toFixed(6)}
-              </p>
-            )}
+            <p className="text-xs text-muted-foreground">
+              📍 {pendingLocation.lat.toFixed(6)}, {pendingLocation.lng.toFixed(6)}
+            </p>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={onCancel}>Cancelar</Button>
               <Button onClick={handleConfirm} disabled={!name.trim()}>Criar Cerca</Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </>
   );
 }
