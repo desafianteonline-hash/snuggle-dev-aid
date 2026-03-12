@@ -20,9 +20,9 @@ export interface PlatformSettings {
 
 const defaultSettings: PlatformSettings = {
   id: '',
-  platform_name: 'PATROL',
-  platform_name_accent: 'TRACK',
-  page_title: 'PatrolTrack - Monitoramento',
+  platform_name: 'COD',
+  platform_name_accent: 'SEG GPS',
+  page_title: 'CODSEG GPS - Monitoramento',
   logo_url: null,
   favicon_url: null,
   primary_color: '142 70% 45%',
@@ -158,7 +158,7 @@ export function PlatformSettingsProvider({ children }: { children: React.ReactNo
     if (data) {
       const s = data as PlatformSettings;
       setSettings(s);
-      document.title = s.page_title || 'PatrolTrack';
+      document.title = s.page_title || 'CODSEG GPS';
       if (s.favicon_url) {
         let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
         if (!link) {
@@ -196,7 +196,7 @@ export function PlatformSettingsProvider({ children }: { children: React.ReactNo
           console.log('[PlatformSettings] Realtime update received');
           const s = payload.new as PlatformSettings;
           setSettings(s);
-          document.title = s.page_title || 'PatrolTrack';
+          document.title = s.page_title || 'CODSEG GPS';
           if (s.favicon_url) {
             let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
             if (!link) {

@@ -20,8 +20,8 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "pwa-192x192.png", "pwa-512x512.png"],
       manifest: {
-        name: "PatrolTrack - App do Patrulheiro",
-        short_name: "PatrolTrack",
+        name: "CODSEG GPS - App do Patrulheiro",
+        short_name: "CODSEG GPS",
         description: "Aplicativo de monitoramento e rastreamento de patrulheiros em tempo real",
         theme_color: "#0a1628",
         background_color: "#0a1628",
