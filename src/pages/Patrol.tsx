@@ -19,6 +19,15 @@ const Patrol = () => {
   const [consentGiven, setConsentGiven] = useState(() => localStorage.getItem(CONSENT_KEY) === 'true');
   const geo = useGeolocation(consentGiven ? patrollerId : null);
 
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Shield className="h-8 w-8 animate-pulse text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/login" replace />;
 
   // Fetch patroller and auto-start tracking
   useEffect(() => {
