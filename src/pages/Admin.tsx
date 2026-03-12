@@ -86,6 +86,12 @@ const Admin = () => {
   const [customAccent, setCustomAccent] = useState('');
   const [savingTheme, setSavingTheme] = useState(false);
 
+  // Location state
+  const [companyLat, setCompanyLat] = useState('');
+  const [companyLng, setCompanyLng] = useState('');
+  const [companyAddress, setCompanyAddress] = useState('');
+  const [savingLocation, setSavingLocation] = useState(false);
+
   // Sync branding form with loaded settings
   useEffect(() => {
     if (settings.id) {
