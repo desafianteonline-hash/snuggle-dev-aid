@@ -91,7 +91,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     try {
       if ('wakeLock' in navigator) {
         wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
-        console.log('[PatrolTrack] Wake Lock ativado');
+        console.log('[CODSEG GPS] Wake Lock ativado');
         wakeLockRef.current.addEventListener('release', () => {
           if (shouldTrack.current) setTimeout(requestWakeLock, 1000);
         });
