@@ -127,7 +127,7 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
       {/* List */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {filtered.map((p, i) => {
-          const VehicleIcon = vehicleIcons[(p as any).vehicle_type || 'car'] || Car;
+          const VehicleIcon = vehicleIcons[p.vehicle_type || 'car'] || Car;
           const isExpanded = expandedId === p.id;
           const isSelected = selectedId === p.id;
 
