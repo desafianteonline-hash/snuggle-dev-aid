@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Clock, Gauge, Radio, User, Car, Bike, Search, Filter, ChevronRight, Navigation, Phone, Eye, EyeOff, Pencil, Save, X, Plus, Trash2, ChevronDown } from 'lucide-react';
+import { MapPin, Clock, Gauge, Radio, User, Car, Bike, Search, Filter, ChevronRight, Navigation, Phone, Eye, EyeOff, Pencil, Save, X, Plus, Trash2, ChevronDown, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import type { PatrollerWithLocation } from '@/hooks/usePatrolLocations';
 import { useWatchPoints } from '@/hooks/useWatchPoints';
 import { cn } from '@/lib/utils';
@@ -82,6 +82,7 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
   const [cepAddress, setCepAddress] = useState('');
   const [loadingCep, setLoadingCep] = useState(false);
   const [savingPoint, setSavingPoint] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [addMode, setAddMode] = useState<'cep' | 'coords'>('cep');
 
   const online = patrollers.filter(p => p.status === 'online').length;
@@ -181,29 +182,30 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
   };
 
   const handleAddPoint = async () => {
+    setSaveStatus(null);
+
     if (!newPointName.trim()) {
-      toast({ title: 'Informe o nome do ponto', variant: 'destructive' });
+      setSaveStatus({ type: 'error', message: 'Informe o nome do ponto' });
       return;
     }
 
     let lat = parseFloat(newPointLat);
     let lng = parseFloat(newPointLng);
 
-    // In CEP mode, guarantee CEP + number and force geocode before save
     if (addMode === 'cep') {
       const cleanedCep = newPointCep.replace(/\D/g, '');
       if (cleanedCep.length !== 8 || !newPointNumber.trim()) {
-        toast({ title: 'Preencha CEP + número do endereço', variant: 'destructive' });
+        setSaveStatus({ type: 'error', message: 'Preencha CEP + número do endereço' });
         return;
       }
 
       if (isNaN(lat) || isNaN(lng)) {
-        setLoadingCep(true);
+        setSavingPoint(true);
         const coords = await geocodeAddress(cepDataRef.current, newPointNumber.trim());
-        setLoadingCep(false);
 
         if (!coords) {
-          toast({ title: 'Não foi possível salvar', description: 'Não conseguimos obter coordenadas para esse CEP + número', variant: 'destructive' });
+          setSaveStatus({ type: 'error', message: 'Não foi possível obter coordenadas para esse endereço' });
+          setSavingPoint(false);
           return;
         }
 
@@ -213,25 +215,29 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
     }
 
     if (isNaN(lat) || isNaN(lng)) {
-      toast({ title: 'Preencha todos os campos corretamente', variant: 'destructive' });
+      setSaveStatus({ type: 'error', message: 'Coordenadas inválidas. Preencha corretamente.' });
       return;
     }
 
     setSavingPoint(true);
     const { error } = await addWatchPoint(newPointName.trim(), lat, lng);
-    if (error) {
-      toast({ title: 'Erro ao salvar', description: error, variant: 'destructive' });
-    } else {
-      toast({ title: 'Ponto de referência adicionado!' });
-      setAddingPoint(false);
-      setNewPointName('');
-      setNewPointLat('');
-      setNewPointLng('');
-      setNewPointCep('');
-      setNewPointNumber('');
-      setCepAddress('');
-    }
     setSavingPoint(false);
+
+    if (error) {
+      setSaveStatus({ type: 'error', message: error });
+    } else {
+      setSaveStatus({ type: 'success', message: 'Ponto cadastrado com sucesso!' });
+      setTimeout(() => {
+        setAddingPoint(false);
+        setNewPointName('');
+        setNewPointLat('');
+        setNewPointLng('');
+        setNewPointCep('');
+        setNewPointNumber('');
+        setCepAddress('');
+        setSaveStatus(null);
+      }, 1500);
+    }
   };
 
   const handleRemovePoint = async (id: string) => {
@@ -717,11 +723,26 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
                 </p>
               )}
 
+              {/* Status feedback */}
+              {saveStatus && (
+                <div className={cn(
+                  "rounded-lg p-2 text-[11px] flex items-center gap-1.5 font-medium",
+                  saveStatus.type === 'success' ? "bg-[hsl(var(--status-online))]/15 text-[hsl(var(--status-online))]" : "bg-destructive/15 text-destructive"
+                )}>
+                  {saveStatus.type === 'success' ? <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" /> : <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />}
+                  {saveStatus.message}
+                </div>
+              )}
+
               <div className="flex gap-2">
                 <Button size="sm" className="flex-1 h-8 text-xs" onClick={handleAddPoint} disabled={savingPoint || loadingCep}>
-                  <Save className="h-3 w-3 mr-1" /> {savingPoint ? 'Salvando...' : 'Salvar'}
+                  {savingPoint ? (
+                    <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Salvando...</>
+                  ) : (
+                    <><Save className="h-3 w-3 mr-1" /> Salvar</>
+                  )}
                 </Button>
-                <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => { setAddingPoint(false); setNewPointCep(''); setCepAddress(''); }}>
+                <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => { setAddingPoint(false); setNewPointCep(''); setCepAddress(''); setSaveStatus(null); }}>
                   <X className="h-3 w-3" />
                 </Button>
               </div>
