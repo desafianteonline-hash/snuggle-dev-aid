@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Calendar, Loader2, Clock, Route, Gauge, Users, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Calendar, Loader2, Clock, Route, Gauge, Users, TrendingUp, AlertTriangle } from 'lucide-react';
 import { format, startOfDay, endOfDay, eachDayOfInterval, differenceInMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
