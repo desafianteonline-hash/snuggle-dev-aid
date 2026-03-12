@@ -22,10 +22,28 @@ function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number
   return null;
 }
 
-export function GeofenceLayer({ geofences, onDelete, onMapClick, addMode }: GeofenceLayerProps) {
+export function GeofenceLayer({ geofences, onDelete, onMapClick, addMode, pendingLocation, pendingRadius = 200, pendingColor = '#3b82f6' }: GeofenceLayerProps) {
   return (
     <>
       {addMode && onMapClick && <MapClickHandler onMapClick={onMapClick} />}
+      {pendingLocation && (
+        <Circle
+          center={[pendingLocation.lat, pendingLocation.lng]}
+          radius={pendingRadius}
+          pathOptions={{
+            color: pendingColor,
+            fillColor: pendingColor,
+            fillOpacity: 0.25,
+            weight: 3,
+            dashArray: '8 4',
+          }}
+        >
+          <Popup>
+            <p style={{ fontWeight: 700, fontSize: 13, margin: 0 }}>Nova cerca</p>
+            <p style={{ fontSize: 11, opacity: 0.7, margin: 0 }}>Raio: {pendingRadius}m</p>
+          </Popup>
+        </Circle>
+      )}
       {geofences.map(g => (
         <Circle
           key={g.id}
