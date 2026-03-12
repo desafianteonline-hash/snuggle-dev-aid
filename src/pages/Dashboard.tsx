@@ -184,6 +184,10 @@ const Dashboard = () => {
               onCancel={() => setPendingGeofenceLocation(null)}
               onDelete={handleGeofenceDelete}
               onUpdate={handleGeofenceUpdate}
+              pendingRadius={pendingRadius}
+              pendingColor={pendingColor}
+              onPendingRadiusChange={setPendingRadius}
+              onPendingColorChange={setPendingColor}
             />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
