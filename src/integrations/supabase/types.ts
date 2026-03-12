@@ -219,8 +219,12 @@ export type Database = {
           created_at: string
           favicon_url: string | null
           id: string
+          idle_timeout_minutes: number
           logo_url: string | null
+          max_speed_limit: number
+          min_accuracy_meters: number
           page_title: string
+          patrol_interval_seconds: number
           platform_name: string
           platform_name_accent: string
           primary_color: string | null
@@ -237,8 +241,12 @@ export type Database = {
           created_at?: string
           favicon_url?: string | null
           id?: string
+          idle_timeout_minutes?: number
           logo_url?: string | null
+          max_speed_limit?: number
+          min_accuracy_meters?: number
           page_title?: string
+          patrol_interval_seconds?: number
           platform_name?: string
           platform_name_accent?: string
           primary_color?: string | null
@@ -255,8 +263,12 @@ export type Database = {
           created_at?: string
           favicon_url?: string | null
           id?: string
+          idle_timeout_minutes?: number
           logo_url?: string | null
+          max_speed_limit?: number
+          min_accuracy_meters?: number
           page_title?: string
+          patrol_interval_seconds?: number
           platform_name?: string
           platform_name_accent?: string
           primary_color?: string | null

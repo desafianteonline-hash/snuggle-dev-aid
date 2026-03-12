@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import PlatformBrand from '@/components/PlatformBrand';
@@ -36,6 +37,8 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
 const Reports = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { settings } = usePlatformSettings();
+  const speedLimit = settings.max_speed_limit ?? 60;
   const [patrollers, setPatrollers] = useState<Patroller[]>([]);
   const [selectedPatroller, setSelectedPatroller] = useState<string>('all');
   const [dateFrom, setDateFrom] = useState<Date>(() => {
@@ -187,7 +190,7 @@ const Reports = () => {
 
     // Top speed offenders (above 60 km/h)
     const speedAlerts = perPatroller
-      .filter(p => p.maxSpeed > 60)
+      .filter(p => p.maxSpeed > speedLimit)
       .sort((a, b) => b.maxSpeed - a.maxSpeed);
 
     return {
@@ -202,7 +205,7 @@ const Reports = () => {
       speedRanges,
       speedAlerts,
     };
-  }, [locations, dateFrom, dateTo, patrollers]);
+  }, [locations, dateFrom, dateTo, patrollers, speedLimit]);
 
   const summaryCards = stats ? [
     { icon: Clock, label: 'Horas Patrulhadas', value: `${stats.totalHours}h`, color: 'text-primary' },
@@ -406,7 +409,7 @@ const Reports = () => {
               <div className="bg-card border border-destructive/30 rounded-lg p-4">
                 <h3 className="text-sm font-bold mb-4 text-destructive flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4" />
-                  Alertas de Velocidade (acima de 60 km/h)
+                  Alertas de Velocidade (acima de {speedLimit} km/h)
                 </h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -461,7 +464,7 @@ const Reports = () => {
                           <td className="py-2 px-3 text-muted-foreground">{p.plate}</td>
                           <td className="py-2 px-3 text-right text-muted-foreground">{p.horas}h</td>
                           <td className="py-2 px-3 text-right text-muted-foreground">{p.distancia} km</td>
-                          <td className={cn("py-2 px-3 text-right font-semibold", p.maxSpeed > 60 ? "text-destructive" : "text-foreground")}>{p.maxSpeed} km/h</td>
+                          <td className={cn("py-2 px-3 text-right font-semibold", p.maxSpeed > speedLimit ? "text-destructive" : "text-foreground")}>{p.maxSpeed} km/h</td>
                           <td className="py-2 px-3 text-right text-muted-foreground">{p.avgSpeed} km/h</td>
                           <td className="py-2 px-3 text-right text-muted-foreground text-xs">
                             {p.maxSpeedAt ? format(new Date(p.maxSpeedAt), "dd/MM/yyyy HH:mm", { locale: ptBR }) : '—'}
