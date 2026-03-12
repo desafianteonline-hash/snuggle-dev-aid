@@ -193,6 +193,7 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
       setNewPointLat('');
       setNewPointLng('');
       setNewPointCep('');
+      setNewPointNumber('');
       setCepAddress('');
     }
     setSavingPoint(false);
