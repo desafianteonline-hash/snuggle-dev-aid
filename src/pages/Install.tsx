@@ -3,6 +3,7 @@ import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 import PlatformBrand from '@/components/PlatformBrand';
 import { Shield, Download, Smartphone, Share2, Plus, ArrowLeft, CheckCircle2, Copy, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { QRCodeSVG } from 'qrcode.react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
