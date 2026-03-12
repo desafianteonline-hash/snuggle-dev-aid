@@ -175,10 +175,10 @@ const RouteHistory = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `rota_${patrollerName}_${selectedDate}.csv`;
+    a.download = `rota_${patrollerName}_${dateLabel}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [locations, patrollerName, selectedDate]);
+  }, [locations, patrollerName, dateLabel]);
 
   // --- Export PDF (HTML-based print) ---
   const exportPDF = useCallback(() => {
