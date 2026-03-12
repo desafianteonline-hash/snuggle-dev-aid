@@ -16,12 +16,10 @@ serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   );
 
-  // Verify caller is admin
   const authHeader = req.headers.get('Authorization');
   if (!authHeader) {
     return new Response(JSON.stringify({ error: 'Não autorizado' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 
@@ -29,8 +27,7 @@ serve(async (req) => {
   const { data: { user: caller } } = await supabaseAdmin.auth.getUser(token);
   if (!caller) {
     return new Response(JSON.stringify({ error: 'Token inválido' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 
@@ -43,8 +40,7 @@ serve(async (req) => {
 
   if (!roleData) {
     return new Response(JSON.stringify({ error: 'Apenas administradores podem gerenciar usuários' }), {
-      status: 403,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 
@@ -60,80 +56,75 @@ serve(async (req) => {
       }
 
       const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
+        email, password, email_confirm: true,
       });
-
       if (authError) throw authError;
 
       const userId = authData.user.id;
 
-      const { error: roleError } = await supabaseAdmin
-        .from('user_roles')
-        .insert({ user_id: userId, role });
+      await supabaseAdmin.from('user_roles').insert({ user_id: userId, role });
 
-      if (roleError) throw roleError;
+      // Create profile for all users
+      await supabaseAdmin.from('profiles').insert({
+        user_id: userId,
+        name: name || null,
+        phone: phone || null,
+      });
 
+      // If patroller, also create patroller record
       if (role === 'patroller' && name) {
-        const { error: patrollerError } = await supabaseAdmin
-          .from('patrollers')
-          .insert({ user_id: userId, name, phone, vehicle_plate });
-        if (patrollerError) throw patrollerError;
+        await supabaseAdmin.from('patrollers').insert({
+          user_id: userId, name, phone, vehicle_plate,
+        });
       }
 
       return new Response(JSON.stringify({ success: true, user_id: userId }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     if (action === 'delete') {
       const { user_id } = body;
       if (!user_id) throw new Error('user_id é obrigatório');
-
-      // Prevent deleting yourself
       if (user_id === caller.id) throw new Error('Não é possível excluir a própria conta');
 
-      // Delete patroller record
       await supabaseAdmin.from('patrollers').delete().eq('user_id', user_id);
-      // Delete role
+      await supabaseAdmin.from('profiles').delete().eq('user_id', user_id);
       await supabaseAdmin.from('user_roles').delete().eq('user_id', user_id);
-      // Delete auth user
       const { error } = await supabaseAdmin.auth.admin.deleteUser(user_id);
       if (error) throw error;
 
       return new Response(JSON.stringify({ success: true }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     if (action === 'get_users') {
-      // List all users with emails from auth
       const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers();
       if (error) throw error;
 
       const { data: roles } = await supabaseAdmin.from('user_roles').select('*');
       const { data: patrollers } = await supabaseAdmin.from('patrollers').select('*');
+      const { data: profiles } = await supabaseAdmin.from('profiles').select('*');
 
       const userList = (roles || []).map(r => {
         const authUser = users.find(u => u.id === r.user_id);
         const patroller = (patrollers || []).find(p => p.user_id === r.user_id);
+        const profile = (profiles || []).find(p => p.user_id === r.user_id);
         return {
           id: r.user_id,
           email: authUser?.email || '',
           role: r.role,
           patroller_id: patroller?.id || null,
           patroller_name: patroller?.name || null,
-          phone: patroller?.phone || null,
+          phone: patroller?.phone || profile?.phone || null,
           vehicle_plate: patroller?.vehicle_plate || null,
+          profile_name: profile?.name || null,
         };
       });
 
       return new Response(JSON.stringify({ users: userList }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -141,8 +132,7 @@ serve(async (req) => {
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Erro desconhecido';
     return new Response(JSON.stringify({ error: msg }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
