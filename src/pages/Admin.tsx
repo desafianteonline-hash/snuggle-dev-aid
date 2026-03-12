@@ -17,7 +17,7 @@ const formatPhone = (value: string) => {
 };
 import {
   Shield, LogOut, UserPlus, Trash2, Users, Eye, EyeOff, Pencil, X, Check, Phone, Car,
-  Settings, Upload, Image, Palette, MapPin, AlertTriangle, FileText, Gauge, Clock,
+  Settings, Upload, Image, Palette, MapPin, AlertTriangle, FileText, Gauge, Clock, KeyRound,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmDialog from '@/components/ConfirmDialog';
