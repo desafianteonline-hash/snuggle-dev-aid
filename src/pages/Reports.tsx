@@ -77,7 +77,7 @@ const Reports = () => {
     const { data } = await query.limit(1000);
     setLocations(data || []);
     setLoading(false);
-  }, [selectedPatroller, dateFrom, dateTo]);
+  }, [selectedPatroller, dateFrom, dateTo, timeFrom, timeTo]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
