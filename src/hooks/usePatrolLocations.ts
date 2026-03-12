@@ -125,7 +125,7 @@ export function usePatrolLocations() {
         );
       }
     } catch (err) {
-      console.error('[PatrolTrack] Erro no polling:', err);
+      console.error('[CODSEG GPS] Erro no polling:', err);
       pollIntervalRef.current = Math.min(pollIntervalRef.current * 1.5, 30000);
     }
 
