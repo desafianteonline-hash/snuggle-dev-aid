@@ -15,11 +15,10 @@ const Index = () => {
 
   if (!user) return <Navigate to="/login" replace />;
 
-  // Route based on role
-  if (role === 'admin') return <Navigate to="/dashboard" replace />;
+  if (role === 'admin') return <Navigate to="/admin" replace />;
+  if (role === 'operator') return <Navigate to="/dashboard" replace />;
   if (role === 'patroller') return <Navigate to="/patrol" replace />;
 
-  // No role assigned yet
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="text-center space-y-4">

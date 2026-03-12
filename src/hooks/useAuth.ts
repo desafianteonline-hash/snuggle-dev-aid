@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { User, Session } from '@supabase/supabase-js';
 
+export type AppRole = 'admin' | 'patroller' | 'operator';
+
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [role, setRole] = useState<'admin' | 'patroller' | null>(null);
+  const [role, setRole] = useState<AppRole | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -35,7 +37,7 @@ export function useAuth() {
       .select('role')
       .eq('user_id', userId)
       .maybeSingle();
-    setRole(data?.role ?? null);
+    setRole((data?.role as AppRole) ?? null);
     setLoading(false);
   }
 

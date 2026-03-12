@@ -24,14 +24,42 @@ const Patrol = () => {
       if (data) {
         setPatrollerId(data.id);
         setPatrollerName(data.name);
+        // Set status to online
+        await supabase.from('patrollers').update({ status: 'online' }).eq('id', data.id);
       }
     };
     fetchPatroller();
+
+    // Set offline on unmount/logout
+    return () => {
+      if (patrollerId) {
+        supabase.from('patrollers').update({ status: 'offline' }).eq('id', patrollerId);
+      }
+    };
   }, [user]);
+
+  // Also set offline on page unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (patrollerId) {
+        navigator.sendBeacon && supabase.from('patrollers').update({ status: 'offline' }).eq('id', patrollerId);
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [patrollerId]);
 
   const handleConsent = () => {
     setConsentGiven(true);
     geo.startTracking();
+  };
+
+  const handleSignOut = async () => {
+    if (patrollerId) {
+      await supabase.from('patrollers').update({ status: 'offline' }).eq('id', patrollerId);
+    }
+    geo.stopTracking();
+    signOut();
   };
 
   if (!consentGiven) {
@@ -76,7 +104,7 @@ const Patrol = () => {
             Aceitar e Iniciar Rastreamento
           </Button>
 
-          <Button variant="ghost" onClick={signOut} className="w-full text-xs text-muted-foreground">
+          <Button variant="ghost" onClick={handleSignOut} className="w-full text-xs text-muted-foreground">
             Sair
           </Button>
         </motion.div>
@@ -159,7 +187,7 @@ const Patrol = () => {
             </Button>
           )}
 
-          <Button variant="ghost" onClick={signOut} className="w-full text-xs text-muted-foreground">
+          <Button variant="ghost" onClick={handleSignOut} className="w-full text-xs text-muted-foreground">
             Encerrar Turno
           </Button>
         </div>
