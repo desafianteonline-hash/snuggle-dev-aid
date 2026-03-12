@@ -38,25 +38,32 @@ const motorcycleSvg = (color: string, size: number) => `
   <circle cx="12" cy="7" r="1.5" fill="hsl(220,18%,10%)"/>
 </svg>`;
 
-function createPatrollerIcon(status: string, isSelected: boolean, vehicleType: string = 'car') {
+function createPatrollerIcon(status: string, isSelected: boolean, vehicleType: string = 'car', name: string = '', plate: string = '') {
   const color = statusColors[status] || '#6b7280';
   const size = isSelected ? 36 : 28;
   const outerSize = size + 16;
+  const labelWidth = Math.max(80, name.length * 7 + 16);
 
   const svg = vehicleType === 'motorcycle' ? motorcycleSvg(color, size) : carSvg(color, size);
 
   return L.divIcon({
     className: 'custom-marker',
     html: `
-      <div style="position:relative;display:flex;align-items:center;justify-content:center;">
-        <div class="pulse-ring" style="position:absolute;width:${outerSize}px;height:${outerSize}px;border-radius:50%;border:2px solid ${color};opacity:${isSelected ? 0.8 : 0.4};"></div>
-        <div style="filter:drop-shadow(0 0 ${isSelected ? 8 : 4}px ${color}80);">
-          ${svg}
+      <div style="position:relative;display:flex;flex-direction:column;align-items:center;">
+        <div style="position:relative;display:flex;align-items:center;justify-content:center;">
+          <div class="pulse-ring" style="position:absolute;width:${outerSize}px;height:${outerSize}px;border-radius:50%;border:2px solid ${color};opacity:${isSelected ? 0.8 : 0.4};"></div>
+          <div style="filter:drop-shadow(0 0 ${isSelected ? 8 : 4}px ${color}80);">
+            ${svg}
+          </div>
+        </div>
+        <div style="margin-top:2px;background:rgba(0,0,0,0.75);border:1px solid ${color};border-radius:4px;padding:1px 6px;white-space:nowrap;text-align:center;min-width:${labelWidth}px;">
+          <div style="font-size:10px;font-weight:700;color:#fff;line-height:1.3;">${name}</div>
+          ${plate ? `<div style="font-size:8px;color:rgba(255,255,255,0.7);line-height:1.2;">${plate}</div>` : ''}
         </div>
       </div>
     `,
-    iconSize: [outerSize, outerSize],
-    iconAnchor: [outerSize / 2, outerSize / 2],
+    iconSize: [labelWidth, outerSize + 30],
+    iconAnchor: [labelWidth / 2, outerSize / 2],
   });
 }
 
@@ -173,7 +180,7 @@ const PatrolMap = ({ patrollers, selectedId, onSelect, route = [], flyTo = null 
           <Marker
             key={p.id}
             position={[p.latest_location.latitude, p.latest_location.longitude]}
-            icon={createPatrollerIcon(p.status, isSelected, p.vehicle_type || 'car')}
+            icon={createPatrollerIcon(p.status, isSelected, p.vehicle_type || 'car', p.name, p.vehicle_plate || '')}
             zIndexOffset={isSelected ? 1000 : 0}
             eventHandlers={{ click: () => onSelect?.(p.id) }}
           >
