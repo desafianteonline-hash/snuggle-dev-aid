@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Clock, Gauge, Radio, User, Car, Bike, Search, Filter, ChevronRight, Navigation, Phone, Eye, EyeOff } from 'lucide-react';
+import { MapPin, Clock, Gauge, Radio, User, Car, Bike, Search, Filter, ChevronRight, Navigation, Phone, Eye, EyeOff, Pencil, Save, X } from 'lucide-react';
 import type { PatrollerWithLocation } from '@/hooks/usePatrolLocations';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -53,6 +53,9 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editVehicleType, setEditVehicleType] = useState<string>('car');
+  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
   const online = patrollers.filter(p => p.status === 'online').length;
@@ -70,17 +73,29 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
       return (order[a.status] ?? 3) - (order[b.status] ?? 3);
     });
 
-  const handleVehicleTypeChange = async (patrollerId: string, type: string) => {
+  const startEditing = (p: PatrollerWithLocation) => {
+    setEditingId(p.id);
+    setEditVehicleType(p.vehicle_type || 'car');
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+  };
+
+  const handleSave = async (patrollerId: string) => {
+    setSaving(true);
     const { error } = await supabase
       .from('patrollers')
-      .update({ vehicle_type: type } as any)
+      .update({ vehicle_type: editVehicleType })
       .eq('id', patrollerId);
 
     if (error) {
-      toast({ title: 'Erro ao atualizar veículo', variant: 'destructive' });
+      toast({ title: 'Erro ao salvar', variant: 'destructive' });
     } else {
-      toast({ title: `Veículo atualizado para ${type === 'car' ? 'Carro' : 'Moto'}` });
+      toast({ title: 'Alterações salvas com sucesso!' });
+      setEditingId(null);
     }
+    setSaving(false);
   };
 
   const handleLocate = (p: PatrollerWithLocation) => {
@@ -213,27 +228,63 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
                   exit={{ height: 0, opacity: 0 }}
                   className="mx-3 mb-2 p-3 rounded-lg bg-secondary/50 space-y-3"
                 >
-                  {/* Vehicle type selector */}
+                  {/* Header with edit toggle */}
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Detalhes</p>
+                    {editingId !== p.id ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0"
+                        onClick={(e) => { e.stopPropagation(); startEditing(p); }}
+                        title="Editar"
+                      >
+                        <Pencil className="h-3 w-3 text-muted-foreground" />
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0"
+                        onClick={(e) => { e.stopPropagation(); cancelEditing(); }}
+                        title="Cancelar"
+                      >
+                        <X className="h-3 w-3 text-muted-foreground" />
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Vehicle type */}
                   <div>
                     <p className="text-xs text-muted-foreground mb-1.5">Tipo de veículo</p>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant={p.vehicle_type === 'car' || !p.vehicle_type ? 'default' : 'outline'}
-                        className="h-7 text-xs gap-1.5"
-                        onClick={(e) => { e.stopPropagation(); handleVehicleTypeChange(p.id, 'car'); }}
-                      >
-                        <Car className="h-3.5 w-3.5" /> Carro
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={p.vehicle_type === 'motorcycle' ? 'default' : 'outline'}
-                        className="h-7 text-xs gap-1.5"
-                        onClick={(e) => { e.stopPropagation(); handleVehicleTypeChange(p.id, 'motorcycle'); }}
-                      >
-                        <Bike className="h-3.5 w-3.5" /> Moto
-                      </Button>
-                    </div>
+                    {editingId === p.id ? (
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant={editVehicleType === 'car' ? 'default' : 'outline'}
+                          className="h-7 text-xs gap-1.5"
+                          onClick={(e) => { e.stopPropagation(); setEditVehicleType('car'); }}
+                        >
+                          <Car className="h-3.5 w-3.5" /> Carro
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={editVehicleType === 'motorcycle' ? 'default' : 'outline'}
+                          className="h-7 text-xs gap-1.5"
+                          onClick={(e) => { e.stopPropagation(); setEditVehicleType('motorcycle'); }}
+                        >
+                          <Bike className="h-3.5 w-3.5" /> Moto
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 text-xs">
+                        {(p.vehicle_type || 'car') === 'motorcycle' ? (
+                          <><Bike className="h-3.5 w-3.5 text-primary" /> Moto</>
+                        ) : (
+                          <><Car className="h-3.5 w-3.5 text-primary" /> Carro</>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Contact info */}
@@ -259,6 +310,16 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
 
                   {/* Actions */}
                   <div className="flex gap-2">
+                    {editingId === p.id && (
+                      <Button
+                        size="sm"
+                        className="h-7 text-xs gap-1.5 flex-1"
+                        disabled={saving}
+                        onClick={(e) => { e.stopPropagation(); handleSave(p.id); }}
+                      >
+                        <Save className="h-3 w-3" /> {saving ? 'Salvando...' : 'Salvar'}
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       variant="outline"
