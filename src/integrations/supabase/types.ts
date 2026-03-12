@@ -90,6 +90,9 @@ export type Database = {
       }
       platform_settings: {
         Row: {
+          accent_color: string | null
+          background_color: string | null
+          card_color: string | null
           created_at: string
           favicon_url: string | null
           id: string
@@ -97,9 +100,14 @@ export type Database = {
           page_title: string
           platform_name: string
           platform_name_accent: string
+          primary_color: string | null
+          theme_preset: string | null
           updated_at: string
         }
         Insert: {
+          accent_color?: string | null
+          background_color?: string | null
+          card_color?: string | null
           created_at?: string
           favicon_url?: string | null
           id?: string
@@ -107,9 +115,14 @@ export type Database = {
           page_title?: string
           platform_name?: string
           platform_name_accent?: string
+          primary_color?: string | null
+          theme_preset?: string | null
           updated_at?: string
         }
         Update: {
+          accent_color?: string | null
+          background_color?: string | null
+          card_color?: string | null
           created_at?: string
           favicon_url?: string | null
           id?: string
@@ -117,6 +130,8 @@ export type Database = {
           page_title?: string
           platform_name?: string
           platform_name_accent?: string
+          primary_color?: string | null
+          theme_preset?: string | null
           updated_at?: string
         }
         Relationships: []
