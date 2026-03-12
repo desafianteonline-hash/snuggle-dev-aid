@@ -45,10 +45,8 @@ const Dashboard = () => {
   });
 
   const handleGeofenceMapClick = useCallback((lat: number, lng: number) => {
-    if (geofenceAddMode) {
-      setPendingGeofenceLocation({ lat, lng });
-    }
-  }, [geofenceAddMode]);
+    setPendingGeofenceLocation({ lat, lng });
+  }, []);
 
   const handleGeofenceConfirm = useCallback(async (name: string, radius: number, color: string) => {
     if (!pendingGeofenceLocation || !user) return;
