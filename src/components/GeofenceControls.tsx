@@ -242,17 +242,17 @@ export function GeofenceControls({
             </div>
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">
-                Raio: {radius}m
+                Raio: {pendingRadius}m
               </Label>
               <input
                 type="range"
                 min={50}
                 max={2000}
                 step={50}
-                value={radius}
-                onChange={e => setRadius(Number(e.target.value))}
+                value={pendingRadius}
+                onChange={e => onPendingRadiusChange(Number(e.target.value))}
                 className="w-full mt-2"
-                style={{ accentColor: color }}
+                style={{ accentColor: pendingColor }}
               />
               <div className="flex justify-between text-[10px] text-muted-foreground">
                 <span>50m</span>
