@@ -117,15 +117,15 @@ const Install = () => {
               </h2>
               <ul className="text-xs text-muted-foreground space-y-2 pl-1">
                 <li className="flex gap-2">
-                  <span className="text-amber-500 font-bold">•</span>
+                  <span className="text-destructive font-bold">•</span>
                   <span>Cada patrulheiro precisa ter uma <strong>conta cadastrada pelo administrador</strong> no painel Admin → Equipe</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-amber-500 font-bold">•</span>
+                  <span className="text-destructive font-bold">•</span>
                   <span>O administrador deve fornecer o <strong>email e senha</strong> de acesso a cada patrulheiro</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-amber-500 font-bold">•</span>
+                  <span className="text-destructive font-bold">•</span>
                   <span>Sem credenciais, o patrulheiro <strong>não conseguirá acessar</strong> o app</span>
                 </li>
               </ul>
