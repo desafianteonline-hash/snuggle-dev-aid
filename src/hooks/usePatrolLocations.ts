@@ -149,7 +149,7 @@ export function usePatrolLocations() {
         { event: 'INSERT', schema: 'public', table: 'patrol_locations' },
         (payload) => {
           const newLocation = payload.new as Tables<'patrol_locations'>;
-          console.log('[PatrolTrack] Realtime: nova localização recebida');
+          console.log('[CODSEG GPS] Realtime: nova localização recebida');
 
           setPatrollers(prev =>
             prev.map(p =>
