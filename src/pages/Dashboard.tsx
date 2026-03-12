@@ -81,6 +81,7 @@ const Dashboard = () => {
   const handleGeofenceUpdate = useCallback(async (id: string, updates: Partial<Geofence>) => {
     await updateGeofence(id, updates);
     toast({ title: 'Cerca atualizada' });
+    logActivity({ action: 'update', entityType: 'geofence', entityId: id, details: updates as Record<string, unknown> });
   }, [updateGeofence, toast]);
 
   const toggleTvMode = useCallback(() => {
