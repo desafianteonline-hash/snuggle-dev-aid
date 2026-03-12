@@ -29,7 +29,7 @@ const defaultSettings: PlatformSettings = {
   theme_preset: 'default',
 };
 
-// Preset themes
+// Preset themes (dark-mode base colors)
 export const THEME_PRESETS: Record<string, { label: string; primary: string; background: string; card: string; accent: string }> = {
   default: { label: 'Padrão (Verde)', primary: '142 70% 45%', background: '220 20% 7%', card: '220 18% 10%', accent: '142 50% 30%' },
   blue: { label: 'Azul Profundo', primary: '217 91% 60%', background: '222 47% 7%', card: '222 40% 10%', accent: '217 70% 35%' },
@@ -39,41 +39,92 @@ export const THEME_PRESETS: Record<string, { label: string; primary: string; bac
   cyan: { label: 'Ciano Tech', primary: '185 80% 45%', background: '200 25% 7%', card: '200 20% 10%', accent: '185 50% 30%' },
 };
 
+function parseHSL(hsl: string): { h: number; s: number; l: number } {
+  const parts = hsl.match(/[\d.]+/g) || ['0', '0%', '0%'];
+  return {
+    h: parseInt(parts[0] || '0'),
+    s: parseInt(parts[1] || '0'),
+    l: parseInt(parts[2] || '0'),
+  };
+}
+
+function isLightMode(): boolean {
+  return document.documentElement.classList.contains('light');
+}
+
 function applyThemeColors(settings: PlatformSettings) {
   const root = document.documentElement;
+  const light = isLightMode();
+
   if (settings.primary_color) {
+    const { h, s } = parseHSL(settings.primary_color);
     root.style.setProperty('--primary', settings.primary_color);
     root.style.setProperty('--ring', settings.primary_color);
     root.style.setProperty('--sidebar-primary', settings.primary_color);
     root.style.setProperty('--sidebar-ring', settings.primary_color);
-    // Derive primary foreground (dark on light primary, light on dark)
-    const lightness = parseInt(settings.primary_color.split('%')[1] || '45');
-    root.style.setProperty('--primary-foreground', lightness > 55 ? '220 20% 7%' : '220 20% 7%');
+    root.style.setProperty('--primary-foreground', light ? '0 0% 100%' : '220 20% 7%');
+    root.style.setProperty('--sidebar-primary-foreground', light ? '0 0% 100%' : '220 20% 7%');
+    // Status online follows primary hue
+    root.style.setProperty('--status-online', settings.primary_color);
   }
+
   if (settings.background_color) {
-    root.style.setProperty('--background', settings.background_color);
-    root.style.setProperty('--sidebar-background', settings.background_color);
+    const { h, s } = parseHSL(settings.background_color);
+    if (light) {
+      root.style.setProperty('--background', `${h} ${Math.min(s, 20)}% 98%`);
+      root.style.setProperty('--sidebar-background', `${h} ${Math.min(s, 20)}% 98%`);
+      root.style.setProperty('--foreground', `${h} 20% 10%`);
+    } else {
+      root.style.setProperty('--background', settings.background_color);
+      root.style.setProperty('--sidebar-background', settings.background_color);
+      root.style.setProperty('--foreground', '210 20% 92%');
+    }
   }
+
   if (settings.card_color) {
-    root.style.setProperty('--card', settings.card_color);
-    root.style.setProperty('--card-foreground', '210 20% 92%');
-    root.style.setProperty('--popover', settings.card_color);
-    // Derive secondary/muted from card
-    const parts = settings.card_color.split(' ');
-    const hue = parseInt(parts[0] || '220');
-    root.style.setProperty('--secondary', `${hue} 16% 16%`);
-    root.style.setProperty('--muted', `${hue} 14% 14%`);
-    root.style.setProperty('--border', `${hue} 14% 18%`);
-    root.style.setProperty('--input', `${hue} 14% 18%`);
-    root.style.setProperty('--sidebar-border', `${hue} 14% 18%`);
-    root.style.setProperty('--sidebar-accent', `${hue} 16% 14%`);
+    const { h, s } = parseHSL(settings.card_color);
+    if (light) {
+      root.style.setProperty('--card', '0 0% 100%');
+      root.style.setProperty('--popover', '0 0% 100%');
+      root.style.setProperty('--card-foreground', `${h} 20% 10%`);
+      root.style.setProperty('--popover-foreground', `${h} 20% 10%`);
+      root.style.setProperty('--secondary', `${h} 14% 92%`);
+      root.style.setProperty('--secondary-foreground', `${h} 20% 20%`);
+      root.style.setProperty('--muted', `${h} 14% 95%`);
+      root.style.setProperty('--muted-foreground', `${h} 12% 45%`);
+      root.style.setProperty('--border', `${h} 14% 88%`);
+      root.style.setProperty('--input', `${h} 14% 88%`);
+      root.style.setProperty('--sidebar-border', `${h} 14% 88%`);
+      root.style.setProperty('--sidebar-accent', `${h} 14% 94%`);
+      root.style.setProperty('--sidebar-foreground', `${h} 20% 30%`);
+      root.style.setProperty('--sidebar-accent-foreground', `${h} 20% 30%`);
+    } else {
+      root.style.setProperty('--card', settings.card_color);
+      root.style.setProperty('--popover', settings.card_color);
+      root.style.setProperty('--card-foreground', '210 20% 92%');
+      root.style.setProperty('--popover-foreground', '210 20% 92%');
+      root.style.setProperty('--secondary', `${h} 16% 16%`);
+      root.style.setProperty('--secondary-foreground', '210 20% 82%');
+      root.style.setProperty('--muted', `${h} 14% 14%`);
+      root.style.setProperty('--muted-foreground', `215 12% 50%`);
+      root.style.setProperty('--border', `${h} 14% 18%`);
+      root.style.setProperty('--input', `${h} 14% 18%`);
+      root.style.setProperty('--sidebar-border', `${h} 14% 18%`);
+      root.style.setProperty('--sidebar-accent', `${h} 16% 14%`);
+      root.style.setProperty('--sidebar-foreground', '210 20% 82%');
+      root.style.setProperty('--sidebar-accent-foreground', '210 20% 82%');
+    }
   }
+
   if (settings.accent_color) {
-    root.style.setProperty('--accent', settings.accent_color);
-    // Derive accent foreground
-    const parts = settings.accent_color.split(' ');
-    const hue = parseInt(parts[0] || '142');
-    root.style.setProperty('--accent-foreground', `${hue} 70% 85%`);
+    const { h, s } = parseHSL(settings.accent_color);
+    if (light) {
+      root.style.setProperty('--accent', `${h} ${s}% 90%`);
+      root.style.setProperty('--accent-foreground', `${h} ${s}% 20%`);
+    } else {
+      root.style.setProperty('--accent', settings.accent_color);
+      root.style.setProperty('--accent-foreground', `${h} 70% 85%`);
+    }
   }
 }
 
@@ -115,6 +166,16 @@ export function PlatformSettingsProvider({ children }: { children: React.ReactNo
     }
     setLoading(false);
   };
+
+  // Re-apply theme colors when light/dark class changes
+  useEffect(() => {
+    if (!settings.id) return;
+    const observer = new MutationObserver(() => {
+      applyThemeColors(settings);
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, [settings]);
 
   useEffect(() => {
     fetchSettings();
