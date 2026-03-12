@@ -98,6 +98,15 @@ const Dashboard = () => {
           <Button
             variant="outline"
             size="sm"
+            onClick={() => navigate('/reports')}
+            title="Relatórios"
+            className="gap-1.5"
+          >
+            <BarChart3 className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Relatórios</span>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => navigate('/install')}
             title="Compartilhar app do patrulheiro"
             className="gap-1.5"

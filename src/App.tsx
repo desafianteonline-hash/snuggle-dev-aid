@@ -34,6 +34,7 @@ const App = () => (
             <Route path="/patrol" element={<Patrol />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/history" element={<RouteHistory />} />
+            <Route path="/reports" element={<Reports />} />
             <Route path="/install" element={<Install />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
