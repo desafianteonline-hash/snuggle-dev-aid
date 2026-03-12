@@ -266,7 +266,19 @@ const Dashboard = () => {
         )}
 
         {/* Map */}
-        <div className="flex-1">
+        <div className="flex-1 relative">
+          {geofenceAddMode && (
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[999] bg-primary text-primary-foreground px-4 py-2 rounded-lg shadow-lg text-sm font-medium flex items-center gap-2 animate-fade-in">
+              <Shield className="h-4 w-4" />
+              Clique no mapa para posicionar a cerca
+              <button
+                onClick={() => setGeofenceAddMode(false)}
+                className="ml-2 bg-primary-foreground/20 hover:bg-primary-foreground/30 rounded px-2 py-0.5 text-xs"
+              >
+                Cancelar
+              </button>
+            </div>
+          )}
           {loading ? (
             <div className="flex h-full items-center justify-center">
               <Shield className="h-8 w-8 animate-pulse text-primary" />
