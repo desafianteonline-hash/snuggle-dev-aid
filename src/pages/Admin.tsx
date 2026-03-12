@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PlatformBrand from '@/components/PlatformBrand';
 import {
   Shield, LogOut, UserPlus, Trash2, Users, Eye, EyeOff, Pencil, X, Check, Phone, Car,
-  Settings, Upload, Image,
+  Settings, Upload, Image, Palette,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
