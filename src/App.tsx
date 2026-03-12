@@ -14,6 +14,7 @@ import Admin from "./pages/Admin";
 import Install from "./pages/Install";
 import RouteHistory from "./pages/RouteHistory";
 import Reports from "./pages/Reports";
+import GeofenceTimeline from "./pages/GeofenceTimeline";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
