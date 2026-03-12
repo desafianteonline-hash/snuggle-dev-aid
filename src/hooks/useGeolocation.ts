@@ -211,8 +211,8 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
   // --- Capacitor Background Geolocation ---
   const startNativeTracking = useCallback(async () => {
     try {
-      const bgModule = await import('@capacitor-community/background-geolocation') as any;
-      const BackgroundGeolocation = bgModule.BackgroundGeolocation || bgModule.default;
+      // Access native plugin via Capacitor's global registry (avoids Vite build issues)
+      const BackgroundGeolocation = (window as any).Capacitor?.Plugins?.BackgroundGeolocation;
 
       bgWatcherRef.current = await BackgroundGeolocation.addWatcher(
         {
