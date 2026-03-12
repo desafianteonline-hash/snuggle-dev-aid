@@ -1,30 +1,86 @@
+import { useState, useEffect } from 'react';
 import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 import PlatformBrand from '@/components/PlatformBrand';
-import { Shield, Download, Smartphone, Share2, Plus, ArrowLeft } from 'lucide-react';
+import { Shield, Download, Smartphone, Share2, Plus, ArrowLeft, CheckCircle2, Copy, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
 
 const Install = () => {
   const { settings } = usePlatformSettings();
   const navigate = useNavigate();
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [installing, setInstalling] = useState(false);
 
   const appUrl = `${window.location.origin}/patrol`;
+
+  // Listen for PWA install prompt
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true);
+    }
+    window.addEventListener('appinstalled', () => {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+      toast.success('App instalado com sucesso!');
+    });
+
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    setInstalling(true);
+    try {
+      await deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setIsInstalled(true);
+      }
+      setDeferredPrompt(null);
+    } catch {
+      toast.error('Erro ao instalar');
+    }
+    setInstalling(false);
+  };
 
   const handleShare = async () => {
     if (navigator.share) {
       try {
         await navigator.share({
           title: `${settings.platform_name} - App do Patrulheiro`,
-          text: 'Acesse o app de patrulhamento pelo link abaixo:',
+          text: 'Instale o app de patrulhamento pelo link abaixo:',
           url: appUrl,
         });
       } catch {}
     } else {
       await navigator.clipboard.writeText(appUrl);
-      alert('Link copiado para a área de transferência!');
+      toast.success('Link copiado!');
     }
   };
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(appUrl);
+    toast.success('Link copiado para a área de transferência!');
+  };
+
+  const isAndroid = /android/i.test(navigator.userAgent);
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -36,11 +92,11 @@ const Install = () => {
         <PlatformBrand size="sm" />
       </header>
 
-      <div className="flex-1 flex items-center justify-center p-6">
+      <div className="flex-1 overflow-auto p-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-md w-full space-y-8 text-center"
+          className="max-w-md w-full mx-auto space-y-6 text-center"
         >
           {/* Logo */}
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 overflow-hidden">
@@ -52,69 +108,134 @@ const Install = () => {
           </div>
 
           <div>
-            <h1 className="text-2xl font-bold">App do Patrulheiro</h1>
+            <h1 className="text-2xl font-bold">Instalar App do Patrulheiro</h1>
             <p className="text-sm text-muted-foreground mt-2">
-              Instale o aplicativo de rastreamento no celular do patrulheiro
+              Compartilhe e instale o aplicativo no celular dos patrulheiros
             </p>
+          </div>
+
+          {/* Install Button - Main CTA */}
+          {isInstalled ? (
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="rounded-xl border border-primary/30 bg-primary/10 p-4 flex items-center gap-3"
+            >
+              <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0" />
+              <div className="text-left">
+                <p className="text-sm font-bold text-primary">App já instalado!</p>
+                <p className="text-xs text-muted-foreground">O aplicativo está instalado neste dispositivo</p>
+              </div>
+            </motion.div>
+          ) : deferredPrompt ? (
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              className="space-y-2"
+            >
+              <Button
+                size="lg"
+                className="w-full gap-2 h-14 text-base font-bold"
+                onClick={handleInstallClick}
+                disabled={installing}
+              >
+                <Download className="h-5 w-5" />
+                {installing ? 'Instalando...' : 'Instalar App Agora'}
+              </Button>
+              <p className="text-[10px] text-muted-foreground">
+                Clique para instalar diretamente no dispositivo
+              </p>
+            </motion.div>
+          ) : (
+            <div className="rounded-xl border border-accent/30 bg-accent/5 p-4 text-left">
+              <p className="text-xs text-muted-foreground">
+                {isIOS
+                  ? '📱 No iPhone, use o Safari e toque em Compartilhar → "Adicionar à Tela de Início"'
+                  : isAndroid
+                  ? '📱 No Android, use o Chrome e toque no menu ⋮ → "Instalar app"'
+                  : '📱 Para instalar, abra este link no celular do patrulheiro usando Chrome (Android) ou Safari (iPhone)'}
+              </p>
+            </div>
+          )}
+
+          {/* Link & Share */}
+          <div className="space-y-3">
+            <div className="rounded-xl border border-border bg-card p-3">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Link do app</p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-mono break-all text-foreground flex-1 text-left">{appUrl}</p>
+                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={handleCopy}>
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button className="flex-1 gap-2" onClick={handleShare}>
+                <Share2 className="h-4 w-4" />
+                Compartilhar
+              </Button>
+              <Button variant="outline" className="flex-1 gap-2" onClick={handleCopy}>
+                <Copy className="h-4 w-4" />
+                Copiar link
+              </Button>
+            </div>
           </div>
 
           {/* Instructions */}
           <div className="space-y-4 text-left">
+            <h2 className="text-sm font-bold text-center text-muted-foreground">Instruções de instalação</h2>
+            
             <div className="rounded-xl border border-border bg-card p-4 space-y-4">
-              <h2 className="text-sm font-bold flex items-center gap-2">
+              <h3 className="text-sm font-bold flex items-center gap-2">
                 <Smartphone className="h-4 w-4 text-primary" />
-                Como instalar no Android
-              </h2>
+                Android (Chrome)
+              </h3>
               <ol className="text-xs text-muted-foreground space-y-3 pl-1">
-                <li className="flex gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-[10px] font-bold flex-shrink-0">1</span>
-                  <span>Abra o link abaixo no <strong>Google Chrome</strong> do celular do patrulheiro</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-[10px] font-bold flex-shrink-0">2</span>
-                  <span>Toque no menu <strong>⋮</strong> (três pontos) no canto superior direito</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-[10px] font-bold flex-shrink-0">3</span>
-                  <span>Selecione <strong>"Adicionar à tela inicial"</strong> ou <strong>"Instalar app"</strong></span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-[10px] font-bold flex-shrink-0">4</span>
-                  <span>Confirme a instalação. O app aparecerá como ícone na tela inicial</span>
-                </li>
+                {[
+                  'Abra o link acima no **Google Chrome**',
+                  'Toque no menu **⋮** (três pontos) no canto superior',
+                  'Selecione **"Instalar app"** ou **"Adicionar à tela inicial"**',
+                  'Confirme. O app aparecerá na tela inicial como ícone',
+                ].map((step, i) => (
+                  <li key={i} className="flex gap-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-[10px] font-bold flex-shrink-0">
+                      {i + 1}
+                    </span>
+                    <span dangerouslySetInnerHTML={{ __html: step.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+                  </li>
+                ))}
               </ol>
             </div>
 
             <div className="rounded-xl border border-border bg-card p-4 space-y-4">
-              <h2 className="text-sm font-bold flex items-center gap-2">
+              <h3 className="text-sm font-bold flex items-center gap-2">
                 <Smartphone className="h-4 w-4 text-primary" />
-                Como instalar no iPhone
-              </h2>
+                iPhone (Safari)
+              </h3>
               <ol className="text-xs text-muted-foreground space-y-3 pl-1">
-                <li className="flex gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-[10px] font-bold flex-shrink-0">1</span>
-                  <span>Abra o link abaixo no <strong>Safari</strong> do iPhone</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-[10px] font-bold flex-shrink-0">2</span>
-                  <span>Toque no botão de <strong>compartilhar</strong> <Share2 className="h-3 w-3 inline" /> na barra inferior</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-[10px] font-bold flex-shrink-0">3</span>
-                  <span>Role para baixo e toque em <strong>"Adicionar à Tela de Início"</strong> <Plus className="h-3 w-3 inline" /></span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-[10px] font-bold flex-shrink-0">4</span>
-                  <span>Confirme tocando em <strong>"Adicionar"</strong></span>
-                </li>
+                {[
+                  'Abra o link acima no **Safari**',
+                  'Toque no botão de **compartilhar** (quadrado com seta)',
+                  'Role e toque em **"Adicionar à Tela de Início"**',
+                  'Confirme tocando em **"Adicionar"**',
+                ].map((step, i) => (
+                  <li key={i} className="flex gap-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-[10px] font-bold flex-shrink-0">
+                      {i + 1}
+                    </span>
+                    <span dangerouslySetInnerHTML={{ __html: step.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+                  </li>
+                ))}
               </ol>
             </div>
 
+            {/* Warning */}
             <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 space-y-3">
-              <h2 className="text-sm font-bold flex items-center gap-2 text-destructive">
+              <h3 className="text-sm font-bold flex items-center gap-2 text-destructive">
                 <Shield className="h-4 w-4" />
-                Antes de compartilhar
-              </h2>
+                Importante
+              </h3>
               <ul className="text-xs text-muted-foreground space-y-2 pl-1">
                 <li className="flex gap-2">
                   <span className="text-destructive font-bold">•</span>
@@ -122,7 +243,7 @@ const Install = () => {
                 </li>
                 <li className="flex gap-2">
                   <span className="text-destructive font-bold">•</span>
-                  <span>O administrador deve fornecer o <strong>email e senha</strong> de acesso a cada patrulheiro</span>
+                  <span>Forneça o <strong>email e senha</strong> ao patrulheiro junto com o link</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="text-destructive font-bold">•</span>
@@ -130,33 +251,6 @@ const Install = () => {
                 </li>
               </ul>
             </div>
-          </div>
-
-          {/* Link & actions */}
-          <div className="space-y-3">
-            <div className="rounded-xl border border-primary/30 bg-primary/5 p-3">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Link do app</p>
-              <p className="text-xs font-mono break-all text-foreground">{appUrl}</p>
-            </div>
-
-            <div className="flex gap-2">
-              <Button className="flex-1 gap-2" onClick={handleShare}>
-                <Share2 className="h-4 w-4" />
-                Compartilhar link
-              </Button>
-              <Button
-                variant="outline"
-                className="flex-1 gap-2"
-                onClick={() => navigator.clipboard.writeText(appUrl).then(() => alert('Link copiado!'))}
-              >
-                <Download className="h-4 w-4" />
-                Copiar link
-              </Button>
-            </div>
-
-            <p className="text-[10px] text-muted-foreground">
-              O patrulheiro precisará fazer login com as credenciais cadastradas pelo administrador
-            </p>
           </div>
         </motion.div>
       </div>
