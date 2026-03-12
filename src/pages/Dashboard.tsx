@@ -34,7 +34,7 @@ const Dashboard = () => {
   const [tvMode, setTvMode] = useState(false);
   const [geofenceAddMode, setGeofenceAddMode] = useState(false);
   const [pendingGeofenceLocation, setPendingGeofenceLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const { geofences, addGeofence, removeGeofence } = useGeofences();
+  const { geofences, addGeofence, removeGeofence, updateGeofence } = useGeofences();
 
   useGeofenceDetection(patrollers, geofences, (event) => {
     toast({
