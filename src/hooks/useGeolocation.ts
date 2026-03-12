@@ -435,7 +435,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
   // Handle online/offline
   useEffect(() => {
     const handleOnline = () => {
-      console.log('[PatrolTrack] Dispositivo online - reenviando fila');
+      console.log('[CODSEG GPS] Dispositivo online - reenviando fila');
       flushQueue();
     };
     window.addEventListener('online', handleOnline);
