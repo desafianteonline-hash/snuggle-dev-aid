@@ -115,7 +115,6 @@ const Dashboard = () => {
                   selectedId={selectedId}
                   onSelect={(id) => { handleSelect(id); setSidebarOpen(false); }}
                   onFlyTo={handleFlyTo}
-                  companyLocation={companyLocation}
                 />
               </motion.div>
             )}
