@@ -182,29 +182,30 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
   };
 
   const handleAddPoint = async () => {
+    setSaveStatus(null);
+
     if (!newPointName.trim()) {
-      toast({ title: 'Informe o nome do ponto', variant: 'destructive' });
+      setSaveStatus({ type: 'error', message: 'Informe o nome do ponto' });
       return;
     }
 
     let lat = parseFloat(newPointLat);
     let lng = parseFloat(newPointLng);
 
-    // In CEP mode, guarantee CEP + number and force geocode before save
     if (addMode === 'cep') {
       const cleanedCep = newPointCep.replace(/\D/g, '');
       if (cleanedCep.length !== 8 || !newPointNumber.trim()) {
-        toast({ title: 'Preencha CEP + número do endereço', variant: 'destructive' });
+        setSaveStatus({ type: 'error', message: 'Preencha CEP + número do endereço' });
         return;
       }
 
       if (isNaN(lat) || isNaN(lng)) {
-        setLoadingCep(true);
+        setSavingPoint(true);
         const coords = await geocodeAddress(cepDataRef.current, newPointNumber.trim());
-        setLoadingCep(false);
 
         if (!coords) {
-          toast({ title: 'Não foi possível salvar', description: 'Não conseguimos obter coordenadas para esse CEP + número', variant: 'destructive' });
+          setSaveStatus({ type: 'error', message: 'Não foi possível obter coordenadas para esse endereço' });
+          setSavingPoint(false);
           return;
         }
 
@@ -214,25 +215,29 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
     }
 
     if (isNaN(lat) || isNaN(lng)) {
-      toast({ title: 'Preencha todos os campos corretamente', variant: 'destructive' });
+      setSaveStatus({ type: 'error', message: 'Coordenadas inválidas. Preencha corretamente.' });
       return;
     }
 
     setSavingPoint(true);
     const { error } = await addWatchPoint(newPointName.trim(), lat, lng);
-    if (error) {
-      toast({ title: 'Erro ao salvar', description: error, variant: 'destructive' });
-    } else {
-      toast({ title: 'Ponto de referência adicionado!' });
-      setAddingPoint(false);
-      setNewPointName('');
-      setNewPointLat('');
-      setNewPointLng('');
-      setNewPointCep('');
-      setNewPointNumber('');
-      setCepAddress('');
-    }
     setSavingPoint(false);
+
+    if (error) {
+      setSaveStatus({ type: 'error', message: error });
+    } else {
+      setSaveStatus({ type: 'success', message: 'Ponto cadastrado com sucesso!' });
+      setTimeout(() => {
+        setAddingPoint(false);
+        setNewPointName('');
+        setNewPointLat('');
+        setNewPointLng('');
+        setNewPointCep('');
+        setNewPointNumber('');
+        setCepAddress('');
+        setSaveStatus(null);
+      }, 1500);
+    }
   };
 
   const handleRemovePoint = async (id: string) => {
