@@ -805,6 +805,15 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
           )}
         </div>
       )}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog(prev => ({ ...prev, open }))}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        variant={confirmDialog.variant}
+        confirmLabel={confirmDialog.variant === 'destructive' ? 'Excluir' : 'Salvar'}
+        onConfirm={confirmDialog.onConfirm}
+      />
     </div>
   );
 };
