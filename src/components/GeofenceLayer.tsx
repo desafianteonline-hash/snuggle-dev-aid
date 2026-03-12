@@ -8,6 +8,9 @@ interface GeofenceLayerProps {
   onDelete?: (id: string) => void;
   onMapClick?: (lat: number, lng: number) => void;
   addMode?: boolean;
+  pendingLocation?: { lat: number; lng: number } | null;
+  pendingRadius?: number;
+  pendingColor?: string;
 }
 
 function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
