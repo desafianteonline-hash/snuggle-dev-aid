@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Circle, Marker, Popup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import type { Geofence } from '@/hooks/useGeofences';
-import { Trash2 } from 'lucide-react';
+import { Trash2, AlertTriangle } from 'lucide-react';
 
 interface GeofenceLayerProps {
   geofences: Geofence[];
@@ -62,6 +62,7 @@ function createPinIcon(color: string) {
 
 export function GeofenceLayer({ geofences, onDelete, onMapClick, addMode, pendingLocation, pendingRadius = 200, pendingColor = '#3b82f6', onPendingLocationChange }: GeofenceLayerProps) {
   const [hoverPos, setHoverPos] = useState<{ lat: number; lng: number } | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const pinIcon = useMemo(() => createPinIcon(pendingColor), [pendingColor]);
 
@@ -136,9 +137,29 @@ export function GeofenceLayer({ geofences, onDelete, onMapClick, addMode, pendin
               <p style={{ fontSize: 11, opacity: 0.7, margin: 0 }}>
                 Raio: {g.radius_meters}m
               </p>
-              {onDelete && (
+              {onDelete && confirmDeleteId === g.id ? (
+                <div style={{ marginTop: 8 }}>
+                  <p style={{ fontSize: 11, color: '#ef4444', fontWeight: 600, margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <AlertTriangle size={12} /> Confirmar exclusão?
+                  </p>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button
+                      onClick={() => { onDelete(g.id); setConfirmDeleteId(null); }}
+                      style={{ fontSize: 11, color: '#fff', background: '#ef4444', border: 'none', borderRadius: 4, padding: '3px 10px', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      Sim, excluir
+                    </button>
+                    <button
+                      onClick={() => setConfirmDeleteId(null)}
+                      style={{ fontSize: 11, color: '#666', background: '#e5e7eb', border: 'none', borderRadius: 4, padding: '3px 10px', cursor: 'pointer' }}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : onDelete && (
                 <button
-                  onClick={() => onDelete(g.id)}
+                  onClick={() => setConfirmDeleteId(g.id)}
                   style={{
                     marginTop: 8,
                     display: 'flex',
