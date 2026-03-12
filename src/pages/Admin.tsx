@@ -324,6 +324,39 @@ const Admin = () => {
   // Helper to convert HSL string to a preview color
   const hslToStyle = (hsl: string) => `hsl(${hsl})`;
 
+  const handleSaveLocation = async () => {
+    if (!settings.id) return;
+    setSavingLocation(true);
+    try {
+      const lat = companyLat.trim() ? parseFloat(companyLat) : null;
+      const lng = companyLng.trim() ? parseFloat(companyLng) : null;
+      if (companyLat.trim() && (isNaN(lat!) || lat! < -90 || lat! > 90)) {
+        toast.error('Latitude inválida (-90 a 90)');
+        setSavingLocation(false);
+        return;
+      }
+      if (companyLng.trim() && (isNaN(lng!) || lng! < -180 || lng! > 180)) {
+        toast.error('Longitude inválida (-180 a 180)');
+        setSavingLocation(false);
+        return;
+      }
+      const { error } = await supabase
+        .from('platform_settings')
+        .update({
+          company_latitude: lat,
+          company_longitude: lng,
+          company_address: companyAddress.trim() || null,
+        })
+        .eq('id', settings.id);
+      if (error) throw error;
+      toast.success('Localização da empresa salva!');
+      refetchSettings();
+    } catch (err: any) {
+      toast.error('Erro ao salvar: ' + (err?.message || 'Erro'));
+    }
+    setSavingLocation(false);
+  };
+
   const nonAdminUsers = users.filter(u => u.role !== 'admin');
 
   return (
