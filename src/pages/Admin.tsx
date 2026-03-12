@@ -411,7 +411,7 @@ const Admin = () => {
                     </div>
                     <div className="space-y-2">
                       <Label className="text-xs uppercase tracking-wider text-muted-foreground">Telefone</Label>
-                      <Input value={phone} onChange={e => setPhone(e.target.value)} className="bg-secondary border-border" placeholder="(00) 00000-0000" />
+                      <Input value={phone} onChange={e => setPhone(formatPhone(e.target.value))} className="bg-secondary border-border" placeholder="(00) 00000-0000" maxLength={15} />
                     </div>
                     {selectedRole === 'patroller' && (
                       <div className="space-y-2">
