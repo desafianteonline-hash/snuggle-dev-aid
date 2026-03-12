@@ -7,6 +7,7 @@ import PlatformBrand from '@/components/PlatformBrand';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ArrowLeft, Calendar, Loader2, Clock, Route, Gauge, Users, TrendingUp, AlertTriangle } from 'lucide-react';
@@ -41,6 +42,8 @@ const Reports = () => {
     const d = new Date(); d.setDate(d.getDate() - 6); return startOfDay(d);
   });
   const [dateTo, setDateTo] = useState<Date>(endOfDay(new Date()));
+  const [timeFrom, setTimeFrom] = useState('00:00');
+  const [timeTo, setTimeTo] = useState('23:59');
   const [locations, setLocations] = useState<LocationPoint[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -52,11 +55,19 @@ const Reports = () => {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    // Build datetime with time inputs
+    const [fromH, fromM] = timeFrom.split(':').map(Number);
+    const [toH, toM] = timeTo.split(':').map(Number);
+    const fromDt = new Date(dateFrom);
+    fromDt.setHours(fromH || 0, fromM || 0, 0, 0);
+    const toDt = new Date(dateTo);
+    toDt.setHours(toH || 23, toM || 59, 59, 999);
+
     let query = supabase
       .from('patrol_locations')
       .select('*')
-      .gte('recorded_at', startOfDay(dateFrom).toISOString())
-      .lte('recorded_at', endOfDay(dateTo).toISOString())
+      .gte('recorded_at', fromDt.toISOString())
+      .lte('recorded_at', toDt.toISOString())
       .order('recorded_at', { ascending: true });
 
     if (selectedPatroller !== 'all') {
@@ -66,7 +77,7 @@ const Reports = () => {
     const { data } = await query.limit(1000);
     setLocations(data || []);
     setLoading(false);
-  }, [selectedPatroller, dateFrom, dateTo]);
+  }, [selectedPatroller, dateFrom, dateTo, timeFrom, timeTo]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -233,7 +244,7 @@ const Reports = () => {
         </div>
 
         <div className="min-w-[140px]">
-          <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">De</label>
+          <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Data início</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className="w-full justify-start text-left font-normal bg-secondary border-border text-sm">
@@ -247,8 +258,18 @@ const Reports = () => {
           </Popover>
         </div>
 
+        <div className="min-w-[80px]">
+          <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Hora início</label>
+          <Input
+            type="time"
+            value={timeFrom}
+            onChange={e => setTimeFrom(e.target.value)}
+            className="bg-secondary border-border text-sm h-10"
+          />
+        </div>
+
         <div className="min-w-[140px]">
-          <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Até</label>
+          <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Data fim</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className="w-full justify-start text-left font-normal bg-secondary border-border text-sm">
@@ -262,7 +283,17 @@ const Reports = () => {
           </Popover>
         </div>
 
-        {loading && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
+        <div className="min-w-[80px]">
+          <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">Hora fim</label>
+          <Input
+            type="time"
+            value={timeTo}
+            onChange={e => setTimeTo(e.target.value)}
+            className="bg-secondary border-border text-sm h-10"
+          />
+        </div>
+
+        {loading && <Loader2 className="h-5 w-5 animate-spin text-primary self-center" />}
       </div>
 
       {/* Content */}
