@@ -1,0 +1,1 @@
+ALTER TABLE public.patrollers ADD COLUMN vehicle_type text NOT NULL DEFAULT 'car';

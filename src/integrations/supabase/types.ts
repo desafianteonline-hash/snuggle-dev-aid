@@ -65,6 +65,7 @@ export type Database = {
           updated_at: string
           user_id: string | null
           vehicle_plate: string | null
+          vehicle_type: string
         }
         Insert: {
           created_at?: string
@@ -75,6 +76,7 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           vehicle_plate?: string | null
+          vehicle_type?: string
         }
         Update: {
           created_at?: string
@@ -85,6 +87,7 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           vehicle_plate?: string | null
+          vehicle_type?: string
         }
         Relationships: []
       }
