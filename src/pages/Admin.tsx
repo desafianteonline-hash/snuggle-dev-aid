@@ -17,7 +17,7 @@ const formatPhone = (value: string) => {
 };
 import {
   Shield, LogOut, UserPlus, Trash2, Users, Eye, EyeOff, Pencil, X, Check, Phone, Car,
-  Settings, Upload, Image, Palette,
+  Settings, Upload, Image, Palette, MapPin,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -86,6 +86,12 @@ const Admin = () => {
   const [customAccent, setCustomAccent] = useState('');
   const [savingTheme, setSavingTheme] = useState(false);
 
+  // Location state
+  const [companyLat, setCompanyLat] = useState('');
+  const [companyLng, setCompanyLng] = useState('');
+  const [companyAddress, setCompanyAddress] = useState('');
+  const [savingLocation, setSavingLocation] = useState(false);
+
   // Sync branding form with loaded settings
   useEffect(() => {
     if (settings.id) {
@@ -97,6 +103,9 @@ const Admin = () => {
       setCustomBackground(settings.background_color || '220 20% 7%');
       setCustomCard(settings.card_color || '220 18% 10%');
       setCustomAccent(settings.accent_color || '142 50% 30%');
+      setCompanyLat(settings.company_latitude != null ? String(settings.company_latitude) : '');
+      setCompanyLng(settings.company_longitude != null ? String(settings.company_longitude) : '');
+      setCompanyAddress(settings.company_address || '');
     }
   }, [settings]);
 
@@ -315,6 +324,39 @@ const Admin = () => {
   // Helper to convert HSL string to a preview color
   const hslToStyle = (hsl: string) => `hsl(${hsl})`;
 
+  const handleSaveLocation = async () => {
+    if (!settings.id) return;
+    setSavingLocation(true);
+    try {
+      const lat = companyLat.trim() ? parseFloat(companyLat) : null;
+      const lng = companyLng.trim() ? parseFloat(companyLng) : null;
+      if (companyLat.trim() && (isNaN(lat!) || lat! < -90 || lat! > 90)) {
+        toast.error('Latitude inválida (-90 a 90)');
+        setSavingLocation(false);
+        return;
+      }
+      if (companyLng.trim() && (isNaN(lng!) || lng! < -180 || lng! > 180)) {
+        toast.error('Longitude inválida (-180 a 180)');
+        setSavingLocation(false);
+        return;
+      }
+      const { error } = await supabase
+        .from('platform_settings')
+        .update({
+          company_latitude: lat,
+          company_longitude: lng,
+          company_address: companyAddress.trim() || null,
+        })
+        .eq('id', settings.id);
+      if (error) throw error;
+      toast.success('Localização da empresa salva!');
+      refetchSettings();
+    } catch (err: any) {
+      toast.error('Erro ao salvar: ' + (err?.message || 'Erro'));
+    }
+    setSavingLocation(false);
+  };
+
   const nonAdminUsers = users.filter(u => u.role !== 'admin');
 
   return (
@@ -349,6 +391,9 @@ const Admin = () => {
               </TabsTrigger>
               <TabsTrigger value="theme" className="gap-1.5">
                 <Palette className="h-3.5 w-3.5" /> Tema
+              </TabsTrigger>
+              <TabsTrigger value="location" className="gap-1.5">
+                <MapPin className="h-3.5 w-3.5" /> Localização
               </TabsTrigger>
             </TabsList>
 
@@ -705,6 +750,81 @@ const Admin = () => {
 
                   <Button onClick={handleSaveTheme} className="w-full font-semibold" disabled={savingTheme}>
                     {savingTheme ? 'Salvando...' : 'Aplicar Tema'}
+                  </Button>
+                </div>
+              </motion.div>
+            </TabsContent>
+
+            {/* ===== LOCATION TAB ===== */}
+            <TabsContent value="location" className="space-y-6">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                className="rounded-xl border border-border bg-card p-6 space-y-6">
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-1">Localização da Empresa</h3>
+                  <p className="text-xs text-muted-foreground">Defina a localização da sede/base para calcular o patrulheiro mais próximo.</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase tracking-wider text-muted-foreground">Endereço (referência)</Label>
+                    <Input
+                      value={companyAddress}
+                      onChange={e => setCompanyAddress(e.target.value)}
+                      className="bg-secondary border-border"
+                      placeholder="Ex: Rua da Encruzilhada, 123 - Recife"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Latitude</Label>
+                      <Input
+                        type="number"
+                        step="any"
+                        value={companyLat}
+                        onChange={e => setCompanyLat(e.target.value)}
+                        className="bg-secondary border-border"
+                        placeholder="-23.5505"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Longitude</Label>
+                      <Input
+                        type="number"
+                        step="any"
+                        value={companyLng}
+                        onChange={e => setCompanyLng(e.target.value)}
+                        className="bg-secondary border-border"
+                        placeholder="-46.6333"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-border bg-secondary/50 p-3 text-xs text-muted-foreground space-y-1">
+                    <p className="font-medium">💡 Como obter as coordenadas:</p>
+                    <p>1. Abra o Google Maps no computador</p>
+                    <p>2. Clique com botão direito no local desejado</p>
+                    <p>3. Clique nas coordenadas que aparecem para copiar</p>
+                    <p>4. Cole a latitude e longitude nos campos acima</p>
+                  </div>
+
+                  {companyLat && companyLng && (
+                    <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium">Localização definida</p>
+                        <p className="text-xs text-muted-foreground font-mono">
+                          {companyLat}, {companyLng}
+                        </p>
+                        {companyAddress && (
+                          <p className="text-xs text-muted-foreground">{companyAddress}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <Button onClick={handleSaveLocation} className="w-full font-semibold" disabled={savingLocation}>
+                    {savingLocation ? 'Salvando...' : 'Salvar Localização'}
                   </Button>
                 </div>
               </motion.div>

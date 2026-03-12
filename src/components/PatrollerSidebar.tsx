@@ -38,6 +38,7 @@ interface Props {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onFlyTo?: (lat: number, lng: number) => void;
+  companyLocation?: { lat: number; lng: number } | null;
 }
 
 function timeSince(dateStr: string): string {
@@ -49,7 +50,20 @@ function timeSince(dateStr: string): string {
   return `${hours}h atrás`;
 }
 
-const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) => {
+function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatDistance(km: number): string {
+  if (km < 1) return `${Math.round(km * 1000)}m`;
+  return `${km.toFixed(1)}km`;
+}
+
+const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo, companyLocation }: Props) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -72,6 +86,20 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
       const order: Record<string, number> = { on_call: 0, online: 1, offline: 2 };
       return (order[a.status] ?? 3) - (order[b.status] ?? 3);
     });
+
+  // Calculate nearest patroller to company
+  const nearestPatroller = companyLocation
+    ? patrollers
+        .filter(p => p.latest_location && p.status !== 'offline')
+        .map(p => ({
+          ...p,
+          distance: haversineDistance(
+            companyLocation.lat, companyLocation.lng,
+            p.latest_location!.latitude, p.latest_location!.longitude
+          ),
+        }))
+        .sort((a, b) => a.distance - b.distance)[0] || null
+    : null;
 
   const startEditing = (p: PatrollerWithLocation) => {
     setEditingId(p.id);
@@ -138,6 +166,31 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
           />
         </div>
       </div>
+
+      {/* Nearest patroller banner */}
+      {nearestPatroller && (
+        <div
+          className="mx-3 my-2 rounded-lg border border-primary/30 bg-primary/5 p-2.5 cursor-pointer hover:bg-primary/10 transition-colors"
+          onClick={() => {
+            onSelect(nearestPatroller.id);
+            if (nearestPatroller.latest_location && onFlyTo) {
+              onFlyTo(nearestPatroller.latest_location.latitude, nearestPatroller.latest_location.longitude);
+            }
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <Navigation className="h-4 w-4 text-primary flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] uppercase tracking-wider text-primary font-bold">Mais próximo da base</p>
+              <p className="text-xs font-semibold truncate">{nearestPatroller.name}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {formatDistance(nearestPatroller.distance)} • {nearestPatroller.vehicle_plate || 'Sem placa'}
+              </p>
+            </div>
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+          </div>
+        </div>
+      )}
 
       {/* List */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
