@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePatrolLocations } from '@/hooks/usePatrolLocations';
 import { useRouteHistory } from '@/hooks/useRouteHistory';
 import { useOfflineAlerts } from '@/hooks/useOfflineAlerts';
-import { useGeofences } from '@/hooks/useGeofences';
+import { useGeofences, type Geofence } from '@/hooks/useGeofences';
 import { useGeofenceDetection } from '@/hooks/useGeofenceDetection';
 import PatrolMap from '@/components/PatrolMap';
 import PatrollerSidebar from '@/components/PatrollerSidebar';
