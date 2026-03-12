@@ -14,7 +14,7 @@ export function useWatchPoints() {
   const [points, setPoints] = useState<WatchPoint[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetch = useCallback(async () => {
+  const fetchPoints = useCallback(async () => {
     const { data } = await supabase
       .from('watch_points')
       .select('*')
@@ -24,8 +24,25 @@ export function useWatchPoints() {
   }, []);
 
   useEffect(() => {
-    fetch();
-  }, [fetch]);
+    fetchPoints();
+
+    // Realtime subscription
+    const channel = supabase
+      .channel('watch-points-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'watch_points' },
+        () => {
+          console.log('[WatchPoints] Realtime update received');
+          fetchPoints();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchPoints]);
 
   const add = useCallback(async (name: string, latitude: number, longitude: number) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -33,21 +50,21 @@ export function useWatchPoints() {
     const { error } = await supabase.from('watch_points').insert({
       name, latitude, longitude, created_by: user.id,
     });
-    if (!error) fetch();
+    if (!error) fetchPoints();
     return { error: error?.message || null };
-  }, [fetch]);
+  }, [fetchPoints]);
 
   const remove = useCallback(async (id: string) => {
     const { error } = await supabase.from('watch_points').delete().eq('id', id);
-    if (!error) fetch();
+    if (!error) fetchPoints();
     return { error: error?.message || null };
-  }, [fetch]);
+  }, [fetchPoints]);
 
   const update = useCallback(async (id: string, name: string, latitude: number, longitude: number) => {
     const { error } = await supabase.from('watch_points').update({ name, latitude, longitude }).eq('id', id);
-    if (!error) fetch();
+    if (!error) fetchPoints();
     return { error: error?.message || null };
-  }, [fetch]);
+  }, [fetchPoints]);
 
-  return { points, loading, add, remove, update, refetch: fetch };
+  return { points, loading, add, remove, update, refetch: fetchPoints };
 }
