@@ -255,7 +255,7 @@ const RouteHistory = () => {
     `);
     printWindow.document.close();
     setTimeout(() => printWindow.print(), 500);
-  }, [locations, patrollerName, patrollerObj, selectedDate]);
+  }, [locations, patrollerName, patrollerObj, dateLabel]);
 
   return (
     <div className="flex h-screen flex-col bg-background">
