@@ -388,8 +388,16 @@ const Admin = () => {
 
   const handleSaveTheme = async () => {
     if (!settings.id) return;
-    const confirmed = window.confirm('Deseja aplicar e salvar este tema?');
-    if (!confirmed) return;
+    setConfirmDialog({
+      open: true, title: 'Salvar tema', description: 'Deseja aplicar e salvar este tema?', variant: 'default',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        await doSaveTheme();
+      },
+    });
+  };
+
+  const doSaveTheme = async () => {
 
     setSavingTheme(true);
     try {
