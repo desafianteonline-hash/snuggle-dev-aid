@@ -26,6 +26,8 @@ interface QueuedLocation {
 const SEND_INTERVAL_MS = 8000;
 const RETRY_DELAY_MS = 5000;
 const MAX_QUEUE_SIZE = 200;
+const QUEUE_STORAGE_KEY = 'patrol_offline_queue';
+const WATCHDOG_INTERVAL_MS = 30000; // Check every 30s if GPS is still alive
 
 export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INTERVAL_MS) {
   const [state, setState] = useState<GeoState>({
@@ -43,9 +45,59 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
   const watchId = useRef<number | null>(null);
   const sendInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const retryTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const watchdogInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastPosition = useRef<GeolocationPosition | null>(null);
+  const lastPositionTime = useRef<number>(0);
   const queueRef = useRef<QueuedLocation[]>([]);
   const isSending = useRef(false);
+  const wakeLockRef = useRef<any>(null);
+  const shouldTrack = useRef(false);
+
+  // Persist queue to localStorage for survival across page refreshes
+  const persistQueue = useCallback(() => {
+    try {
+      localStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify(queueRef.current));
+    } catch {}
+  }, []);
+
+  const loadPersistedQueue = useCallback(() => {
+    try {
+      const stored = localStorage.getItem(QUEUE_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as QueuedLocation[];
+        if (parsed.length > 0) {
+          queueRef.current = parsed;
+          setState(s => ({ ...s, pendingQueue: parsed.length }));
+        }
+      }
+    } catch {}
+  }, []);
+
+  // Request Wake Lock to prevent screen from sleeping
+  const requestWakeLock = useCallback(async () => {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+        console.log('[PatrolTrack] Wake Lock ativado');
+        wakeLockRef.current.addEventListener('release', () => {
+          console.log('[PatrolTrack] Wake Lock liberado, re-solicitando...');
+          // Re-request when released (e.g., tab switch)
+          if (shouldTrack.current) {
+            setTimeout(requestWakeLock, 1000);
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('[PatrolTrack] Wake Lock não disponível:', err);
+    }
+  }, []);
+
+  const releaseWakeLock = useCallback(() => {
+    if (wakeLockRef.current) {
+      wakeLockRef.current.release().catch(() => {});
+      wakeLockRef.current = null;
+    }
+  }, []);
 
   // Flush the queue - send all pending locations
   const flushQueue = useCallback(async () => {
@@ -59,11 +111,10 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
 
       if (error) {
         console.error('[PatrolTrack] Erro ao enviar lote:', error);
-        // Keep items in queue for retry
         scheduleRetry();
       } else {
-        // Success - remove sent items
         queueRef.current = queueRef.current.slice(batch.length);
+        persistQueue();
         setState(s => ({
           ...s,
           lastSentAt: new Date().toISOString(),
@@ -77,7 +128,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     }
 
     isSending.current = false;
-  }, []);
+  }, [persistQueue]);
 
   const scheduleRetry = useCallback(() => {
     if (retryTimeout.current) clearTimeout(retryTimeout.current);
@@ -102,28 +153,26 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
       recorded_at: new Date().toISOString(),
     };
 
-    // Prevent queue from growing too large
     if (queueRef.current.length >= MAX_QUEUE_SIZE) {
       queueRef.current = queueRef.current.slice(queueRef.current.length - MAX_QUEUE_SIZE + 1);
     }
 
     queueRef.current.push(entry);
+    persistQueue();
     setState(s => ({ ...s, pendingQueue: queueRef.current.length }));
 
-    // Try to flush
     flushQueue();
-  }, [patrollerId, flushQueue]);
+  }, [patrollerId, flushQueue, persistQueue]);
 
-  const startTracking = useCallback(() => {
-    if (!navigator.geolocation) {
-      setState(s => ({ ...s, error: 'Geolocalização não suportada neste dispositivo' }));
-      return;
+  const startGPSWatch = useCallback(() => {
+    if (watchId.current !== null) {
+      navigator.geolocation.clearWatch(watchId.current);
     }
 
-    // Request permission and start watching
     watchId.current = navigator.geolocation.watchPosition(
       (position) => {
         lastPosition.current = position;
+        lastPositionTime.current = Date.now();
         setState(s => ({
           ...s,
           latitude: position.coords.latitude,
@@ -137,11 +186,14 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
       },
       (err) => {
         console.error('[PatrolTrack] Erro GPS:', err.message);
-        setState(s => ({ ...s, error: `Erro GPS: ${err.message}`, tracking: false }));
-        // Try to restart after GPS error
-        setTimeout(() => {
-          if (watchId.current === null) startTracking();
-        }, 10000);
+        setState(s => ({ ...s, error: `Erro GPS: ${err.message}` }));
+        // Auto-restart GPS after error
+        if (shouldTrack.current) {
+          setTimeout(() => {
+            console.log('[PatrolTrack] Auto-reiniciando GPS após erro...');
+            startGPSWatch();
+          }, 5000);
+        }
       },
       {
         enableHighAccuracy: true,
@@ -149,17 +201,47 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
         timeout: 20000,
       }
     );
+  }, []);
+
+  const startTracking = useCallback(() => {
+    if (!navigator.geolocation) {
+      setState(s => ({ ...s, error: 'Geolocalização não suportada neste dispositivo' }));
+      return;
+    }
+
+    shouldTrack.current = true;
+
+    // Load any persisted offline queue
+    loadPersistedQueue();
+
+    // Start GPS
+    startGPSWatch();
 
     // Send location on interval
+    if (sendInterval.current) clearInterval(sendInterval.current);
     sendInterval.current = setInterval(enqueueLocation, intervalMs);
 
     // Send first location after brief delay
     setTimeout(enqueueLocation, 3000);
 
+    // Watchdog: if no GPS update in 30s, restart the watch
+    if (watchdogInterval.current) clearInterval(watchdogInterval.current);
+    watchdogInterval.current = setInterval(() => {
+      if (shouldTrack.current && Date.now() - lastPositionTime.current > WATCHDOG_INTERVAL_MS) {
+        console.warn('[PatrolTrack] Watchdog: GPS silencioso, reiniciando...');
+        startGPSWatch();
+      }
+    }, WATCHDOG_INTERVAL_MS);
+
+    // Request Wake Lock
+    requestWakeLock();
+
     setState(s => ({ ...s, tracking: true }));
-  }, [enqueueLocation, intervalMs]);
+  }, [enqueueLocation, intervalMs, startGPSWatch, loadPersistedQueue, requestWakeLock]);
 
   const stopTracking = useCallback(() => {
+    shouldTrack.current = false;
+
     if (watchId.current !== null) {
       navigator.geolocation.clearWatch(watchId.current);
       watchId.current = null;
@@ -172,6 +254,12 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
       clearTimeout(retryTimeout.current);
       retryTimeout.current = null;
     }
+    if (watchdogInterval.current) {
+      clearInterval(watchdogInterval.current);
+      watchdogInterval.current = null;
+    }
+
+    releaseWakeLock();
 
     // Send any remaining queued locations
     if (queueRef.current.length > 0) {
@@ -179,18 +267,53 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     }
 
     setState(s => ({ ...s, tracking: false }));
-  }, [flushQueue]);
+  }, [flushQueue, releaseWakeLock]);
 
-  // Handle online/offline events - retry queue when back online
+  // Handle online/offline events
   useEffect(() => {
     const handleOnline = () => {
       console.log('[PatrolTrack] Dispositivo online - reenviando fila');
       flushQueue();
     };
-
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
   }, [flushQueue]);
+
+  // Handle visibility change - re-request wake lock and restart GPS if needed
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && shouldTrack.current) {
+        console.log('[PatrolTrack] App visível novamente, verificando GPS...');
+        requestWakeLock();
+        // If GPS has been silent, restart
+        if (Date.now() - lastPositionTime.current > 15000) {
+          startGPSWatch();
+        }
+        // Flush any queued data
+        flushQueue();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [requestWakeLock, startGPSWatch, flushQueue]);
+
+  // Send remaining data on page unload via sendBeacon
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (queueRef.current.length > 0 && patrollerId) {
+        try {
+          const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/patrol_locations`;
+          const body = JSON.stringify(queueRef.current);
+          navigator.sendBeacon(
+            url + `?apikey=${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            new Blob([body], { type: 'application/json' })
+          );
+        } catch {}
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [patrollerId]);
 
   // Cleanup
   useEffect(() => {
