@@ -219,7 +219,7 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
                     <div className="flex gap-2">
                       <Button
                         size="sm"
-                        variant={(p as any).vehicle_type === 'car' || !(p as any).vehicle_type ? 'default' : 'outline'}
+                        variant={p.vehicle_type === 'car' || !p.vehicle_type ? 'default' : 'outline'}
                         className="h-7 text-xs gap-1.5"
                         onClick={(e) => { e.stopPropagation(); handleVehicleTypeChange(p.id, 'car'); }}
                       >
