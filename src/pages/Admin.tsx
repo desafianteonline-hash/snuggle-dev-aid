@@ -8,6 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PlatformBrand from '@/components/PlatformBrand';
+
+const formatPhone = (value: string) => {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 2) return digits.length ? `(${digits}` : '';
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+};
 import {
   Shield, LogOut, UserPlus, Trash2, Users, Eye, EyeOff, Pencil, X, Check, Phone, Car,
   Settings, Upload, Image, Palette,
@@ -404,7 +411,7 @@ const Admin = () => {
                     </div>
                     <div className="space-y-2">
                       <Label className="text-xs uppercase tracking-wider text-muted-foreground">Telefone</Label>
-                      <Input value={phone} onChange={e => setPhone(e.target.value)} className="bg-secondary border-border" placeholder="(00) 00000-0000" />
+                      <Input value={phone} onChange={e => setPhone(formatPhone(e.target.value))} className="bg-secondary border-border" placeholder="(00) 00000-0000" maxLength={15} />
                     </div>
                     {selectedRole === 'patroller' && (
                       <div className="space-y-2">
@@ -446,7 +453,7 @@ const Admin = () => {
                           </div>
                           <Input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Nome" className="bg-secondary border-border h-9 text-sm" />
                           <div className={`grid gap-2 ${u.role === 'patroller' ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                            <Input value={editPhone} onChange={e => setEditPhone(e.target.value)} placeholder="Telefone" className="bg-secondary border-border h-9 text-sm" />
+                            <Input value={editPhone} onChange={e => setEditPhone(formatPhone(e.target.value))} placeholder="(00) 00000-0000" className="bg-secondary border-border h-9 text-sm" maxLength={15} />
                             {u.role === 'patroller' && (
                               <Input value={editPlate} onChange={e => setEditPlate(e.target.value)} placeholder="Placa" className="bg-secondary border-border h-9 text-sm" />
                             )}
