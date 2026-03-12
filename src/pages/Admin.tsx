@@ -1217,6 +1217,41 @@ const Admin = () => {
         confirmLabel="Salvar"
         onConfirm={confirmDialog.onConfirm}
       />
+      <Dialog open={!!resetPasswordUser} onOpenChange={(open) => { if (!open) { setResetPasswordUser(null); setNewPassword(''); setShowNewPassword(false); } }}>
+        <DialogContent className="bg-card border-border sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Resetar Senha</DialogTitle>
+            <DialogDescription>
+              Defina uma nova senha para {resetPasswordUser?.patroller_name || resetPasswordUser?.profile_name || resetPasswordUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Nova Senha</Label>
+              <div className="relative">
+                <Input
+                  type={showNewPassword ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  className="pr-10 bg-secondary border-border"
+                  placeholder="Mínimo 6 caracteres"
+                  minLength={6}
+                />
+                <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            <Button
+              className="w-full font-semibold"
+              disabled={resettingPassword || newPassword.trim().length < 6}
+              onClick={handleResetPassword}
+            >
+              {resettingPassword ? 'Resetando...' : 'Resetar Senha'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
