@@ -314,7 +314,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     requestWakeLock();
 
     setState(s => ({ ...s, tracking: true }));
-  }, [enqueueLocation, intervalMs, startGPSWatch, loadPersistedQueue, requestWakeLock]);
+  }, [enqueueLocation, intervalMs, startGPSWatch, startDeviceMotion, loadPersistedQueue, requestWakeLock]);
 
   const stopTracking = useCallback(() => {
     shouldTrack.current = false;
