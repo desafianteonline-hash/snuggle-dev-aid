@@ -252,6 +252,7 @@ const Admin = () => {
       if (profileErr) throw profileErr;
 
       toast.success('Usuário atualizado');
+      logActivity({ action: 'update', entityType: 'user', entityId: u.id, entityName: editName.trim(), details: { phone: editPhone } });
       setEditingId(null);
       fetchUsers();
     } catch (err: any) {
