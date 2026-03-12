@@ -130,9 +130,13 @@ interface PatrolMapProps {
   onSelect?: (id: string) => void;
   route?: LocationPoint[];
   flyTo?: { lat: number; lng: number } | null;
+  geofences?: Geofence[];
+  onGeofenceDelete?: (id: string) => void;
+  geofenceAddMode?: boolean;
+  onGeofenceMapClick?: (lat: number, lng: number) => void;
 }
 
-const PatrolMap = ({ patrollers, selectedId, onSelect, route = [], flyTo = null }: PatrolMapProps) => {
+const PatrolMap = ({ patrollers, selectedId, onSelect, route = [], flyTo = null, geofences = [], onGeofenceDelete, geofenceAddMode, onGeofenceMapClick }: PatrolMapProps) => {
   const defaultCenter: [number, number] = [-23.5505, -46.6333];
 
   const routePositions = route.map(l => [l.latitude, l.longitude] as [number, number]);
