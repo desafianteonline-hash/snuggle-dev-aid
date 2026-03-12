@@ -632,11 +632,18 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
                       className="h-8 text-xs flex-1"
                       maxLength={9}
                     />
+                    <Input
+                      placeholder="Nº"
+                      value={newPointNumber}
+                      onChange={e => setNewPointNumber(e.target.value)}
+                      onBlur={handleNumberBlur}
+                      className="h-8 text-xs w-20"
+                    />
                     {loadingCep && <div className="flex items-center"><span className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>}
                   </div>
                   {cepAddress && (
                     <div className="rounded-lg bg-secondary/50 p-2 text-[10px] text-muted-foreground">
-                      📍 {cepAddress}
+                      📍 {cepAddress}{newPointNumber ? `, ${newPointNumber}` : ''}
                     </div>
                   )}
                 </div>
