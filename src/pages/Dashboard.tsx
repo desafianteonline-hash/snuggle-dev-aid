@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { usePatrolLocations } from '@/hooks/usePatrolLocations';
 import { useRouteHistory } from '@/hooks/useRouteHistory';
+import { useOfflineAlerts } from '@/hooks/useOfflineAlerts';
 import PatrolMap from '@/components/PatrolMap';
 import PatrollerSidebar from '@/components/PatrollerSidebar';
 import PlatformBrand from '@/components/PlatformBrand';
@@ -20,6 +21,7 @@ const Dashboard = () => {
   const { patrollers, loading, realtimeConnected } = usePatrolLocations();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { route } = useRouteHistory(selectedId);
+  useOfflineAlerts(patrollers);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number } | null>(null);
   const isMobile = useIsMobile();
