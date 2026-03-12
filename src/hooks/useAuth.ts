@@ -52,7 +52,17 @@ export function useAuth() {
   }
 
   async function signOut() {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
+      setRole(null);
+      window.location.href = '/login';
+    } catch (err) {
+      console.error('[Auth] Erro ao sair:', err);
+      // Force redirect even on error
+      window.location.href = '/login';
+    }
   }
 
   return { user, session, loading, role, signIn, signUp, signOut };
