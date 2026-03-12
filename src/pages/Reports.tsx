@@ -370,6 +370,42 @@ const Reports = () => {
               )}
             </div>
 
+            {/* Speed Alerts */}
+            {stats.speedAlerts.length > 0 && (
+              <div className="bg-card border border-destructive/30 rounded-lg p-4">
+                <h3 className="text-sm font-bold mb-4 text-destructive flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  Alertas de Velocidade (acima de 60 km/h)
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase">Patrulheiro</th>
+                        <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase">Placa</th>
+                        <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase">Vel. Máxima</th>
+                        <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase">Vel. Média</th>
+                        <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase">Data/Hora (Máx)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stats.speedAlerts.map((p, i) => (
+                        <tr key={i} className="border-b border-border/50">
+                          <td className="py-2 px-3 font-medium text-foreground">{p.name}</td>
+                          <td className="py-2 px-3 text-muted-foreground">{p.plate}</td>
+                          <td className="py-2 px-3 text-right font-bold text-destructive">{p.maxSpeed} km/h</td>
+                          <td className="py-2 px-3 text-right text-muted-foreground">{p.avgSpeed} km/h</td>
+                          <td className="py-2 px-3 text-right text-muted-foreground">
+                            {p.maxSpeedAt ? format(new Date(p.maxSpeedAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
             {/* Patroller Table */}
             {stats.perPatroller.length > 0 && (
               <div className="bg-card border border-border rounded-lg p-4">
@@ -379,16 +415,26 @@ const Reports = () => {
                     <thead>
                       <tr className="border-b border-border">
                         <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase">Patrulheiro</th>
+                        <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase">Placa</th>
                         <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase">Horas</th>
                         <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase">Distância</th>
+                        <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase">Vel. Máx</th>
+                        <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase">Vel. Média</th>
+                        <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase">Data/Hora (Máx)</th>
                       </tr>
                     </thead>
                     <tbody>
                       {stats.perPatroller.map((p, i) => (
                         <tr key={i} className="border-b border-border/50">
                           <td className="py-2 px-3 font-medium text-foreground">{p.name}</td>
+                          <td className="py-2 px-3 text-muted-foreground">{p.plate}</td>
                           <td className="py-2 px-3 text-right text-muted-foreground">{p.horas}h</td>
                           <td className="py-2 px-3 text-right text-muted-foreground">{p.distancia} km</td>
+                          <td className={cn("py-2 px-3 text-right font-semibold", p.maxSpeed > 60 ? "text-destructive" : "text-foreground")}>{p.maxSpeed} km/h</td>
+                          <td className="py-2 px-3 text-right text-muted-foreground">{p.avgSpeed} km/h</td>
+                          <td className="py-2 px-3 text-right text-muted-foreground text-xs">
+                            {p.maxSpeedAt ? format(new Date(p.maxSpeedAt), "dd/MM/yyyy HH:mm", { locale: ptBR }) : '—'}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
