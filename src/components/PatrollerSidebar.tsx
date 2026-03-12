@@ -240,49 +240,37 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
       return;
     }
 
-    setPendingNewPoint({ name: newPointName.trim(), lat, lng });
-  };
+    const pointName = newPointName.trim();
+    const finalLat = lat;
+    const finalLng = lng;
+    setConfirmDialog({
+      open: true,
+      title: 'Criar ponto de referência',
+      description: `Deseja cadastrar o ponto "${pointName}"?`,
+      variant: 'default',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        setSavingPoint(true);
+        const { error } = await addWatchPoint(pointName, finalLat, finalLng);
+        setSavingPoint(false);
 
-  const [pendingNewPoint, setPendingNewPoint] = useState<{ name: string; lat: number; lng: number } | null>(null);
-
-  // When pendingNewPoint is set, show confirmation
-  const handleAddPointConfirm = () => {
-    if (pendingNewPoint) {
-      setConfirmDialog({
-        open: true,
-        title: 'Criar ponto de referência',
-        description: `Deseja cadastrar o ponto "${pendingNewPoint.name}"?`,
-        variant: 'default',
-        onConfirm: doAddPoint,
-      });
-    }
-  };
-
-  // Trigger confirm dialog when pendingNewPoint changes
-  // We'll call it inline instead
-
-  const doAddPoint = async () => {
-    if (!pendingNewPoint) return;
-    setConfirmDialog(prev => ({ ...prev, open: false }));
-    setSavingPoint(true);
-    const { error } = await addWatchPoint(pendingNewPoint.name, pendingNewPoint.lat, pendingNewPoint.lng);
-    setSavingPoint(false);
-
-    if (error) {
-      setSaveStatus({ type: 'error', message: error });
-    } else {
-      setSaveStatus({ type: 'success', message: 'Ponto cadastrado com sucesso!' });
-      setTimeout(() => {
-        setAddingPoint(false);
-        setNewPointName('');
-        setNewPointLat('');
-        setNewPointLng('');
-        setNewPointCep('');
-        setNewPointNumber('');
-        setCepAddress('');
-        setSaveStatus(null);
-      }, 1500);
-    }
+        if (error) {
+          setSaveStatus({ type: 'error', message: error });
+        } else {
+          setSaveStatus({ type: 'success', message: 'Ponto cadastrado com sucesso!' });
+          setTimeout(() => {
+            setAddingPoint(false);
+            setNewPointName('');
+            setNewPointLat('');
+            setNewPointLng('');
+            setNewPointCep('');
+            setNewPointNumber('');
+            setCepAddress('');
+            setSaveStatus(null);
+          }, 1500);
+        }
+      },
+    });
   };
 
   const handleRemovePoint = async (id: string, pointName: string) => {
