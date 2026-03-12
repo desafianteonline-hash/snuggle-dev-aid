@@ -14,6 +14,7 @@ import Admin from "./pages/Admin";
 import Install from "./pages/Install";
 import RouteHistory from "./pages/RouteHistory";
 import Reports from "./pages/Reports";
+import GeofenceTimeline from "./pages/GeofenceTimeline";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/admin" element={<Admin />} />
             <Route path="/history" element={<RouteHistory />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/geofence-timeline" element={<GeofenceTimeline />} />
             <Route path="/install" element={<Install />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

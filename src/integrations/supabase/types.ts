@@ -14,6 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
+      geofence_events: {
+        Row: {
+          event_type: string
+          geofence_id: string
+          id: string
+          latitude: number
+          longitude: number
+          patroller_id: string
+          recorded_at: string
+        }
+        Insert: {
+          event_type: string
+          geofence_id: string
+          id?: string
+          latitude: number
+          longitude: number
+          patroller_id: string
+          recorded_at?: string
+        }
+        Update: {
+          event_type?: string
+          geofence_id?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          patroller_id?: string
+          recorded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "geofence_events_geofence_id_fkey"
+            columns: ["geofence_id"]
+            isOneToOne: false
+            referencedRelation: "geofences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "geofence_events_patroller_id_fkey"
+            columns: ["patroller_id"]
+            isOneToOne: false
+            referencedRelation: "patrollers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      geofences: {
+        Row: {
+          active: boolean
+          color: string
+          created_at: string
+          created_by: string
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          radius_meters: number
+        }
+        Insert: {
+          active?: boolean
+          color?: string
+          created_at?: string
+          created_by: string
+          id?: string
+          latitude: number
+          longitude: number
+          name: string
+          radius_meters?: number
+        }
+        Update: {
+          active?: boolean
+          color?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          name?: string
+          radius_meters?: number
+        }
+        Relationships: []
+      }
       patrol_locations: {
         Row: {
           accuracy: number | null

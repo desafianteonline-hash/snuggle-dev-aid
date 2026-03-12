@@ -1,10 +1,12 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { MapContainer, Marker, Popup, Polyline, CircleMarker, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import MapLayerControl from '@/components/MapLayerControl';
 import 'leaflet/dist/leaflet.css';
 import type { PatrollerWithLocation } from '@/hooks/usePatrolLocations';
 import type { LocationPoint } from '@/hooks/useRouteHistory';
+import MapLayerControl from '@/components/MapLayerControl';
+import GeofenceLayer from '@/components/GeofenceLayer';
+import type { Geofence } from '@/hooks/useGeofences';
 
 // Fix default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -128,9 +130,13 @@ interface PatrolMapProps {
   onSelect?: (id: string) => void;
   route?: LocationPoint[];
   flyTo?: { lat: number; lng: number } | null;
+  geofences?: Geofence[];
+  onGeofenceDelete?: (id: string) => void;
+  geofenceAddMode?: boolean;
+  onGeofenceMapClick?: (lat: number, lng: number) => void;
 }
 
-const PatrolMap = ({ patrollers, selectedId, onSelect, route = [], flyTo = null }: PatrolMapProps) => {
+const PatrolMap = ({ patrollers, selectedId, onSelect, route = [], flyTo = null, geofences = [], onGeofenceDelete, geofenceAddMode, onGeofenceMapClick }: PatrolMapProps) => {
   const defaultCenter: [number, number] = [-23.5505, -46.6333];
 
   const routePositions = route.map(l => [l.latitude, l.longitude] as [number, number]);
@@ -147,6 +153,12 @@ const PatrolMap = ({ patrollers, selectedId, onSelect, route = [], flyTo = null 
       <MapLayerControl />
       <FitBounds patrollers={patrollers} />
       <FlyToHandler flyTo={flyTo} />
+      <GeofenceLayer
+        geofences={geofences}
+        onDelete={onGeofenceDelete}
+        onMapClick={onGeofenceMapClick}
+        addMode={geofenceAddMode}
+      />
 
       {/* Route polyline */}
       {routePositions.length >= 2 && (

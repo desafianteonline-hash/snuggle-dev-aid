@@ -4,10 +4,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePatrolLocations } from '@/hooks/usePatrolLocations';
 import { useRouteHistory } from '@/hooks/useRouteHistory';
 import { useOfflineAlerts } from '@/hooks/useOfflineAlerts';
+import { useGeofences } from '@/hooks/useGeofences';
+import { useGeofenceDetection } from '@/hooks/useGeofenceDetection';
 import PatrolMap from '@/components/PatrolMap';
 import PatrollerSidebar from '@/components/PatrollerSidebar';
 import PlatformBrand from '@/components/PlatformBrand';
-import { Shield, LogOut, Menu, X, Wifi, WifiOff, RefreshCw, Share2, Route, Volume2, VolumeX, BarChart3, Monitor, Minimize } from 'lucide-react';
+import GeofenceControls from '@/components/GeofenceControls';
+import { Shield, LogOut, Menu, X, Wifi, WifiOff, RefreshCw, Share2, Route, Volume2, VolumeX, BarChart3, Monitor, Minimize, Clock } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,6 +32,42 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [refreshing, setRefreshing] = useState(false);
   const [tvMode, setTvMode] = useState(false);
+  const [geofenceAddMode, setGeofenceAddMode] = useState(false);
+  const [pendingGeofenceLocation, setPendingGeofenceLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const { geofences, addGeofence, removeGeofence } = useGeofences();
+
+  useGeofenceDetection(patrollers, geofences, (event) => {
+    toast({
+      title: event.type === 'enter' ? '🟢 Entrada em cerca' : '🔴 Saída de cerca',
+      description: `${event.patrollerName} ${event.type === 'enter' ? 'entrou em' : 'saiu de'} ${event.geofenceName}`,
+    });
+  });
+
+  const handleGeofenceMapClick = useCallback((lat: number, lng: number) => {
+    if (geofenceAddMode) {
+      setPendingGeofenceLocation({ lat, lng });
+    }
+  }, [geofenceAddMode]);
+
+  const handleGeofenceConfirm = useCallback(async (name: string, radius: number, color: string) => {
+    if (!pendingGeofenceLocation || !user) return;
+    await addGeofence({
+      name,
+      latitude: pendingGeofenceLocation.lat,
+      longitude: pendingGeofenceLocation.lng,
+      radius_meters: radius,
+      color,
+      created_by: user.id,
+    });
+    setPendingGeofenceLocation(null);
+    setGeofenceAddMode(false);
+    toast({ title: '✅ Cerca criada', description: `"${name}" adicionada com sucesso` });
+  }, [pendingGeofenceLocation, user, addGeofence, toast]);
+
+  const handleGeofenceDelete = useCallback(async (id: string) => {
+    await removeGeofence(id);
+    toast({ title: 'Cerca removida' });
+  }, [removeGeofence, toast]);
 
   const toggleTvMode = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -114,6 +153,23 @@ const Dashboard = () => {
           >
             <BarChart3 className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Relatórios</span>
+          </Button>
+          <GeofenceControls
+            addMode={geofenceAddMode}
+            onToggleAddMode={() => { setGeofenceAddMode(!geofenceAddMode); setPendingGeofenceLocation(null); }}
+            pendingLocation={pendingGeofenceLocation}
+            onConfirm={handleGeofenceConfirm}
+            onCancel={() => setPendingGeofenceLocation(null)}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/geofence-timeline')}
+            title="Timeline de cercas virtuais"
+            className="gap-1.5"
+          >
+            <Clock className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Timeline</span>
           </Button>
           <Button
             variant="outline"
@@ -208,6 +264,10 @@ const Dashboard = () => {
               onSelect={handleSelect}
               route={route}
               flyTo={flyTo}
+              geofences={geofences}
+              onGeofenceDelete={handleGeofenceDelete}
+              geofenceAddMode={geofenceAddMode}
+              onGeofenceMapClick={handleGeofenceMapClick}
             />
           )}
         </div>
