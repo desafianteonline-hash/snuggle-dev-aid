@@ -271,6 +271,43 @@ const Admin = () => {
     }
   };
 
+  const handleSelectPreset = (presetKey: string) => {
+    setSelectedPreset(presetKey);
+    const preset = THEME_PRESETS[presetKey];
+    if (preset) {
+      setCustomPrimary(preset.primary);
+      setCustomBackground(preset.background);
+      setCustomCard(preset.card);
+      setCustomAccent(preset.accent);
+    }
+  };
+
+  const handleSaveTheme = async () => {
+    if (!settings.id) return;
+    setSavingTheme(true);
+    try {
+      const { error } = await supabase
+        .from('platform_settings')
+        .update({
+          theme_preset: selectedPreset,
+          primary_color: customPrimary,
+          background_color: customBackground,
+          card_color: customCard,
+          accent_color: customAccent,
+        })
+        .eq('id', settings.id);
+      if (error) throw error;
+      toast.success('Tema salvo! Recarregando...');
+      refetchSettings();
+    } catch (err: any) {
+      toast.error('Erro ao salvar tema: ' + (err?.message || 'Erro'));
+    }
+    setSavingTheme(false);
+  };
+
+  // Helper to convert HSL string to a preview color
+  const hslToStyle = (hsl: string) => `hsl(${hsl})`;
+
   const nonAdminUsers = users.filter(u => u.role !== 'admin');
 
   return (
