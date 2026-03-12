@@ -199,7 +199,7 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo, companyLo
             <p className="text-[10px] text-muted-foreground">Configure a localização da empresa em Admin → Localização</p>
           </div>
         </div>
-      )
+      )}
 
       {/* List */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
