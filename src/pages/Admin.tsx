@@ -433,6 +433,9 @@ const Admin = () => {
 
   const handleSaveOperational = async () => {
     if (!settings.id) return;
+    const confirmed = window.confirm('Deseja salvar as configurações operacionais?');
+    if (!confirmed) return;
+
     setSavingOperational(true);
     try {
       const { error } = await supabase
