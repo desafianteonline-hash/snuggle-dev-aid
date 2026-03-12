@@ -148,6 +148,14 @@ const Dashboard = () => {
           >
             {alertSound ? <Volume2 className="h-4 w-4 text-primary" /> : <VolumeX className="h-4 w-4 text-muted-foreground" />}
           </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTvMode}
+            title={tvMode ? 'Sair do modo TV' : 'Modo TV (fullscreen)'}
+          >
+            {tvMode ? <Minimize className="h-4 w-4" /> : <Monitor className="h-4 w-4" />}
+          </Button>
           <ThemeToggle />
           <Button variant="ghost" size="icon" onClick={signOut}>
             <LogOut className="h-4 w-4" />
