@@ -296,8 +296,16 @@ const Admin = () => {
   // --- Branding handlers ---
   const handleSaveBranding = async () => {
     if (!settings.id) return;
-    const confirmed = window.confirm('Deseja salvar as alterações de personalização da plataforma?');
-    if (!confirmed) return;
+    setConfirmDialog({
+      open: true, title: 'Salvar personalização', description: 'Deseja salvar as alterações de personalização da plataforma?', variant: 'default',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        await doSaveBranding();
+      },
+    });
+  };
+
+  const doSaveBranding = async () => {
 
     setSavingBrand(true);
     try {
