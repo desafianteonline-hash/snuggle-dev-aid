@@ -37,7 +37,7 @@ const Dashboard = () => {
   return (
     <div className="flex h-screen flex-col bg-background">
       {/* Top Bar */}
-      <header className="flex items-center justify-between border-b border-border px-4 py-2 bg-card">
+      <header className="flex items-center justify-between border-b border-border px-4 py-2 bg-card relative z-[1000]">
         <div className="flex items-center gap-3">
           {isMobile && (
             <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
