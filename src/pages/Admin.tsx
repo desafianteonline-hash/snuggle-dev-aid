@@ -604,6 +604,103 @@ const Admin = () => {
                 </div>
               </motion.div>
             </TabsContent>
+
+            {/* ===== THEME TAB ===== */}
+            <TabsContent value="theme" className="space-y-6">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                className="rounded-xl border border-border bg-card p-6 space-y-6">
+
+                {/* Presets */}
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Temas Predefinidos</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {Object.entries(THEME_PRESETS).map(([key, preset]) => (
+                      <button
+                        key={key}
+                        onClick={() => handleSelectPreset(key)}
+                        className={`rounded-lg border p-3 text-left transition-all ${
+                          selectedPreset === key
+                            ? 'border-primary ring-1 ring-primary'
+                            : 'border-border hover:border-muted-foreground/30'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="flex gap-1">
+                            <div className="h-4 w-4 rounded-full border border-border/50" style={{ background: hslToStyle(preset.primary) }} />
+                            <div className="h-4 w-4 rounded-full border border-border/50" style={{ background: hslToStyle(preset.background) }} />
+                            <div className="h-4 w-4 rounded-full border border-border/50" style={{ background: hslToStyle(preset.accent) }} />
+                          </div>
+                        </div>
+                        <p className="text-xs font-medium">{preset.label}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Custom Colors */}
+                <div className="border-t border-border pt-6 space-y-4">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Cores Personalizadas</h3>
+                  <p className="text-xs text-muted-foreground">Formato HSL: &quot;matiz saturação% luminosidade%&quot; (ex: 142 70% 45%)</p>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full" style={{ background: hslToStyle(customPrimary) }} />
+                        Cor Primária
+                      </Label>
+                      <Input value={customPrimary} onChange={e => setCustomPrimary(e.target.value)} className="bg-secondary border-border" placeholder="142 70% 45%" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full" style={{ background: hslToStyle(customAccent) }} />
+                        Cor de Destaque
+                      </Label>
+                      <Input value={customAccent} onChange={e => setCustomAccent(e.target.value)} className="bg-secondary border-border" placeholder="142 50% 30%" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full" style={{ background: hslToStyle(customBackground) }} />
+                        Fundo
+                      </Label>
+                      <Input value={customBackground} onChange={e => setCustomBackground(e.target.value)} className="bg-secondary border-border" placeholder="220 20% 7%" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full" style={{ background: hslToStyle(customCard) }} />
+                        Cartões
+                      </Label>
+                      <Input value={customCard} onChange={e => setCustomCard(e.target.value)} className="bg-secondary border-border" placeholder="220 18% 10%" />
+                    </div>
+                  </div>
+
+                  {/* Preview */}
+                  <div className="rounded-lg border border-border overflow-hidden">
+                    <div className="p-4" style={{ background: hslToStyle(customBackground) }}>
+                      <div className="rounded-lg p-3 mb-2" style={{ background: hslToStyle(customCard) }}>
+                        <div className="flex items-center gap-2">
+                          <div className="h-4 w-4 rounded-full" style={{ background: hslToStyle(customPrimary) }} />
+                          <span className="text-xs font-bold" style={{ color: hslToStyle('210 20% 92%') }}>
+                            {brandName}<span style={{ color: hslToStyle(customPrimary) }}>{brandAccent}</span>
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="rounded px-3 py-1.5 text-xs font-semibold" style={{ background: hslToStyle(customPrimary), color: hslToStyle(customBackground) }}>
+                          Botão
+                        </div>
+                        <div className="rounded px-3 py-1.5 text-xs" style={{ background: hslToStyle(customAccent), color: hslToStyle('210 20% 92%') }}>
+                          Destaque
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button onClick={handleSaveTheme} className="w-full font-semibold" disabled={savingTheme}>
+                    {savingTheme ? 'Salvando...' : 'Aplicar Tema'}
+                  </Button>
+                </div>
+              </motion.div>
+            </TabsContent>
           </Tabs>
         </div>
       </div>
