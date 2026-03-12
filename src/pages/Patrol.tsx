@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { usePlatformSettings } from '@/hooks/usePlatformSettings';
@@ -11,7 +12,7 @@ import { motion } from 'framer-motion';
 const CONSENT_KEY = 'patrol_consent_given';
 
 const Patrol = () => {
-  const { user, signOut } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const { settings } = usePlatformSettings();
   const [patrollerId, setPatrollerId] = useState<string | null>(null);
   const [patrollerName, setPatrollerName] = useState('');
@@ -42,7 +43,6 @@ const Patrol = () => {
     channel
       .on('broadcast', { event: 'request_location' }, () => {
         console.log('[CODSEG GPS] Solicitação de atualização recebida do operador');
-        // Force immediate location send
         if (geo.tracking && patrollerId) {
           geo.forceImmediateSend?.();
         }
@@ -89,6 +89,17 @@ const Patrol = () => {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [consentGiven]);
+
+  // Auth guards - after all hooks
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Shield className="h-8 w-8 animate-pulse text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/login" replace />;
 
   const handleConsent = () => {
     localStorage.setItem(CONSENT_KEY, 'true');
