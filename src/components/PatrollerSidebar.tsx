@@ -87,6 +87,20 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo, companyLo
       return (order[a.status] ?? 3) - (order[b.status] ?? 3);
     });
 
+  // Calculate nearest patroller to company
+  const nearestPatroller = companyLocation
+    ? patrollers
+        .filter(p => p.latest_location && p.status !== 'offline')
+        .map(p => ({
+          ...p,
+          distance: haversineDistance(
+            companyLocation.lat, companyLocation.lng,
+            p.latest_location!.latitude, p.latest_location!.longitude
+          ),
+        }))
+        .sort((a, b) => a.distance - b.distance)[0] || null
+    : null;
+
   const startEditing = (p: PatrollerWithLocation) => {
     setEditingId(p.id);
     setEditVehicleType(p.vehicle_type || 'car');
