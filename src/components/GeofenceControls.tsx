@@ -44,6 +44,37 @@ export function GeofenceControls({
   const [editColor, setEditColor] = useState(COLORS[0]);
   const [sheetOpen, setSheetOpen] = useState(false);
 
+  // Draggable panel state
+  const [dragPos, setDragPos] = useState({ x: 16, y: window.innerHeight - 420 });
+  const dragRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const dragOffset = useRef({ x: 0, y: 0 });
+
+  const onDragStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    isDragging.current = true;
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    dragOffset.current = { x: clientX - dragPos.x, y: clientY - dragPos.y };
+
+    const onMove = (ev: MouseEvent | TouchEvent) => {
+      if (!isDragging.current) return;
+      const cx = 'touches' in ev ? ev.touches[0].clientX : (ev as MouseEvent).clientX;
+      const cy = 'touches' in ev ? ev.touches[0].clientY : (ev as MouseEvent).clientY;
+      setDragPos({ x: cx - dragOffset.current.x, y: cy - dragOffset.current.y });
+    };
+    const onEnd = () => {
+      isDragging.current = false;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onEnd);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onEnd);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onEnd);
+    window.addEventListener('touchmove', onMove);
+    window.addEventListener('touchend', onEnd);
+  }, [dragPos]);
+
   const handleConfirm = () => {
     if (!name.trim()) return;
     onConfirm(name.trim(), pendingRadius, pendingColor);
