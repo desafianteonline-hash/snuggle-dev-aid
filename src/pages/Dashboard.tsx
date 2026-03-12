@@ -28,6 +28,16 @@ const Dashboard = () => {
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const [refreshing, setRefreshing] = useState(false);
+  const [tvMode, setTvMode] = useState(false);
+
+  const toggleTvMode = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+    setTvMode(prev => !prev);
+  }, []);
 
   const handleForceRefresh = useCallback(async () => {
     setRefreshing(true);

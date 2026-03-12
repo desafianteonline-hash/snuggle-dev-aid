@@ -452,6 +452,9 @@ const RouteHistory = () => {
                   ))}
               </>
             )}
+            {locations.length >= 2 && (
+              <RouteReplayControls points={locations} />
+            )}
           </MapContainer>
         )}
       </div>
