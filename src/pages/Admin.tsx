@@ -418,6 +418,29 @@ const Admin = () => {
     setSavingLocation(false);
   };
 
+  const handleSaveOperational = async () => {
+    if (!settings.id) return;
+    setSavingOperational(true);
+    try {
+      const { error } = await supabase
+        .from('platform_settings')
+        .update({
+          max_speed_limit: maxSpeedLimit,
+          patrol_interval_seconds: patrolInterval,
+          idle_timeout_minutes: idleTimeout,
+          min_accuracy_meters: minAccuracy,
+        } as any)
+        .eq('id', settings.id);
+      if (error) throw error;
+      toast.success('Configurações operacionais salvas!');
+      logActivity({ action: 'update', entityType: 'operational_settings', details: { maxSpeedLimit, patrolInterval, idleTimeout, minAccuracy } });
+      refetchSettings();
+    } catch (err: any) {
+      toast.error('Erro ao salvar: ' + (err?.message || 'Erro'));
+    }
+    setSavingOperational(false);
+  };
+
   const nonAdminUsers = users.filter(u => u.role !== 'admin');
 
   return (
