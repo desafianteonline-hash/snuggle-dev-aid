@@ -7,7 +7,7 @@ import { useOfflineAlerts } from '@/hooks/useOfflineAlerts';
 import PatrolMap from '@/components/PatrolMap';
 import PatrollerSidebar from '@/components/PatrollerSidebar';
 import PlatformBrand from '@/components/PlatformBrand';
-import { Shield, LogOut, Menu, X, Wifi, WifiOff, RefreshCw, Share2, Route, Volume2, VolumeX, BarChart3 } from 'lucide-react';
+import { Shield, LogOut, Menu, X, Wifi, WifiOff, RefreshCw, Share2, Route, Volume2, VolumeX, BarChart3, Monitor, Minimize } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -28,6 +28,16 @@ const Dashboard = () => {
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const [refreshing, setRefreshing] = useState(false);
+  const [tvMode, setTvMode] = useState(false);
+
+  const toggleTvMode = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+    setTvMode(prev => !prev);
+  }, []);
 
   const handleForceRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -63,7 +73,7 @@ const Dashboard = () => {
   return (
     <div className="flex h-screen flex-col bg-background">
       {/* Top Bar */}
-      <header className="flex items-center justify-between border-b border-border px-4 py-2 bg-card relative z-[1000]">
+      <header className={`flex items-center justify-between border-b border-border px-4 py-2 bg-card relative z-[1000] transition-all ${tvMode ? 'opacity-0 hover:opacity-100 h-0 hover:h-auto overflow-hidden hover:overflow-visible' : ''}`}>
         <div className="flex items-center gap-3">
           {isMobile && (
             <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
@@ -138,6 +148,14 @@ const Dashboard = () => {
           >
             {alertSound ? <Volume2 className="h-4 w-4 text-primary" /> : <VolumeX className="h-4 w-4 text-muted-foreground" />}
           </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTvMode}
+            title={tvMode ? 'Sair do modo TV' : 'Modo TV (fullscreen)'}
+          >
+            {tvMode ? <Minimize className="h-4 w-4" /> : <Monitor className="h-4 w-4" />}
+          </Button>
           <ThemeToggle />
           <Button variant="ghost" size="icon" onClick={signOut}>
             <LogOut className="h-4 w-4" />
@@ -147,7 +165,7 @@ const Dashboard = () => {
 
       <div className="flex flex-1 overflow-hidden relative">
         {/* Sidebar */}
-        {isMobile ? (
+        {isMobile || tvMode ? (
           <AnimatePresence>
             {sidebarOpen && (
               <motion.div

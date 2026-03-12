@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, useMap } from 'react-leaflet';
+import { MapContainer, Marker, Popup, Polyline, CircleMarker, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import MapLayerControl from '@/components/MapLayerControl';
 import 'leaflet/dist/leaflet.css';
 import type { PatrollerWithLocation } from '@/hooks/usePatrolLocations';
 import type { LocationPoint } from '@/hooks/useRouteHistory';
@@ -143,10 +144,7 @@ const PatrolMap = ({ patrollers, selectedId, onSelect, route = [], flyTo = null 
       className="h-full w-full rounded-xl"
       zoomControl={true}
     >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+      <MapLayerControl />
       <FitBounds patrollers={patrollers} />
       <FlyToHandler flyTo={flyTo} />
 

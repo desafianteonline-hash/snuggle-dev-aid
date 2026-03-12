@@ -9,7 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { MapContainer, TileLayer, Polyline, CircleMarker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, Polyline, CircleMarker, Popup, useMap } from 'react-leaflet';
+import MapLayerControl from '@/components/MapLayerControl';
+import RouteReplayControls from '@/components/RouteReplay';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { ArrowLeft, Calendar, Clock, Gauge, Navigation, Route, MapPin, Loader2, Download, FileText } from 'lucide-react';
@@ -388,10 +390,7 @@ const RouteHistory = () => {
             className="h-full w-full"
             zoomControl={true}
           >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+            <MapLayerControl />
 
             {positions.length >= 2 && (
               <>
@@ -452,6 +451,9 @@ const RouteHistory = () => {
                     </CircleMarker>
                   ))}
               </>
+            )}
+            {locations.length >= 2 && (
+              <RouteReplayControls points={locations} />
             )}
           </MapContainer>
         )}
