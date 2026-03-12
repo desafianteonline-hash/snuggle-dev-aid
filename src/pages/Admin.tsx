@@ -103,6 +103,9 @@ const Admin = () => {
   const [idleTimeout, setIdleTimeout] = useState(30);
   const [minAccuracy, setMinAccuracy] = useState(50);
   const [savingOperational, setSavingOperational] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean; title: string; description: string; variant: 'default' | 'destructive'; onConfirm: () => void;
+  }>({ open: false, title: '', description: '', variant: 'default', onConfirm: () => {} });
 
   const formatCep = (value: string) => {
     const digits = value.replace(/\D/g, '').slice(0, 8);
