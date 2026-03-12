@@ -35,6 +35,8 @@ const Dashboard = () => {
   const [tvMode, setTvMode] = useState(false);
   const [geofenceAddMode, setGeofenceAddMode] = useState(false);
   const [pendingGeofenceLocation, setPendingGeofenceLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [pendingRadius, setPendingRadius] = useState(200);
+  const [pendingColor, setPendingColor] = useState('#3b82f6');
   const { geofences, addGeofence, removeGeofence, updateGeofence } = useGeofences();
 
   useGeofenceDetection(patrollers, geofences, (event) => {
@@ -161,6 +163,10 @@ const Dashboard = () => {
               onCancel={() => setPendingGeofenceLocation(null)}
               onDelete={handleGeofenceDelete}
               onUpdate={handleGeofenceUpdate}
+              pendingRadius={pendingRadius}
+              pendingColor={pendingColor}
+              onPendingRadiusChange={setPendingRadius}
+              onPendingColorChange={setPendingColor}
             />
             <Button variant="outline" size="icon" onClick={() => navigate('/install')} title="Compartilhar App">
               <Share2 className="h-3.5 w-3.5" />
@@ -178,6 +184,10 @@ const Dashboard = () => {
               onCancel={() => setPendingGeofenceLocation(null)}
               onDelete={handleGeofenceDelete}
               onUpdate={handleGeofenceUpdate}
+              pendingRadius={pendingRadius}
+              pendingColor={pendingColor}
+              onPendingRadiusChange={setPendingRadius}
+              onPendingColorChange={setPendingColor}
             />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -299,6 +309,8 @@ const Dashboard = () => {
               onGeofenceMapClick={handleGeofenceMapClick}
               pendingGeofenceLocation={pendingGeofenceLocation}
               onPendingGeofenceLocationChange={handlePendingGeofenceLocationChange}
+              pendingRadius={pendingRadius}
+              pendingColor={pendingColor}
             />
           )}
         </div>

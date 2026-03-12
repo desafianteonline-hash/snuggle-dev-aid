@@ -16,6 +16,10 @@ interface GeofenceControlsProps {
   onCancel: () => void;
   onDelete: (id: string) => void;
   onUpdate: (id: string, updates: Partial<Geofence>) => void;
+  pendingRadius: number;
+  pendingColor: string;
+  onPendingRadiusChange: (r: number) => void;
+  onPendingColorChange: (c: string) => void;
 }
 
 const COLORS = ['#3b82f6', '#22c55e', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899'];
@@ -29,10 +33,12 @@ export function GeofenceControls({
   onCancel,
   onDelete,
   onUpdate,
+  pendingRadius,
+  pendingColor,
+  onPendingRadiusChange,
+  onPendingColorChange,
 }: GeofenceControlsProps) {
   const [name, setName] = useState('');
-  const [radius, setRadius] = useState(200);
-  const [color, setColor] = useState(COLORS[0]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editRadius, setEditRadius] = useState(200);
@@ -41,10 +47,10 @@ export function GeofenceControls({
 
   const handleConfirm = () => {
     if (!name.trim()) return;
-    onConfirm(name.trim(), radius, color);
+    onConfirm(name.trim(), pendingRadius, pendingColor);
     setName('');
-    setRadius(200);
-    setColor(COLORS[0]);
+    onPendingRadiusChange(200);
+    onPendingColorChange(COLORS[0]);
   };
 
   const startEdit = (g: Geofence) => {
@@ -236,17 +242,17 @@ export function GeofenceControls({
             </div>
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">
-                Raio: {radius}m
+                Raio: {pendingRadius}m
               </Label>
               <input
                 type="range"
                 min={50}
                 max={2000}
                 step={50}
-                value={radius}
-                onChange={e => setRadius(Number(e.target.value))}
+                value={pendingRadius}
+                onChange={e => onPendingRadiusChange(Number(e.target.value))}
                 className="w-full mt-2"
-                style={{ accentColor: color }}
+                style={{ accentColor: pendingColor }}
               />
               <div className="flex justify-between text-[10px] text-muted-foreground">
                 <span>50m</span>
@@ -259,14 +265,14 @@ export function GeofenceControls({
                 {COLORS.map(c => (
                   <button
                     key={c}
-                    onClick={() => setColor(c)}
+                    onClick={() => onPendingColorChange(c)}
                     style={{
                       width: 28,
                       height: 28,
                       borderRadius: '50%',
                       background: c,
-                      border: c === color ? '3px solid white' : '2px solid transparent',
-                      boxShadow: c === color ? `0 0 0 2px ${c}` : 'none',
+                      border: c === pendingColor ? '3px solid white' : '2px solid transparent',
+                      boxShadow: c === pendingColor ? `0 0 0 2px ${c}` : 'none',
                       cursor: 'pointer',
                     }}
                   />

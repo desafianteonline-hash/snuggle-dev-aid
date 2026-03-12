@@ -136,9 +136,11 @@ interface PatrolMapProps {
   onGeofenceMapClick?: (lat: number, lng: number) => void;
   pendingGeofenceLocation?: { lat: number; lng: number } | null;
   onPendingGeofenceLocationChange?: (lat: number, lng: number) => void;
+  pendingRadius?: number;
+  pendingColor?: string;
 }
 
-const PatrolMap = ({ patrollers, selectedId, onSelect, route = [], flyTo = null, geofences = [], onGeofenceDelete, geofenceAddMode, onGeofenceMapClick, pendingGeofenceLocation, onPendingGeofenceLocationChange }: PatrolMapProps) => {
+const PatrolMap = ({ patrollers, selectedId, onSelect, route = [], flyTo = null, geofences = [], onGeofenceDelete, geofenceAddMode, onGeofenceMapClick, pendingGeofenceLocation, onPendingGeofenceLocationChange, pendingRadius = 200, pendingColor = '#3b82f6' }: PatrolMapProps) => {
   const defaultCenter: [number, number] = [-23.5505, -46.6333];
 
   const routePositions = route.map(l => [l.latitude, l.longitude] as [number, number]);
@@ -162,6 +164,8 @@ const PatrolMap = ({ patrollers, selectedId, onSelect, route = [], flyTo = null,
         addMode={geofenceAddMode}
         pendingLocation={pendingGeofenceLocation}
         onPendingLocationChange={onPendingGeofenceLocationChange}
+        pendingRadius={pendingRadius}
+        pendingColor={pendingColor}
       />
 
       {/* Route polyline */}
