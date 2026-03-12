@@ -129,7 +129,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
         console.log(`[CODSEG GPS] ${batch.length} localizações enviadas`);
       }
     } catch (err) {
-      console.error('[PatrolTrack] Falha na rede:', err);
+      console.error('[CODSEG GPS] Falha na rede:', err);
       scheduleRetry();
     }
     isSending.current = false;
