@@ -285,7 +285,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
       console.log('[CODSEG GPS] Background Geolocation nativo iniciado');
       setState(s => ({ ...s, tracking: true }));
     } catch (err) {
-      console.error('[PatrolTrack] Erro ao iniciar rastreamento nativo:', err);
+      console.error('[CODSEG GPS] Erro ao iniciar rastreamento nativo:', err);
       setState(s => ({ ...s, error: 'Erro ao iniciar GPS nativo' }));
       // Fallback to web GPS
       startGPSWatch();
