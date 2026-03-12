@@ -547,6 +547,11 @@ const Admin = () => {
                                 {u.role === 'patroller' ? 'Patrulheiro' : 'Operador'}
                                 {u.email && <span className="ml-1 opacity-60">· {u.email}</span>}
                               </p>
+                              {u.role === 'patroller' && !u.patroller_id && (
+                                <p className="text-[10px] text-destructive flex items-center gap-1 mt-0.5">
+                                  <AlertTriangle className="h-3 w-3" /> Sem vínculo — não aparecerá no mapa
+                                </p>
+                              )}
                               {(u.phone || u.vehicle_plate) && (
                                 <div className="flex gap-3 mt-1 text-xs text-muted-foreground">
                                   {u.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {u.phone}</span>}
