@@ -345,23 +345,19 @@ const Admin = () => {
                         </button>
                       </div>
                     </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Nome</Label>
+                      <Input value={name} onChange={e => setName(e.target.value)} className="bg-secondary border-border" placeholder="Nome completo" required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Telefone</Label>
+                      <Input value={phone} onChange={e => setPhone(e.target.value)} className="bg-secondary border-border" placeholder="(00) 00000-0000" />
+                    </div>
                     {selectedRole === 'patroller' && (
-                      <>
-                        <div className="space-y-2">
-                          <Label className="text-xs uppercase tracking-wider text-muted-foreground">Nome do Patrulheiro</Label>
-                          <Input value={name} onChange={e => setName(e.target.value)} className="bg-secondary border-border" placeholder="Nome completo" required />
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-2">
-                            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Telefone</Label>
-                            <Input value={phone} onChange={e => setPhone(e.target.value)} className="bg-secondary border-border" placeholder="(00) 00000-0000" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Placa</Label>
-                            <Input value={vehiclePlate} onChange={e => setVehiclePlate(e.target.value)} className="bg-secondary border-border" placeholder="ABC-1234" />
-                          </div>
-                        </div>
-                      </>
+                      <div className="space-y-2">
+                        <Label className="text-xs uppercase tracking-wider text-muted-foreground">Placa do Veículo</Label>
+                        <Input value={vehiclePlate} onChange={e => setVehiclePlate(e.target.value)} className="bg-secondary border-border" placeholder="ABC-1234" />
+                      </div>
                     )}
                     <Button type="submit" className="w-full font-semibold" disabled={creating}>
                       {creating ? 'Criando...' : 'Criar Usuário'}
