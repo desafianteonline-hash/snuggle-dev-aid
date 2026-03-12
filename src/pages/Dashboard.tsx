@@ -72,8 +72,10 @@ const Dashboard = () => {
   }, [pendingGeofenceLocation, user, addGeofence, toast]);
 
   const handleGeofenceDelete = useCallback(async (id: string) => {
+    const geofence = geofences.find(g => g.id === id);
     await removeGeofence(id);
     toast({ title: 'Cerca removida' });
+    logActivity({ action: 'delete', entityType: 'geofence', entityId: id, entityName: geofence?.name });
   }, [removeGeofence, toast]);
 
   const handleGeofenceUpdate = useCallback(async (id: string, updates: Partial<Geofence>) => {
