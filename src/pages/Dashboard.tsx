@@ -76,7 +76,7 @@ const Dashboard = () => {
                 animate={{ x: 0 }}
                 exit={{ x: -300 }}
                 transition={{ type: 'spring', damping: 25 }}
-                className="absolute inset-y-0 left-0 z-20 w-72"
+                className="absolute inset-y-0 left-0 z-[1000] w-72"
               >
                 <PatrollerSidebar
                   patrollers={patrollers}
