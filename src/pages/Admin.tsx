@@ -415,6 +415,34 @@ const Admin = () => {
                 ))}
               </div>
 
+              {/* Alert for patrollers without user_id link */}
+              {(() => {
+                const unlinked = nonAdminUsers.filter(u => u.role === 'patroller' && !u.patroller_id);
+                if (unlinked.length === 0) return null;
+                return (
+                  <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
+                    className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 flex items-start gap-3">
+                    <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-destructive">
+                        {unlinked.length} patrulheiro{unlinked.length > 1 ? 's' : ''} sem vínculo
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {unlinked.length > 1 ? 'Estes patrulheiros não possuem' : 'Este patrulheiro não possui'} registro vinculado. 
+                        Não aparecerão no mapa mesmo fazendo login. Recrie o usuário para corrigir.
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {unlinked.map(u => (
+                          <span key={u.id} className="inline-flex items-center rounded-full bg-destructive/15 px-2 py-0.5 text-[10px] font-medium text-destructive">
+                            {u.profile_name || u.email || u.id.slice(0, 8)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })()}
+
               {/* Create User */}
               <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
                 <DialogTrigger asChild>
