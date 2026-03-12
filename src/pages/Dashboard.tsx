@@ -7,7 +7,7 @@ import { useOfflineAlerts } from '@/hooks/useOfflineAlerts';
 import PatrolMap from '@/components/PatrolMap';
 import PatrollerSidebar from '@/components/PatrollerSidebar';
 import PlatformBrand from '@/components/PlatformBrand';
-import { Shield, LogOut, Menu, X, Wifi, WifiOff, RefreshCw, Share2, Route, Volume2, VolumeX } from 'lucide-react';
+import { Shield, LogOut, Menu, X, Wifi, WifiOff, RefreshCw, Share2, Route, Volume2, VolumeX, BarChart3 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -94,6 +94,16 @@ const Dashboard = () => {
           >
             <Route className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Histórico</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/reports')}
+            title="Relatórios"
+            className="gap-1.5"
+          >
+            <BarChart3 className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Relatórios</span>
           </Button>
           <Button
             variant="outline"
