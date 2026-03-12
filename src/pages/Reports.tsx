@@ -140,10 +140,27 @@ const Reports = () => {
         dist += haversine(locs[i - 1].latitude, locs[i - 1].longitude, locs[i].latitude, locs[i].longitude);
       }
       const mins = locs.length >= 2 ? differenceInMinutes(new Date(locs[locs.length - 1].recorded_at), new Date(locs[0].recorded_at)) : 0;
+      
+      // Speed stats per patroller
+      const patrollerSpeeds = locs.filter(l => l.speed != null).map(l => ({ speed: l.speed! * 3.6, recorded_at: l.recorded_at }));
+      let maxSpeedRecord: { speed: number; recorded_at: string } | null = null;
+      let avgSpeedValue = 0;
+      if (patrollerSpeeds.length > 0) {
+        maxSpeedRecord = patrollerSpeeds.reduce((max, cur) => cur.speed > max.speed ? cur : max);
+        avgSpeedValue = Math.round(patrollerSpeeds.reduce((a, b) => a + b.speed, 0) / patrollerSpeeds.length);
+      }
+
+      const p = patrollers.find(pt => pt.id === id);
       return {
+        id,
         name: patrollerMap.get(id) || id.slice(0, 8),
+        plate: p?.vehicle_plate || '—',
+        vehicleType: p?.vehicle_type || 'car',
         distancia: Math.round(dist * 10) / 10,
         horas: Math.round(mins / 6) / 10,
+        maxSpeed: maxSpeedRecord ? Math.round(maxSpeedRecord.speed) : 0,
+        maxSpeedAt: maxSpeedRecord?.recorded_at || null,
+        avgSpeed: avgSpeedValue,
       };
     }).sort((a, b) => b.horas - a.horas);
 
@@ -157,6 +174,11 @@ const Reports = () => {
       { name: '80+', value: speeds.filter(s => s > 80).length },
     ].filter(r => r.value > 0);
 
+    // Top speed offenders (above 60 km/h)
+    const speedAlerts = perPatroller
+      .filter(p => p.maxSpeed > 60)
+      .sort((a, b) => b.maxSpeed - a.maxSpeed);
+
     return {
       dailyData,
       totalDist: Math.round(totalDist * 10) / 10,
@@ -167,6 +189,7 @@ const Reports = () => {
       avgSpeed: speeds.length > 0 ? Math.round(speeds.reduce((a, b) => a + b, 0) / speeds.length) : 0,
       perPatroller,
       speedRanges,
+      speedAlerts,
     };
   }, [locations, dateFrom, dateTo, patrollers]);
 
