@@ -61,7 +61,7 @@ function formatDistance(km: number): string {
   return `${km.toFixed(1)}km`;
 }
 
-const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo, companyLocation }: Props) => {
+const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -69,6 +69,15 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo, companyLo
   const [editVehicleType, setEditVehicleType] = useState<string>('car');
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+
+  // Watch points
+  const { points: watchPoints, add: addWatchPoint, remove: removeWatchPoint } = useWatchPoints();
+  const [showWatchPoints, setShowWatchPoints] = useState(true);
+  const [addingPoint, setAddingPoint] = useState(false);
+  const [newPointName, setNewPointName] = useState('');
+  const [newPointLat, setNewPointLat] = useState('');
+  const [newPointLng, setNewPointLng] = useState('');
+  const [savingPoint, setSavingPoint] = useState(false);
 
   const online = patrollers.filter(p => p.status === 'online').length;
   const offline = patrollers.filter(p => p.status === 'offline').length;
@@ -84,19 +93,50 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo, companyLo
       return (order[a.status] ?? 2) - (order[b.status] ?? 2);
     });
 
-  // Calculate nearest patroller to company
-  const nearestPatroller = companyLocation
-    ? patrollers
-        .filter(p => p.latest_location && p.status !== 'offline')
+  // Calculate nearest patroller for each watch point
+  const onlinePatrollers = useMemo(() =>
+    patrollers.filter(p => p.latest_location && p.status !== 'offline'),
+    [patrollers]
+  );
+
+  const watchPointsWithNearest = useMemo(() =>
+    watchPoints.map(wp => {
+      const nearest = onlinePatrollers
         .map(p => ({
           ...p,
-          distance: haversineDistance(
-            companyLocation.lat, companyLocation.lng,
-            p.latest_location!.latitude, p.latest_location!.longitude
-          ),
+          distance: haversineDistance(wp.latitude, wp.longitude, p.latest_location!.latitude, p.latest_location!.longitude),
         }))
-        .sort((a, b) => a.distance - b.distance)[0] || null
-    : null;
+        .sort((a, b) => a.distance - b.distance)[0] || null;
+      return { ...wp, nearest };
+    }),
+    [watchPoints, onlinePatrollers]
+  );
+
+  const handleAddPoint = async () => {
+    const lat = parseFloat(newPointLat);
+    const lng = parseFloat(newPointLng);
+    if (!newPointName.trim() || isNaN(lat) || isNaN(lng)) {
+      toast({ title: 'Preencha todos os campos corretamente', variant: 'destructive' });
+      return;
+    }
+    setSavingPoint(true);
+    const { error } = await addWatchPoint(newPointName.trim(), lat, lng);
+    if (error) {
+      toast({ title: 'Erro ao salvar', description: error, variant: 'destructive' });
+    } else {
+      toast({ title: 'Ponto de referência adicionado!' });
+      setAddingPoint(false);
+      setNewPointName('');
+      setNewPointLat('');
+      setNewPointLng('');
+    }
+    setSavingPoint(false);
+  };
+
+  const handleRemovePoint = async (id: string) => {
+    await removeWatchPoint(id);
+    toast({ title: 'Ponto removido' });
+  };
 
   const startEditing = (p: PatrollerWithLocation) => {
     setEditingId(p.id);
