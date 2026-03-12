@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Circle, Marker, Popup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import type { Geofence } from '@/hooks/useGeofences';
-import { Trash2 } from 'lucide-react';
+import { Trash2, AlertTriangle } from 'lucide-react';
 
 interface GeofenceLayerProps {
   geofences: Geofence[];
