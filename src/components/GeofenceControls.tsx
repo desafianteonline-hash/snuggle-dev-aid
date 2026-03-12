@@ -84,10 +84,15 @@ export function GeofenceControls({
 
   const handleConfirm = () => {
     if (!name.trim()) return;
+    setConfirmCreateOpen(true);
+  };
+
+  const doCreateGeofence = () => {
     onConfirm(name.trim(), pendingRadius, pendingColor);
     setName('');
     onPendingRadiusChange(200);
     onPendingColorChange(COLORS[0]);
+    setConfirmCreateOpen(false);
   };
 
   const startEdit = (g: Geofence) => {
