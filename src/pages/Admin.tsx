@@ -162,6 +162,10 @@ const Admin = () => {
       setCompanyLat(settings.company_latitude != null ? String(settings.company_latitude) : '');
       setCompanyLng(settings.company_longitude != null ? String(settings.company_longitude) : '');
       setCompanyAddress(settings.company_address || '');
+      setMaxSpeedLimit(settings.max_speed_limit ?? 60);
+      setPatrolInterval(settings.patrol_interval_seconds ?? 15);
+      setIdleTimeout(settings.idle_timeout_minutes ?? 30);
+      setMinAccuracy(settings.min_accuracy_meters ?? 50);
     }
   }, [settings]);
 
