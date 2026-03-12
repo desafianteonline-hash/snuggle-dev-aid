@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { patrollers, loading, realtimeConnected } = usePatrolLocations();
   const [selectedId, setSelectedId] = useState<string | null>(null);
