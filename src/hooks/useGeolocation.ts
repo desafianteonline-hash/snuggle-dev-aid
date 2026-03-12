@@ -349,7 +349,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
 
       motionHandlerRef.current = handler;
       window.addEventListener('devicemotion', handler, { passive: true });
-      console.log('[PatrolTrack] DeviceMotion (acelerômetro) ativado');
+      console.log('[CODSEG GPS] DeviceMotion (acelerômetro) ativado');
     };
 
     requestPermission();
