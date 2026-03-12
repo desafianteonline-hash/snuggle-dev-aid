@@ -16,7 +16,6 @@ import { useToast } from '@/hooks/use-toast';
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const { patrollers, loading, realtimeConnected } = usePatrolLocations();
-  const { settings } = usePlatformSettings();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { route } = useRouteHistory(selectedId);
   const [sidebarOpen, setSidebarOpen] = useState(false);
