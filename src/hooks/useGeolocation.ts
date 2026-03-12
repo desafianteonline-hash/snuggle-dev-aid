@@ -276,7 +276,8 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
       try {
         const BackgroundGeolocation = (window as any).Capacitor?.Plugins?.BackgroundGeolocation;
         if (BackgroundGeolocation) {
-        await BackgroundGeolocation.removeWatcher({ id: bgWatcherRef.current });
+          await BackgroundGeolocation.removeWatcher({ id: bgWatcherRef.current });
+        }
         bgWatcherRef.current = null;
       } catch (err) {
         console.error('[PatrolTrack] Erro ao parar rastreamento nativo:', err);
