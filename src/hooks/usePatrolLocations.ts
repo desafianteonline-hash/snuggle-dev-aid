@@ -101,6 +101,10 @@ export function usePatrolLocations() {
         pollIntervalRef.current = Math.min(pollIntervalRef.current * 1.3, 15000);
       }
 
+      // Auto-mark patrollers offline if no location in 3 minutes
+      const OFFLINE_THRESHOLD_MS = 3 * 60 * 1000;
+      const now = Date.now();
+
       // Also refresh patroller status periodically
       const { data: statusData } = await supabase
         .from('patrollers')
@@ -109,7 +113,14 @@ export function usePatrolLocations() {
         setPatrollers(prev =>
           prev.map(p => {
             const s = statusData.find(sd => sd.id === p.id);
-            return s ? { ...p, status: s.status } : p;
+            const dbStatus = s ? s.status : p.status;
+            
+            // Check if last location is older than 3 minutes → force offline
+            const lastRecorded = p.latest_location?.recorded_at;
+            const isStale = lastRecorded && (now - new Date(lastRecorded).getTime()) > OFFLINE_THRESHOLD_MS;
+            const effectiveStatus = isStale ? 'offline' : dbStatus;
+            
+            return { ...p, status: effectiveStatus };
           })
         );
       }

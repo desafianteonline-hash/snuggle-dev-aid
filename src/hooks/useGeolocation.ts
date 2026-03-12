@@ -23,7 +23,7 @@ interface QueuedLocation {
   recorded_at: string;
 }
 
-const SEND_INTERVAL_MS = 8000;
+const SEND_INTERVAL_MS = 30000; // Send location every 30 seconds
 const RETRY_DELAY_MS = 5000;
 const MAX_QUEUE_SIZE = 200;
 const QUEUE_STORAGE_KEY = 'patrol_offline_queue';
