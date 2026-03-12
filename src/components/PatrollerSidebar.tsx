@@ -80,8 +80,8 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo, companyLo
       return true;
     })
     .sort((a, b) => {
-      const order: Record<string, number> = { on_call: 0, online: 1, offline: 2 };
-      return (order[a.status] ?? 3) - (order[b.status] ?? 3);
+      const order: Record<string, number> = { online: 0, offline: 1 };
+      return (order[a.status] ?? 2) - (order[b.status] ?? 2);
     });
 
   // Calculate nearest patroller to company
