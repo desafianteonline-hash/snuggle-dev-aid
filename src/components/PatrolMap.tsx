@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { PatrollerWithLocation } from '@/hooks/usePatrolLocations';
+import type { LocationPoint } from '@/hooks/useRouteHistory';
 
 // Fix default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -18,18 +19,20 @@ const statusColors: Record<string, string> = {
   on_call: '#f59e0b',
 };
 
-function createPatrollerIcon(status: string) {
+function createPatrollerIcon(status: string, isSelected: boolean) {
   const color = statusColors[status] || '#6b7280';
+  const size = isSelected ? 22 : 16;
+  const ringSize = isSelected ? 40 : 32;
   return L.divIcon({
     className: 'custom-marker',
     html: `
       <div style="position:relative;display:flex;align-items:center;justify-content:center;">
-        <div class="pulse-ring" style="position:absolute;width:32px;height:32px;border-radius:50%;border:2px solid ${color};opacity:0.5;"></div>
-        <div style="width:16px;height:16px;border-radius:50%;background:${color};border:3px solid hsl(220,18%,10%);box-shadow:0 0 8px ${color}80;"></div>
+        <div class="pulse-ring" style="position:absolute;width:${ringSize}px;height:${ringSize}px;border-radius:50%;border:2px solid ${color};opacity:${isSelected ? 0.8 : 0.5};"></div>
+        <div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:3px solid hsl(220,18%,10%);box-shadow:0 0 ${isSelected ? 14 : 8}px ${color}${isSelected ? 'cc' : '80'};"></div>
       </div>
     `,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
+    iconSize: [ringSize, ringSize],
+    iconAnchor: [ringSize / 2, ringSize / 2],
   });
 }
 
@@ -51,14 +54,38 @@ function FitBounds({ patrollers }: { patrollers: PatrollerWithLocation[] }) {
   return null;
 }
 
+function FitRoute({ route }: { route: LocationPoint[] }) {
+  const map = useMap();
+  const lastRouteId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (route.length < 2) return;
+    const id = route[0].patroller_id;
+    if (lastRouteId.current === id) return;
+    lastRouteId.current = id;
+
+    const bounds = L.latLngBounds(
+      route.map(l => [l.latitude, l.longitude] as [number, number])
+    );
+    map.fitBounds(bounds, { padding: [60, 60] });
+  }, [route, map]);
+
+  return null;
+}
+
 interface PatrolMapProps {
   patrollers: PatrollerWithLocation[];
   selectedId?: string | null;
   onSelect?: (id: string) => void;
+  route?: LocationPoint[];
 }
 
-const PatrolMap = ({ patrollers, selectedId, onSelect }: PatrolMapProps) => {
-  const defaultCenter: [number, number] = [-23.5505, -46.6333]; // São Paulo
+const PatrolMap = ({ patrollers, selectedId, onSelect, route = [] }: PatrolMapProps) => {
+  const defaultCenter: [number, number] = [-23.5505, -46.6333];
+
+  const routePositions = route.map(l => [l.latitude, l.longitude] as [number, number]);
+  const selectedPatroller = patrollers.find(p => p.id === selectedId);
+  const routeColor = selectedPatroller ? (statusColors[selectedPatroller.status] || '#6b7280') : '#3b82f6';
 
   return (
     <MapContainer
@@ -72,13 +99,46 @@ const PatrolMap = ({ patrollers, selectedId, onSelect }: PatrolMapProps) => {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <FitBounds patrollers={patrollers} />
+
+      {/* Route polyline */}
+      {routePositions.length >= 2 && (
+        <>
+          <FitRoute route={route} />
+          <Polyline
+            positions={routePositions}
+            pathOptions={{
+              color: routeColor,
+              weight: 3,
+              opacity: 0.7,
+              dashArray: '8 4',
+            }}
+          />
+          {/* Start marker */}
+          <CircleMarker
+            center={routePositions[0]}
+            radius={5}
+            pathOptions={{ color: routeColor, fillColor: routeColor, fillOpacity: 1 }}
+          >
+            <Popup>
+              <div className="text-xs">
+                <p className="font-bold">Início da rota</p>
+                <p>{new Date(route[0].recorded_at).toLocaleTimeString('pt-BR')}</p>
+              </div>
+            </Popup>
+          </CircleMarker>
+        </>
+      )}
+
+      {/* Patroller markers */}
       {patrollers.map(p => {
         if (!p.latest_location) return null;
+        const isSelected = p.id === selectedId;
         return (
           <Marker
             key={p.id}
             position={[p.latest_location.latitude, p.latest_location.longitude]}
-            icon={createPatrollerIcon(p.status)}
+            icon={createPatrollerIcon(p.status, isSelected)}
+            zIndexOffset={isSelected ? 1000 : 0}
             eventHandlers={{ click: () => onSelect?.(p.id) }}
           >
             <Popup className="dark-popup">

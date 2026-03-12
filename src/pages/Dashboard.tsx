@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePatrolLocations } from '@/hooks/usePatrolLocations';
+import { useRouteHistory } from '@/hooks/useRouteHistory';
 import PatrolMap from '@/components/PatrolMap';
 import PatrollerSidebar from '@/components/PatrollerSidebar';
 import { Shield, LogOut, Menu, X, Wifi, WifiOff } from 'lucide-react';
@@ -12,6 +13,7 @@ const Dashboard = () => {
   const { user, signOut } = useAuth();
   const { patrollers, loading, realtimeConnected } = usePatrolLocations();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { route } = useRouteHistory(selectedId);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
 
@@ -90,6 +92,7 @@ const Dashboard = () => {
               patrollers={patrollers}
               selectedId={selectedId}
               onSelect={setSelectedId}
+              route={route}
             />
           )}
         </div>
