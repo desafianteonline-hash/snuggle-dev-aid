@@ -419,6 +419,9 @@ const Admin = () => {
           <Button variant="ghost" size="sm" onClick={() => window.location.href = '/dashboard'} className="text-xs">
             Ver Mapa
           </Button>
+          <Button variant="outline" size="sm" onClick={() => window.open('/install', '_blank')} className="text-xs gap-1">
+            <Upload className="h-3 w-3" /> Compartilhar App
+          </Button>
           <span className="text-xs text-muted-foreground hidden sm:block">{user?.email}</span>
           <ThemeToggle />
           <Button variant="ghost" size="icon" onClick={signOut}>
