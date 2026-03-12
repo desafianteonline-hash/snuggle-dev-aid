@@ -298,6 +298,7 @@ const Dashboard = () => {
               geofenceAddMode={geofenceAddMode}
               onGeofenceMapClick={handleGeofenceMapClick}
               pendingGeofenceLocation={pendingGeofenceLocation}
+              onPendingGeofenceLocationChange={handlePendingGeofenceLocationChange}
             />
           )}
         </div>
