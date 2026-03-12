@@ -126,7 +126,6 @@ const Dashboard = () => {
               selectedId={selectedId}
               onSelect={handleSelect}
               onFlyTo={handleFlyTo}
-              companyLocation={companyLocation}
             />
           </div>
         )}
