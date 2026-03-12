@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { usePlatformSettings } from '@/hooks/usePlatformSettings';
+import { usePlatformSettings, THEME_PRESETS } from '@/hooks/usePlatformSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
