@@ -13,6 +13,9 @@ export interface PlatformSettings {
   card_color: string;
   accent_color: string;
   theme_preset: string;
+  company_latitude: number | null;
+  company_longitude: number | null;
+  company_address: string | null;
 }
 
 const defaultSettings: PlatformSettings = {
