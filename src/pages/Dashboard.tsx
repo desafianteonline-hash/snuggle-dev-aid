@@ -104,6 +104,7 @@ const Dashboard = () => {
           >
             <BarChart3 className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Relatórios</span>
+          </Button>
           <Button
             variant="outline"
             size="sm"
