@@ -71,7 +71,6 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo, companyLo
   const { toast } = useToast();
 
   const online = patrollers.filter(p => p.status === 'online').length;
-  const onCall = patrollers.filter(p => p.status === 'on_call').length;
   const offline = patrollers.filter(p => p.status === 'offline').length;
 
   const filtered = patrollers
