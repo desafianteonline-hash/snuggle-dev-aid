@@ -23,7 +23,7 @@ export function usePatrolLocations() {
         .select('*');
 
       if (error || !patrollersData) {
-        console.error('[PatrolTrack] Erro ao buscar patrulheiros:', error);
+        console.error('[CODSEG GPS] Erro ao buscar patrulheiros:', error);
         return;
       }
 
@@ -51,7 +51,7 @@ export function usePatrolLocations() {
         .pop();
       if (latestTime) lastSyncRef.current = latestTime;
     } catch (err) {
-      console.error('[PatrolTrack] Erro no fetch:', err);
+      console.error('[CODSEG GPS] Erro no fetch:', err);
     }
   }, []);
 
@@ -125,7 +125,7 @@ export function usePatrolLocations() {
         );
       }
     } catch (err) {
-      console.error('[PatrolTrack] Erro no polling:', err);
+      console.error('[CODSEG GPS] Erro no polling:', err);
       pollIntervalRef.current = Math.min(pollIntervalRef.current * 1.5, 30000);
     }
 
@@ -149,7 +149,7 @@ export function usePatrolLocations() {
         { event: 'INSERT', schema: 'public', table: 'patrol_locations' },
         (payload) => {
           const newLocation = payload.new as Tables<'patrol_locations'>;
-          console.log('[PatrolTrack] Realtime: nova localização recebida');
+          console.log('[CODSEG GPS] Realtime: nova localização recebida');
 
           setPatrollers(prev =>
             prev.map(p =>
@@ -190,14 +190,14 @@ export function usePatrolLocations() {
         }
       )
       .subscribe((status, err) => {
-        console.log('[PatrolTrack] Realtime status:', status, err);
+        console.log('[CODSEG GPS] Realtime status:', status, err);
         if (status === 'SUBSCRIBED') {
           setRealtimeConnected(true);
           pollIntervalRef.current = 5000; // Relax polling when realtime is active
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
           setRealtimeConnected(false);
           pollIntervalRef.current = 3000; // Increase polling frequency on realtime failure
-          console.warn('[PatrolTrack] Realtime falhou, polling ativo como fallback');
+          console.warn('[CODSEG GPS] Realtime falhou, polling ativo como fallback');
         }
       });
 

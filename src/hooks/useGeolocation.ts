@@ -91,13 +91,13 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     try {
       if ('wakeLock' in navigator) {
         wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
-        console.log('[PatrolTrack] Wake Lock ativado');
+        console.log('[CODSEG GPS] Wake Lock ativado');
         wakeLockRef.current.addEventListener('release', () => {
           if (shouldTrack.current) setTimeout(requestWakeLock, 1000);
         });
       }
     } catch (err) {
-      console.warn('[PatrolTrack] Wake Lock não disponível:', err);
+      console.warn('[CODSEG GPS] Wake Lock não disponível:', err);
     }
   }, [isNative]);
 
@@ -116,7 +116,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     try {
       const { error } = await supabase.from('patrol_locations').insert(batch);
       if (error) {
-        console.error('[PatrolTrack] Erro ao enviar lote:', error);
+        console.error('[CODSEG GPS] Erro ao enviar lote:', error);
         scheduleRetry();
       } else {
         queueRef.current = queueRef.current.slice(batch.length);
@@ -126,10 +126,10 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
           lastSentAt: new Date().toISOString(),
           pendingQueue: queueRef.current.length,
         }));
-        console.log(`[PatrolTrack] ${batch.length} localizações enviadas`);
+        console.log(`[CODSEG GPS] ${batch.length} localizações enviadas`);
       }
     } catch (err) {
-      console.error('[PatrolTrack] Falha na rede:', err);
+      console.error('[CODSEG GPS] Falha na rede:', err);
       scheduleRetry();
     }
     isSending.current = false;
@@ -138,7 +138,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
   const scheduleRetry = useCallback(() => {
     if (retryTimeout.current) clearTimeout(retryTimeout.current);
     retryTimeout.current = setTimeout(() => {
-      console.log('[PatrolTrack] Tentando reenviar fila...');
+      console.log('[CODSEG GPS] Tentando reenviar fila...');
       flushQueue();
     }, RETRY_DELAY_MS);
   }, [flushQueue]);
@@ -198,7 +198,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
         }));
       },
       (err) => {
-        console.error('[PatrolTrack] Erro GPS:', err.message);
+        console.error('[CODSEG GPS] Erro GPS:', err.message);
         setState(s => ({ ...s, error: `Erro GPS: ${err.message}` }));
         if (shouldTrack.current) {
           setTimeout(startGPSWatch, 5000);
@@ -208,13 +208,34 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     );
   }, []);
 
+  // --- Request battery optimization exemption ---
+  const requestBatteryExemption = useCallback(async () => {
+    try {
+      const BatteryOptimization = (window as any).Capacitor?.Plugins?.BatteryOptimization;
+      if (BatteryOptimization) {
+        const { isIgnoring } = await BatteryOptimization.isIgnoringBatteryOptimization();
+        if (!isIgnoring) {
+          await BatteryOptimization.requestIgnoreBatteryOptimization();
+          console.log('[CODSEG GPS] Solicitação de isenção de bateria enviada');
+        } else {
+          console.log('[CODSEG GPS] Já isento de otimização de bateria');
+        }
+      }
+    } catch (err) {
+      console.warn('[CODSEG GPS] Erro ao solicitar isenção de bateria:', err);
+    }
+  }, []);
+
   // --- Capacitor Background Geolocation ---
   const startNativeTracking = useCallback(async () => {
     try {
+      // Request battery optimization exemption first
+      await requestBatteryExemption();
+
       // Access native plugin via Capacitor's global registry (avoids Vite build issues)
       const BackgroundGeolocation = (window as any).Capacitor?.Plugins?.BackgroundGeolocation;
       if (!BackgroundGeolocation) {
-        console.warn('[PatrolTrack] Plugin BackgroundGeolocation não encontrado, usando GPS web');
+        console.warn('[CODSEG GPS] Plugin BackgroundGeolocation não encontrado, usando GPS web');
         startGPSWatch();
         return;
       }
@@ -229,7 +250,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
         },
         (location, error) => {
           if (error) {
-            console.error('[PatrolTrack Native] Erro:', error);
+            console.error('[CODSEG GPS Native] Erro:', error);
             if (error.code === 'NOT_AUTHORIZED') {
               setState(s => ({ ...s, error: 'Permissão de localização negada. Ative nas configurações.' }));
             }
@@ -261,10 +282,10 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
         },
       );
 
-      console.log('[PatrolTrack] Background Geolocation nativo iniciado');
+      console.log('[CODSEG GPS] Background Geolocation nativo iniciado');
       setState(s => ({ ...s, tracking: true }));
     } catch (err) {
-      console.error('[PatrolTrack] Erro ao iniciar rastreamento nativo:', err);
+      console.error('[CODSEG GPS] Erro ao iniciar rastreamento nativo:', err);
       setState(s => ({ ...s, error: 'Erro ao iniciar GPS nativo' }));
       // Fallback to web GPS
       startGPSWatch();
@@ -280,7 +301,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
         }
         bgWatcherRef.current = null;
       } catch (err) {
-        console.error('[PatrolTrack] Erro ao parar rastreamento nativo:', err);
+        console.error('[CODSEG GPS] Erro ao parar rastreamento nativo:', err);
       }
     }
   }, []);
@@ -328,7 +349,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
 
       motionHandlerRef.current = handler;
       window.addEventListener('devicemotion', handler, { passive: true });
-      console.log('[PatrolTrack] DeviceMotion (acelerômetro) ativado');
+      console.log('[CODSEG GPS] DeviceMotion (acelerômetro) ativado');
     };
 
     requestPermission();
@@ -369,7 +390,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
       if (watchdogInterval.current) clearInterval(watchdogInterval.current);
       watchdogInterval.current = setInterval(() => {
         if (shouldTrack.current && Date.now() - lastPositionTime.current > WATCHDOG_INTERVAL_MS) {
-          console.warn('[PatrolTrack] Watchdog: GPS silencioso, reiniciando...');
+          console.warn('[CODSEG GPS] Watchdog: GPS silencioso, reiniciando...');
           startGPSWatch();
         }
       }, WATCHDOG_INTERVAL_MS);
@@ -414,7 +435,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
   // Handle online/offline
   useEffect(() => {
     const handleOnline = () => {
-      console.log('[PatrolTrack] Dispositivo online - reenviando fila');
+      console.log('[CODSEG GPS] Dispositivo online - reenviando fila');
       flushQueue();
     };
     window.addEventListener('online', handleOnline);
@@ -426,7 +447,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
     if (isNative) return;
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && shouldTrack.current) {
-        console.log('[PatrolTrack] App visível novamente, verificando GPS...');
+        console.log('[CODSEG GPS] App visível novamente, verificando GPS...');
         requestWakeLock();
         if (Date.now() - lastPositionTime.current > 15000) startGPSWatch();
         flushQueue();
@@ -461,7 +482,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
   }, [stopTracking]);
 
   const forceImmediateSend = useCallback(() => {
-    console.log('[PatrolTrack] Envio imediato solicitado');
+    console.log('[CODSEG GPS] Envio imediato solicitado');
     if (isNative) {
       // On native, the last state values are the current position
       if (state.latitude && state.longitude) {
