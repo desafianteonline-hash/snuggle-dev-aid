@@ -364,7 +364,7 @@ const Admin = () => {
         .eq('id', settings.id);
       if (error) throw error;
       toast.success('Tema salvo! Recarregando...');
-      refetchSettings();
+      logActivity({ action: 'update', entityType: 'theme', entityName: selectedPreset });
     } catch (err: any) {
       toast.error('Erro ao salvar tema: ' + (err?.message || 'Erro'));
     }
