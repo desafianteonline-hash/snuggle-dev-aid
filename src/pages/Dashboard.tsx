@@ -92,6 +92,7 @@ const Dashboard = () => {
               patrollers={patrollers}
               selectedId={selectedId}
               onSelect={setSelectedId}
+              route={route}
             />
           )}
         </div>
