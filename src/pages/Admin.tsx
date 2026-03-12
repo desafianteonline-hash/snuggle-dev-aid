@@ -339,6 +339,9 @@ const Admin = () => {
               <TabsTrigger value="branding" className="gap-1.5">
                 <Settings className="h-3.5 w-3.5" /> Personalização
               </TabsTrigger>
+              <TabsTrigger value="theme" className="gap-1.5">
+                <Palette className="h-3.5 w-3.5" /> Tema
+              </TabsTrigger>
             </TabsList>
 
             {/* ===== TEAM TAB ===== */}
