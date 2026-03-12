@@ -226,7 +226,7 @@ const RouteHistory = () => {
       <div class="info">
         <div class="info-card"><div class="label">Patrulheiro</div><div class="value">${patrollerName}</div></div>
         <div class="info-card"><div class="label">Placa</div><div class="value">${patrollerObj?.vehicle_plate || '—'}</div></div>
-        <div class="info-card"><div class="label">Data</div><div class="value">${format(new Date(selectedDate), 'dd/MM/yyyy')}</div></div>
+        <div class="info-card"><div class="label">Período</div><div class="value">${dateLabel}</div></div>
         <div class="info-card"><div class="label">Início</div><div class="value">${startTime}</div></div>
         <div class="info-card"><div class="label">Fim</div><div class="value">${endTime}</div></div>
         <div class="info-card"><div class="label">Duração</div><div class="value">${hours}h ${minutes}min</div></div>
