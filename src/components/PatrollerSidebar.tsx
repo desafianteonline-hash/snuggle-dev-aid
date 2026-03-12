@@ -257,9 +257,17 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
     }
   };
 
-  const handleRemovePoint = async (id: string) => {
-    await removeWatchPoint(id);
-    toast({ title: 'Ponto removido' });
+  const handleRemovePoint = async (id: string, pointName: string) => {
+    const confirmed = window.confirm(`Tem certeza que deseja excluir o ponto "${pointName}"?`);
+    if (!confirmed) return;
+
+    const { error } = await removeWatchPoint(id);
+    if (error) {
+      toast({ title: 'Erro ao remover ponto', description: error, variant: 'destructive' });
+      return;
+    }
+
+    toast({ title: 'Ponto removido com sucesso' });
   };
 
   const startEditing = (p: PatrollerWithLocation) => {
@@ -272,6 +280,9 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
   };
 
   const handleSave = async (patrollerId: string) => {
+    const confirmed = window.confirm('Deseja salvar as alterações do patrulheiro?');
+    if (!confirmed) return;
+
     setSaving(true);
     const { error } = await supabase
       .from('patrollers')
