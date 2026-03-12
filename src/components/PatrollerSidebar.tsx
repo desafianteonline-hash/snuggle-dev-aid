@@ -170,150 +170,79 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
     onSelect(p.id);
   };
 
+  const [activeTab, setActiveTab] = useState<'patrollers' | 'nearby'>('patrollers');
+
   return (
     <div className="flex h-full flex-col bg-card border-r border-border">
-      {/* Header */}
+      {/* Header with stats */}
       <div className="p-4 border-b border-border">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Patrulheiros</h2>
-        <div className="mt-2 flex gap-3 text-xs">
-          <button onClick={() => setStatusFilter(statusFilter === 'online' ? 'all' : 'online')} className={cn("flex items-center gap-1 rounded px-1.5 py-0.5 transition-colors", statusFilter === 'online' && 'bg-primary/20')}>
+        <div className="flex gap-3 text-xs">
+          <span className="flex items-center gap-1">
             <span className="h-2 w-2 rounded-full bg-[hsl(var(--status-online))]" />
             {online} online
-          </button>
-          <button onClick={() => setStatusFilter(statusFilter === 'offline' ? 'all' : 'offline')} className={cn("flex items-center gap-1 rounded px-1.5 py-0.5 transition-colors", statusFilter === 'offline' && 'bg-primary/20')}>
+          </span>
+          <span className="flex items-center gap-1">
             <span className="h-2 w-2 rounded-full bg-[hsl(var(--status-offline))]" />
             {offline} offline
-          </button>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="px-3 py-2 border-b border-border">
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input
-            placeholder="Buscar nome ou placa..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-8 h-8 text-xs"
-          />
-        </div>
-      </div>
-
-      {/* Watch Points - Nearest Patrollers */}
-      <div className="border-b border-border">
-        <button
-          className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
-          onClick={() => setShowWatchPoints(!showWatchPoints)}
-        >
-          <span className="flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5" />
-            Pontos de Referência ({watchPoints.length})
           </span>
-          <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", showWatchPoints && "rotate-180")} />
-        </button>
-
-        <AnimatePresence>
-          {showWatchPoints && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="px-3 pb-2 space-y-1.5">
-                {watchPointsWithNearest.map(wp => (
-                  <div
-                    key={wp.id}
-                    className="rounded-lg border border-border bg-secondary/50 p-2 group"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-primary">{wp.name}</span>
-                      <button
-                        onClick={() => handleRemovePoint(wp.id)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Trash2 className="h-3 w-3 text-destructive" />
-                      </button>
-                    </div>
-                    {wp.nearest ? (
-                      <div
-                        className="flex items-center gap-1.5 cursor-pointer hover:bg-primary/5 rounded p-0.5 -m-0.5 transition-colors"
-                        onClick={() => {
-                          onSelect(wp.nearest!.id);
-                          if (wp.nearest!.latest_location && onFlyTo) {
-                            onFlyTo(wp.nearest!.latest_location.latitude, wp.nearest!.latest_location.longitude);
-                          }
-                        }}
-                      >
-                        <Navigation className="h-3 w-3 text-primary flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-semibold truncate">{wp.nearest.name}</p>
-                          <p className="text-[10px] text-muted-foreground">
-                            {formatDistance(wp.nearest.distance)} • {wp.nearest.vehicle_plate || 'Sem placa'}
-                          </p>
-                        </div>
-                        <ChevronRight className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                      </div>
-                    ) : (
-                      <p className="text-[10px] text-muted-foreground">Nenhum patrulheiro online</p>
-                    )}
-                  </div>
-                ))}
-
-                {/* Add new point */}
-                {addingPoint ? (
-                  <div className="rounded-lg border border-primary/30 bg-primary/5 p-2 space-y-1.5">
-                    <Input
-                      placeholder="Nome (ex: Base, Centro)"
-                      value={newPointName}
-                      onChange={e => setNewPointName(e.target.value)}
-                      className="h-7 text-xs"
-                    />
-                    <div className="flex gap-1.5">
-                      <Input
-                        type="number"
-                        step="any"
-                        placeholder="Latitude"
-                        value={newPointLat}
-                        onChange={e => setNewPointLat(e.target.value)}
-                        className="h-7 text-xs"
-                      />
-                      <Input
-                        type="number"
-                        step="any"
-                        placeholder="Longitude"
-                        value={newPointLng}
-                        onChange={e => setNewPointLng(e.target.value)}
-                        className="h-7 text-xs"
-                      />
-                    </div>
-                    <div className="flex gap-1.5">
-                      <Button size="sm" className="h-7 text-xs flex-1" onClick={handleAddPoint} disabled={savingPoint}>
-                        <Save className="h-3 w-3 mr-1" /> {savingPoint ? '...' : 'Salvar'}
-                      </Button>
-                      <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setAddingPoint(false)}>
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full h-7 text-xs gap-1"
-                    onClick={() => setAddingPoint(true)}
-                  >
-                    <Plus className="h-3 w-3" /> Adicionar ponto
-                  </Button>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        </div>
       </div>
 
-      {/* List */}
+      {/* Tabs */}
+      <div className="flex border-b border-border">
+        <button
+          className={cn(
+            "flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors border-b-2",
+            activeTab === 'patrollers'
+              ? "text-primary border-primary"
+              : "text-muted-foreground border-transparent hover:text-foreground"
+          )}
+          onClick={() => setActiveTab('patrollers')}
+        >
+          <User className="h-3.5 w-3.5" />
+          Patrulheiros
+        </button>
+        <button
+          className={cn(
+            "flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors border-b-2",
+            activeTab === 'nearby'
+              ? "text-primary border-primary"
+              : "text-muted-foreground border-transparent hover:text-foreground"
+          )}
+          onClick={() => setActiveTab('nearby')}
+        >
+          <MapPin className="h-3.5 w-3.5" />
+          Mais Próximo
+          {watchPoints.length > 0 && (
+            <span className="bg-primary/20 text-primary rounded-full px-1.5 text-[10px]">{watchPoints.length}</span>
+          )}
+        </button>
+      </div>
+
+      {activeTab === 'patrollers' ? (
+        <>
+          {/* Search */}
+          <div className="px-3 py-2 border-b border-border">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Buscar nome ou placa..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="pl-8 h-8 text-xs"
+              />
+            </div>
+            <div className="mt-2 flex gap-2">
+              <button onClick={() => setStatusFilter(statusFilter === 'online' ? 'all' : 'online')} className={cn("flex items-center gap-1 rounded px-1.5 py-0.5 text-xs transition-colors", statusFilter === 'online' && 'bg-primary/20')}>
+                Online
+              </button>
+              <button onClick={() => setStatusFilter(statusFilter === 'offline' ? 'all' : 'offline')} className={cn("flex items-center gap-1 rounded px-1.5 py-0.5 text-xs transition-colors", statusFilter === 'offline' && 'bg-primary/20')}>
+                Offline
+              </button>
+            </div>
+          </div>
+
+          {/* Patroller List */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {filtered.map((p, i) => {
           const VehicleIcon = vehicleIcons[p.vehicle_type || 'car'] || Car;
@@ -523,13 +452,136 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
         )}
       </div>
 
-      {/* Footer stats */}
-      <div className="border-t border-border p-3 text-xs text-muted-foreground flex justify-between">
-        <span>{filtered.length} de {patrollers.length} patrulheiros</span>
-        {statusFilter !== 'all' && (
-          <button onClick={() => setStatusFilter('all')} className="text-primary hover:underline">Limpar filtro</button>
-        )}
-      </div>
+          {/* Footer stats */}
+          <div className="border-t border-border p-3 text-xs text-muted-foreground flex justify-between">
+            <span>{filtered.length} de {patrollers.length} patrulheiros</span>
+            {statusFilter !== 'all' && (
+              <button onClick={() => setStatusFilter('all')} className="text-primary hover:underline">Limpar filtro</button>
+            )}
+          </div>
+        </>
+      ) : (
+        /* ===== NEARBY TAB ===== */
+        <div className="flex-1 overflow-y-auto p-3 space-y-3">
+          {watchPointsWithNearest.length > 0 ? (
+            watchPointsWithNearest.map(wp => (
+              <div
+                key={wp.id}
+                className="rounded-xl border border-border bg-secondary/30 p-3 group"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center">
+                      <MapPin className="h-3.5 w-3.5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold">{wp.name}</p>
+                      <p className="text-[10px] text-muted-foreground font-mono">
+                        {wp.latitude.toFixed(4)}, {wp.longitude.toFixed(4)}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleRemovePoint(wp.id)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive/10 rounded"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  </button>
+                </div>
+
+                {wp.nearest ? (
+                  <div
+                    className="flex items-center gap-2 cursor-pointer rounded-lg border border-primary/20 bg-primary/5 p-2 hover:bg-primary/10 transition-colors"
+                    onClick={() => {
+                      onSelect(wp.nearest!.id);
+                      if (wp.nearest!.latest_location && onFlyTo) {
+                        onFlyTo(wp.nearest!.latest_location.latitude, wp.nearest!.latest_location.longitude);
+                      }
+                    }}
+                  >
+                    <Navigation className="h-4 w-4 text-primary flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold truncate">{wp.nearest.name}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {formatDistance(wp.nearest.distance)} • {wp.nearest.vehicle_plate || 'Sem placa'}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-border bg-secondary/50 p-2 text-center">
+                    <p className="text-[10px] text-muted-foreground">Nenhum patrulheiro online</p>
+                  </div>
+                )}
+
+                {/* Show button to fly to the watch point itself */}
+                <button
+                  className="mt-1.5 w-full text-[10px] text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1"
+                  onClick={() => onFlyTo?.(wp.latitude, wp.longitude)}
+                >
+                  <Eye className="h-3 w-3" /> Ver no mapa
+                </button>
+              </div>
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <MapPin className="h-8 w-8 mb-2 opacity-30" />
+              <p className="text-sm text-center">Nenhum ponto cadastrado</p>
+              <p className="text-xs text-center mt-1">Adicione locais para ver o patrulheiro mais próximo</p>
+            </div>
+          )}
+
+          {/* Add new point */}
+          {addingPoint ? (
+            <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 space-y-2">
+              <p className="text-xs font-bold text-primary">Novo Ponto de Referência</p>
+              <Input
+                placeholder="Nome (ex: Base, Centro da Cidade)"
+                value={newPointName}
+                onChange={e => setNewPointName(e.target.value)}
+                className="h-8 text-xs"
+              />
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  step="any"
+                  placeholder="Latitude"
+                  value={newPointLat}
+                  onChange={e => setNewPointLat(e.target.value)}
+                  className="h-8 text-xs"
+                />
+                <Input
+                  type="number"
+                  step="any"
+                  placeholder="Longitude"
+                  value={newPointLng}
+                  onChange={e => setNewPointLng(e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+              <div className="rounded-lg bg-secondary/50 p-2 text-[10px] text-muted-foreground">
+                💡 Copie as coordenadas do Google Maps (clique direito → copiar coordenadas)
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" className="flex-1 h-8 text-xs" onClick={handleAddPoint} disabled={savingPoint}>
+                  <Save className="h-3 w-3 mr-1" /> {savingPoint ? 'Salvando...' : 'Salvar'}
+                </Button>
+                <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setAddingPoint(false)}>
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button
+              variant="outline"
+              className="w-full h-9 text-xs gap-1.5"
+              onClick={() => setAddingPoint(true)}
+            >
+              <Plus className="h-3.5 w-3.5" /> Adicionar ponto de referência
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 };
