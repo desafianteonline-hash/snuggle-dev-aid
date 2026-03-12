@@ -37,7 +37,6 @@ interface Props {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onFlyTo?: (lat: number, lng: number) => void;
-  companyLocation?: { lat: number; lng: number } | null;
 }
 
 function timeSince(dateStr: string): string {
