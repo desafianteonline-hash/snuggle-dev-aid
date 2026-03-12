@@ -48,6 +48,7 @@ export function GeofenceControls({
   const [editRadius, setEditRadius] = useState(200);
   const [editColor, setEditColor] = useState(COLORS[0]);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
 
   // Draggable panel state
   const [dragPos, setDragPos] = useState({ x: Math.max(0, (window.innerWidth - 340) / 2), y: Math.max(0, (window.innerHeight - 400) / 2) });
