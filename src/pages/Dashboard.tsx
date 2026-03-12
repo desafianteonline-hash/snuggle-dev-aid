@@ -116,6 +116,18 @@ const Dashboard = () => {
             </span>
           </div>
           <span className="text-xs text-muted-foreground hidden sm:block">{user?.email}</span>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              const next = !alertSound;
+              setAlertSound(next);
+              localStorage.setItem('codseg-alert-sound', next ? 'on' : 'off');
+            }}
+            title={alertSound ? 'Som de alerta: ATIVADO' : 'Som de alerta: DESATIVADO'}
+          >
+            {alertSound ? <Volume2 className="h-4 w-4 text-primary" /> : <VolumeX className="h-4 w-4 text-muted-foreground" />}
+          </Button>
           <ThemeToggle />
           <Button variant="ghost" size="icon" onClick={signOut}>
             <LogOut className="h-4 w-4" />
