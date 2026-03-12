@@ -1023,6 +1023,95 @@ const Admin = () => {
                 </div>
               </motion.div>
             </TabsContent>
+
+            {/* ===== OPERATIONAL TAB ===== */}
+            <TabsContent value="operational" className="space-y-6">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                className="rounded-xl border border-border bg-card p-6 space-y-6">
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-1">Configurações Operacionais</h3>
+                  <p className="text-xs text-muted-foreground">Defina os parâmetros operacionais da plataforma. Essas configurações afetam relatórios e alertas.</p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                      <Gauge className="h-3.5 w-3.5" />
+                      Velocidade Máxima Permitida (km/h)
+                    </Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={200}
+                      value={maxSpeedLimit}
+                      onChange={e => setMaxSpeedLimit(parseInt(e.target.value) || 60)}
+                      className="bg-secondary border-border"
+                    />
+                    <p className="text-[10px] text-muted-foreground">Patrulheiros que excederem serão destacados nos relatórios.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                      <Clock className="h-3.5 w-3.5" />
+                      Intervalo de Rastreamento GPS (segundos)
+                    </Label>
+                    <Input
+                      type="number"
+                      min={5}
+                      max={300}
+                      value={patrolInterval}
+                      onChange={e => setPatrolInterval(parseInt(e.target.value) || 15)}
+                      className="bg-secondary border-border"
+                    />
+                    <p className="text-[10px] text-muted-foreground">Frequência de envio de localização pelo app do patrulheiro.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      Tempo para Inatividade (minutos)
+                    </Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={120}
+                      value={idleTimeout}
+                      onChange={e => setIdleTimeout(parseInt(e.target.value) || 30)}
+                      className="bg-secondary border-border"
+                    />
+                    <p className="text-[10px] text-muted-foreground">Tempo sem enviar localização até marcar o patrulheiro como inativo.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                      <MapPin className="h-3.5 w-3.5" />
+                      Precisão Mínima do GPS (metros)
+                    </Label>
+                    <Input
+                      type="number"
+                      min={5}
+                      max={500}
+                      value={minAccuracy}
+                      onChange={e => setMinAccuracy(parseInt(e.target.value) || 50)}
+                      className="bg-secondary border-border"
+                    />
+                    <p className="text-[10px] text-muted-foreground">Registros com precisão acima desse valor serão descartados.</p>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-border bg-secondary/50 p-3 text-xs text-muted-foreground space-y-1">
+                  <p className="font-medium">📋 Resumo das configurações atuais:</p>
+                  <p>• Limite de velocidade: <span className="font-semibold text-foreground">{maxSpeedLimit} km/h</span></p>
+                  <p>• Intervalo GPS: <span className="font-semibold text-foreground">{patrolInterval}s</span></p>
+                  <p>• Timeout inatividade: <span className="font-semibold text-foreground">{idleTimeout} min</span></p>
+                  <p>• Precisão mínima: <span className="font-semibold text-foreground">{minAccuracy}m</span></p>
+                </div>
+
+                <Button onClick={handleSaveOperational} className="w-full font-semibold" disabled={savingOperational}>
+                  {savingOperational ? 'Salvando...' : 'Salvar Configurações Operacionais'}
+                </Button>
+              </motion.div>
+            </TabsContent>
           </Tabs>
         </div>
       </div>
