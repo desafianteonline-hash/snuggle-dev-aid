@@ -55,11 +55,19 @@ const Reports = () => {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    // Build datetime with time inputs
+    const [fromH, fromM] = timeFrom.split(':').map(Number);
+    const [toH, toM] = timeTo.split(':').map(Number);
+    const fromDt = new Date(dateFrom);
+    fromDt.setHours(fromH || 0, fromM || 0, 0, 0);
+    const toDt = new Date(dateTo);
+    toDt.setHours(toH || 23, toM || 59, 59, 999);
+
     let query = supabase
       .from('patrol_locations')
       .select('*')
-      .gte('recorded_at', startOfDay(dateFrom).toISOString())
-      .lte('recorded_at', endOfDay(dateTo).toISOString())
+      .gte('recorded_at', fromDt.toISOString())
+      .lte('recorded_at', toDt.toISOString())
       .order('recorded_at', { ascending: true });
 
     if (selectedPatroller !== 'all') {
