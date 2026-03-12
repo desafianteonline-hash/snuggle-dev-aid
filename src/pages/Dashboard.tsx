@@ -1,8 +1,7 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePatrolLocations } from '@/hooks/usePatrolLocations';
 import { useRouteHistory } from '@/hooks/useRouteHistory';
-import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 import PatrolMap from '@/components/PatrolMap';
 import PatrollerSidebar from '@/components/PatrollerSidebar';
 import PlatformBrand from '@/components/PlatformBrand';
@@ -17,7 +16,6 @@ import { useToast } from '@/hooks/use-toast';
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const { patrollers, loading, realtimeConnected } = usePatrolLocations();
-  const { settings } = usePlatformSettings();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { route } = useRouteHistory(selectedId);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -56,13 +54,6 @@ const Dashboard = () => {
       handleFlyTo(p.latest_location.latitude, p.latest_location.longitude);
     }
   }, [patrollers, handleFlyTo]);
-
-  const companyLocation = useMemo(() => {
-    if (settings.company_latitude != null && settings.company_longitude != null) {
-      return { lat: settings.company_latitude, lng: settings.company_longitude };
-    }
-    return null;
-  }, [settings.company_latitude, settings.company_longitude]);
 
   return (
     <div className="flex h-screen flex-col bg-background">
@@ -124,7 +115,6 @@ const Dashboard = () => {
                   selectedId={selectedId}
                   onSelect={(id) => { handleSelect(id); setSidebarOpen(false); }}
                   onFlyTo={handleFlyTo}
-                  companyLocation={companyLocation}
                 />
               </motion.div>
             )}
@@ -136,7 +126,6 @@ const Dashboard = () => {
               selectedId={selectedId}
               onSelect={handleSelect}
               onFlyTo={handleFlyTo}
-              companyLocation={companyLocation}
             />
           </div>
         )}

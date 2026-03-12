@@ -193,6 +193,33 @@ export type Database = {
         }
         Relationships: []
       }
+      watch_points: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          latitude: number
+          longitude: number
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
