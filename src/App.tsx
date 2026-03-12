@@ -36,6 +36,7 @@ const App = () => (
             <Route path="/admin" element={<Admin />} />
             <Route path="/history" element={<RouteHistory />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/geofence-timeline" element={<GeofenceTimeline />} />
             <Route path="/install" element={<Install />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
