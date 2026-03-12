@@ -316,6 +316,27 @@ const RouteHistory = () => {
         </div>
 
         {loading && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
+
+        {locations.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <Download className="h-3.5 w-3.5" />
+                Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={exportCSV}>
+                <FileText className="h-4 w-4 mr-2" />
+                Exportar CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportPDF}>
+                <FileText className="h-4 w-4 mr-2" />
+                Exportar PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       {/* Stats */}
