@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, useMap } from 'react-leaflet';
+import { MapContainer, Marker, Popup, Polyline, CircleMarker, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import MapLayerControl from '@/components/MapLayerControl';
 import 'leaflet/dist/leaflet.css';
 import type { PatrollerWithLocation } from '@/hooks/usePatrolLocations';
 import type { LocationPoint } from '@/hooks/useRouteHistory';
