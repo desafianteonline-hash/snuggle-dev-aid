@@ -19,16 +19,6 @@ const Patrol = () => {
   const [consentGiven, setConsentGiven] = useState(() => localStorage.getItem(CONSENT_KEY) === 'true');
   const geo = useGeolocation(consentGiven ? patrollerId : null);
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Shield className="h-8 w-8 animate-pulse text-primary" />
-      </div>
-    );
-  }
-
-  if (!user) return <Navigate to="/login" replace />;
-
   // Fetch patroller and auto-start tracking
   useEffect(() => {
     if (!user) return;
@@ -53,7 +43,6 @@ const Patrol = () => {
     channel
       .on('broadcast', { event: 'request_location' }, () => {
         console.log('[CODSEG GPS] Solicitação de atualização recebida do operador');
-        // Force immediate location send
         if (geo.tracking && patrollerId) {
           geo.forceImmediateSend?.();
         }
@@ -100,6 +89,17 @@ const Patrol = () => {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [consentGiven]);
+
+  // Auth guards - after all hooks
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Shield className="h-8 w-8 animate-pulse text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/login" replace />;
 
   const handleConsent = () => {
     localStorage.setItem(CONSENT_KEY, 'true');
