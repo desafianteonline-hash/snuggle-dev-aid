@@ -53,6 +53,9 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editVehicleType, setEditVehicleType] = useState<string>('car');
+  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
   const online = patrollers.filter(p => p.status === 'online').length;
@@ -70,17 +73,29 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
       return (order[a.status] ?? 3) - (order[b.status] ?? 3);
     });
 
-  const handleVehicleTypeChange = async (patrollerId: string, type: string) => {
+  const startEditing = (p: PatrollerWithLocation) => {
+    setEditingId(p.id);
+    setEditVehicleType(p.vehicle_type || 'car');
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+  };
+
+  const handleSave = async (patrollerId: string) => {
+    setSaving(true);
     const { error } = await supabase
       .from('patrollers')
-      .update({ vehicle_type: type } as any)
+      .update({ vehicle_type: editVehicleType })
       .eq('id', patrollerId);
 
     if (error) {
-      toast({ title: 'Erro ao atualizar veículo', variant: 'destructive' });
+      toast({ title: 'Erro ao salvar', variant: 'destructive' });
     } else {
-      toast({ title: `Veículo atualizado para ${type === 'car' ? 'Carro' : 'Moto'}` });
+      toast({ title: 'Alterações salvas com sucesso!' });
+      setEditingId(null);
     }
+    setSaving(false);
   };
 
   const handleLocate = (p: PatrollerWithLocation) => {
