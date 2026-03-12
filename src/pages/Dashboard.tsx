@@ -37,7 +37,7 @@ const Dashboard = () => {
   return (
     <div className="flex h-screen flex-col bg-background">
       {/* Top Bar */}
-      <header className="flex items-center justify-between border-b border-border px-4 py-2 bg-card">
+      <header className="flex items-center justify-between border-b border-border px-4 py-2 bg-card relative z-[1000]">
         <div className="flex items-center gap-3">
           {isMobile && (
             <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
@@ -76,7 +76,7 @@ const Dashboard = () => {
                 animate={{ x: 0 }}
                 exit={{ x: -300 }}
                 transition={{ type: 'spring', damping: 25 }}
-                className="absolute inset-y-0 left-0 z-20 w-72"
+                className="absolute inset-y-0 left-0 z-[1000] w-72"
               >
                 <PatrollerSidebar
                   patrollers={patrollers}
