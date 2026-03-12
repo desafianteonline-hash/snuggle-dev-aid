@@ -51,7 +51,7 @@ export function usePatrolLocations() {
         .pop();
       if (latestTime) lastSyncRef.current = latestTime;
     } catch (err) {
-      console.error('[PatrolTrack] Erro no fetch:', err);
+      console.error('[CODSEG GPS] Erro no fetch:', err);
     }
   }, []);
 
