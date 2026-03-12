@@ -400,7 +400,7 @@ const Admin = () => {
         .eq('id', settings.id);
       if (error) throw error;
       toast.success('Localização da empresa salva!');
-      refetchSettings();
+      logActivity({ action: 'update', entityType: 'location', details: { lat: companyLat, lng: companyLng, address: companyAddress } });
     } catch (err: any) {
       toast.error('Erro ao salvar: ' + (err?.message || 'Erro'));
     }
