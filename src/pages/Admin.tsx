@@ -284,6 +284,9 @@ const Admin = () => {
   // --- Branding handlers ---
   const handleSaveBranding = async () => {
     if (!settings.id) return;
+    const confirmed = window.confirm('Deseja salvar as alterações de personalização da plataforma?');
+    if (!confirmed) return;
+
     setSavingBrand(true);
     try {
       const { error } = await supabase
