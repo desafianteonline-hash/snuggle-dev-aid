@@ -16,6 +16,10 @@ export interface PlatformSettings {
   company_latitude: number | null;
   company_longitude: number | null;
   company_address: string | null;
+  max_speed_limit: number;
+  patrol_interval_seconds: number;
+  idle_timeout_minutes: number;
+  min_accuracy_meters: number;
 }
 
 const defaultSettings: PlatformSettings = {
