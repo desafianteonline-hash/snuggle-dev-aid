@@ -279,9 +279,11 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
       .eq('id', patrollerId);
 
     if (error) {
-      toast({ title: 'Erro ao salvar', variant: 'destructive' });
+      toast({ title: 'Erro ao salvar', description: 'Verifique suas permissões.', variant: 'destructive' });
     } else {
       toast({ title: 'Alterações salvas com sucesso!' });
+      // Force immediate UI refresh
+      window.dispatchEvent(new CustomEvent('patroller-updated'));
       setEditingId(null);
     }
     setSaving(false);
