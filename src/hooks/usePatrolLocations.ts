@@ -190,7 +190,7 @@ export function usePatrolLocations() {
         }
       )
       .subscribe((status, err) => {
-        console.log('[PatrolTrack] Realtime status:', status, err);
+        console.log('[CODSEG GPS] Realtime status:', status, err);
         if (status === 'SUBSCRIBED') {
           setRealtimeConnected(true);
           pollIntervalRef.current = 5000; // Relax polling when realtime is active
