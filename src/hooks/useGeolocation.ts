@@ -250,7 +250,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
         },
         (location, error) => {
           if (error) {
-            console.error('[PatrolTrack Native] Erro:', error);
+            console.error('[CODSEG GPS Native] Erro:', error);
             if (error.code === 'NOT_AUTHORIZED') {
               setState(s => ({ ...s, error: 'Permissão de localização negada. Ative nas configurações.' }));
             }
