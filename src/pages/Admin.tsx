@@ -485,6 +485,9 @@ const Admin = () => {
               <TabsTrigger value="location" className="gap-1.5">
                 <MapPin className="h-3.5 w-3.5" /> Localização
               </TabsTrigger>
+              <TabsTrigger value="operational" className="gap-1.5">
+                <Gauge className="h-3.5 w-3.5" /> Operacional
+              </TabsTrigger>
             </TabsList>
 
             {/* ===== TEAM TAB ===== */}
