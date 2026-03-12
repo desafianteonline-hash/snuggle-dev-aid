@@ -77,7 +77,11 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
   const [newPointName, setNewPointName] = useState('');
   const [newPointLat, setNewPointLat] = useState('');
   const [newPointLng, setNewPointLng] = useState('');
+  const [newPointCep, setNewPointCep] = useState('');
+  const [cepAddress, setCepAddress] = useState('');
+  const [loadingCep, setLoadingCep] = useState(false);
   const [savingPoint, setSavingPoint] = useState(false);
+  const [addMode, setAddMode] = useState<'cep' | 'coords'>('cep');
 
   const online = patrollers.filter(p => p.status === 'online').length;
   const offline = patrollers.filter(p => p.status === 'offline').length;
@@ -112,6 +116,44 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
     [watchPoints, onlinePatrollers]
   );
 
+  const handleCepLookup = async (cep: string) => {
+    const cleaned = cep.replace(/\D/g, '');
+    if (cleaned.length !== 8) return;
+    setLoadingCep(true);
+    setCepAddress('');
+    try {
+      // 1. Fetch address from ViaCEP
+      const viaRes = await fetch(`https://viacep.com.br/ws/${cleaned}/json/`);
+      const viaData = await viaRes.json();
+      if (viaData.erro) {
+        toast({ title: 'CEP não encontrado', variant: 'destructive' });
+        setLoadingCep(false);
+        return;
+      }
+      const addr = `${viaData.logradouro || ''}, ${viaData.bairro || ''}, ${viaData.localidade} - ${viaData.uf}`;
+      setCepAddress(addr);
+      if (!newPointName.trim()) {
+        setNewPointName(`${viaData.bairro || viaData.localidade}`);
+      }
+
+      // 2. Geocode via Nominatim
+      const query = encodeURIComponent(`${viaData.logradouro || ''}, ${viaData.bairro || ''}, ${viaData.localidade}, ${viaData.uf}, Brazil`);
+      const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`, {
+        headers: { 'User-Agent': 'PatrolTrack/1.0' },
+      });
+      const geoData = await geoRes.json();
+      if (geoData.length > 0) {
+        setNewPointLat(geoData[0].lat);
+        setNewPointLng(geoData[0].lon);
+      } else {
+        toast({ title: 'Coordenadas não encontradas para este CEP', description: 'Preencha latitude/longitude manualmente', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Erro ao buscar CEP', variant: 'destructive' });
+    }
+    setLoadingCep(false);
+  };
+
   const handleAddPoint = async () => {
     const lat = parseFloat(newPointLat);
     const lng = parseFloat(newPointLng);
@@ -129,6 +171,8 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
       setNewPointName('');
       setNewPointLat('');
       setNewPointLng('');
+      setNewPointCep('');
+      setCepAddress('');
     }
     setSavingPoint(false);
   };
@@ -535,38 +579,85 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
           {addingPoint ? (
             <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 space-y-2">
               <p className="text-xs font-bold text-primary">Novo Ponto de Referência</p>
+
+              {/* Mode toggle */}
+              <div className="flex rounded-lg border border-border overflow-hidden">
+                <button
+                  className={cn("flex-1 text-[10px] py-1.5 font-medium transition-colors", addMode === 'cep' ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground")}
+                  onClick={() => setAddMode('cep')}
+                >
+                  Buscar por CEP
+                </button>
+                <button
+                  className={cn("flex-1 text-[10px] py-1.5 font-medium transition-colors", addMode === 'coords' ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground")}
+                  onClick={() => setAddMode('coords')}
+                >
+                  Coordenadas
+                </button>
+              </div>
+
+              {addMode === 'cep' ? (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="CEP (ex: 01001000)"
+                      value={newPointCep}
+                      onChange={e => {
+                        const v = e.target.value.replace(/\D/g, '').slice(0, 8);
+                        setNewPointCep(v);
+                        if (v.length === 8) handleCepLookup(v);
+                      }}
+                      className="h-8 text-xs flex-1"
+                      maxLength={9}
+                    />
+                    {loadingCep && <div className="flex items-center"><span className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>}
+                  </div>
+                  {cepAddress && (
+                    <div className="rounded-lg bg-secondary/50 p-2 text-[10px] text-muted-foreground">
+                      📍 {cepAddress}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="Latitude"
+                    value={newPointLat}
+                    onChange={e => setNewPointLat(e.target.value)}
+                    className="h-8 text-xs"
+                  />
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="Longitude"
+                    value={newPointLng}
+                    onChange={e => setNewPointLng(e.target.value)}
+                    className="h-8 text-xs"
+                  />
+                </div>
+              )}
+
               <Input
                 placeholder="Nome (ex: Base, Centro da Cidade)"
                 value={newPointName}
                 onChange={e => setNewPointName(e.target.value)}
                 className="h-8 text-xs"
               />
+
+              {/* Show resolved coords */}
+              {newPointLat && newPointLng && (
+                <p className="text-[10px] text-muted-foreground font-mono">
+                  Coords: {parseFloat(newPointLat).toFixed(5)}, {parseFloat(newPointLng).toFixed(5)}
+                </p>
+              )}
+
               <div className="flex gap-2">
-                <Input
-                  type="number"
-                  step="any"
-                  placeholder="Latitude"
-                  value={newPointLat}
-                  onChange={e => setNewPointLat(e.target.value)}
-                  className="h-8 text-xs"
-                />
-                <Input
-                  type="number"
-                  step="any"
-                  placeholder="Longitude"
-                  value={newPointLng}
-                  onChange={e => setNewPointLng(e.target.value)}
-                  className="h-8 text-xs"
-                />
-              </div>
-              <div className="rounded-lg bg-secondary/50 p-2 text-[10px] text-muted-foreground">
-                💡 Copie as coordenadas do Google Maps (clique direito → copiar coordenadas)
-              </div>
-              <div className="flex gap-2">
-                <Button size="sm" className="flex-1 h-8 text-xs" onClick={handleAddPoint} disabled={savingPoint}>
+                <Button size="sm" className="flex-1 h-8 text-xs" onClick={handleAddPoint} disabled={savingPoint || loadingCep}>
                   <Save className="h-3 w-3 mr-1" /> {savingPoint ? 'Salvando...' : 'Salvar'}
                 </Button>
-                <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setAddingPoint(false)}>
+                <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => { setAddingPoint(false); setNewPointCep(''); setCepAddress(''); }}>
                   <X className="h-3 w-3" />
                 </Button>
               </div>
