@@ -250,18 +250,29 @@ export function GeofenceControls({
         </SheetContent>
       </Sheet>
 
-      {/* Dialog for new geofence after map click */}
-      <Dialog open={!!pendingLocation} onOpenChange={() => onCancel()} modal={false}>
-        <DialogContent
-          className="sm:max-w-sm fixed left-4 bottom-4 top-auto translate-x-0 translate-y-0 bg-card/85 backdrop-blur-md border-border/50 shadow-2xl"
-          style={{ zIndex: 1100 }}
+      {/* Draggable panel for new geofence after map click */}
+      {pendingLocation && (
+        <div
+          ref={dragRef}
+          className="fixed sm:max-w-sm w-[340px] rounded-lg border border-border/50 bg-card/85 backdrop-blur-md shadow-2xl p-4"
+          style={{ zIndex: 1100, left: dragPos.x, top: dragPos.y }}
         >
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+          {/* Drag handle */}
+          <div
+            className="flex items-center justify-between mb-3 cursor-grab active:cursor-grabbing select-none"
+            onMouseDown={onDragStart}
+            onTouchStart={onDragStart}
+          >
+            <div className="flex items-center gap-2">
+              <GripHorizontal className="h-4 w-4 text-muted-foreground" />
               <Shield className="h-5 w-5 text-primary" />
-              Nova Cerca Virtual
-            </DialogTitle>
-          </DialogHeader>
+              <span className="text-lg font-semibold leading-none tracking-tight">Nova Cerca Virtual</span>
+            </div>
+            <button onClick={onCancel} className="rounded-sm opacity-70 hover:opacity-100 transition-opacity">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
           <div className="space-y-4">
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Nome</Label>
@@ -312,18 +323,16 @@ export function GeofenceControls({
                 ))}
               </div>
             </div>
-            {pendingLocation && (
-              <p className="text-xs text-muted-foreground">
-                📍 {pendingLocation.lat.toFixed(6)}, {pendingLocation.lng.toFixed(6)}
-              </p>
-            )}
+            <p className="text-xs text-muted-foreground">
+              📍 {pendingLocation.lat.toFixed(6)}, {pendingLocation.lng.toFixed(6)}
+            </p>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={onCancel}>Cancelar</Button>
               <Button onClick={handleConfirm} disabled={!name.trim()}>Criar Cerca</Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </>
   );
 }
