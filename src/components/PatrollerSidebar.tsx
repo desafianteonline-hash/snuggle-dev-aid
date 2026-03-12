@@ -116,6 +116,44 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
     [watchPoints, onlinePatrollers]
   );
 
+  const handleCepLookup = async (cep: string) => {
+    const cleaned = cep.replace(/\D/g, '');
+    if (cleaned.length !== 8) return;
+    setLoadingCep(true);
+    setCepAddress('');
+    try {
+      // 1. Fetch address from ViaCEP
+      const viaRes = await fetch(`https://viacep.com.br/ws/${cleaned}/json/`);
+      const viaData = await viaRes.json();
+      if (viaData.erro) {
+        toast({ title: 'CEP não encontrado', variant: 'destructive' });
+        setLoadingCep(false);
+        return;
+      }
+      const addr = `${viaData.logradouro || ''}, ${viaData.bairro || ''}, ${viaData.localidade} - ${viaData.uf}`;
+      setCepAddress(addr);
+      if (!newPointName.trim()) {
+        setNewPointName(`${viaData.bairro || viaData.localidade}`);
+      }
+
+      // 2. Geocode via Nominatim
+      const query = encodeURIComponent(`${viaData.logradouro || ''}, ${viaData.bairro || ''}, ${viaData.localidade}, ${viaData.uf}, Brazil`);
+      const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`, {
+        headers: { 'User-Agent': 'PatrolTrack/1.0' },
+      });
+      const geoData = await geoRes.json();
+      if (geoData.length > 0) {
+        setNewPointLat(geoData[0].lat);
+        setNewPointLng(geoData[0].lon);
+      } else {
+        toast({ title: 'Coordenadas não encontradas para este CEP', description: 'Preencha latitude/longitude manualmente', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Erro ao buscar CEP', variant: 'destructive' });
+    }
+    setLoadingCep(false);
+  };
+
   const handleAddPoint = async () => {
     const lat = parseFloat(newPointLat);
     const lng = parseFloat(newPointLng);
@@ -133,6 +171,8 @@ const PatrollerSidebar = ({ patrollers, selectedId, onSelect, onFlyTo }: Props) 
       setNewPointName('');
       setNewPointLat('');
       setNewPointLng('');
+      setNewPointCep('');
+      setCepAddress('');
     }
     setSavingPoint(false);
   };
