@@ -219,6 +219,7 @@ export function useGeolocation(patrollerId: string | null, intervalMs = SEND_INT
         return;
       }
 
+      bgWatcherRef.current = await BackgroundGeolocation.addWatcher(
         {
           backgroundMessage: 'Rastreamento de patrulha ativo',
           backgroundTitle: 'PatrolTrack',
