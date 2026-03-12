@@ -17,7 +17,7 @@ const formatPhone = (value: string) => {
 };
 import {
   Shield, LogOut, UserPlus, Trash2, Users, Eye, EyeOff, Pencil, X, Check, Phone, Car,
-  Settings, Upload, Image, Palette, MapPin, AlertTriangle, FileText, Gauge, Clock,
+  Settings, Upload, Image, Palette, MapPin, AlertTriangle, FileText, Gauge, Clock, KeyRound,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmDialog from '@/components/ConfirmDialog';
@@ -55,6 +55,10 @@ const Admin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [resetPasswordUser, setResetPasswordUser] = useState<UserRecord | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
 
   // Create form
   const [email, setEmail] = useState('');
@@ -239,6 +243,35 @@ const Admin = () => {
       toast.error('Erro ao remover: ' + (err?.message || 'Erro inesperado'));
     }
     setDeletingId(null);
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetPasswordUser || !newPassword.trim()) return;
+    setConfirmDialog({
+      open: true,
+      title: 'Resetar senha',
+      description: `Deseja resetar a senha de ${resetPasswordUser.patroller_name || resetPasswordUser.profile_name || resetPasswordUser.email}?`,
+      variant: 'default',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        setResettingPassword(true);
+        try {
+          const { data, error } = await supabase.functions.invoke('create-user', {
+            body: { action: 'reset_password', user_id: resetPasswordUser.id, new_password: newPassword.trim() },
+          });
+          if (error) throw error;
+          if (data?.error) throw new Error(data.error);
+          toast.success('Senha resetada com sucesso');
+          logActivity({ action: 'reset_password', entityType: 'user', entityId: resetPasswordUser.id, entityName: resetPasswordUser.email });
+          setResetPasswordUser(null);
+          setNewPassword('');
+          setShowNewPassword(false);
+        } catch (err: any) {
+          toast.error('Erro ao resetar senha: ' + (err?.message || 'Erro inesperado'));
+        }
+        setResettingPassword(false);
+      },
+    });
   };
 
   const startEdit = (u: UserRecord) => {
@@ -713,6 +746,7 @@ const Admin = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setResetPasswordUser(u); setNewPassword(''); setShowNewPassword(false); }} title="Resetar senha"><KeyRound className="h-3.5 w-3.5" /></Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => startEdit(u)}><Pencil className="h-3.5 w-3.5" /></Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
@@ -1183,6 +1217,41 @@ const Admin = () => {
         confirmLabel="Salvar"
         onConfirm={confirmDialog.onConfirm}
       />
+      <Dialog open={!!resetPasswordUser} onOpenChange={(open) => { if (!open) { setResetPasswordUser(null); setNewPassword(''); setShowNewPassword(false); } }}>
+        <DialogContent className="bg-card border-border sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Resetar Senha</DialogTitle>
+            <DialogDescription>
+              Defina uma nova senha para {resetPasswordUser?.patroller_name || resetPasswordUser?.profile_name || resetPasswordUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Nova Senha</Label>
+              <div className="relative">
+                <Input
+                  type={showNewPassword ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  className="pr-10 bg-secondary border-border"
+                  placeholder="Mínimo 6 caracteres"
+                  minLength={6}
+                />
+                <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            <Button
+              className="w-full font-semibold"
+              disabled={resettingPassword || newPassword.trim().length < 6}
+              onClick={handleResetPassword}
+            >
+              {resettingPassword ? 'Resetando...' : 'Resetar Senha'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

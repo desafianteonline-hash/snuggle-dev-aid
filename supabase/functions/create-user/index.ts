@@ -166,6 +166,19 @@ serve(async (req) => {
       });
     }
 
+    if (action === 'reset_password') {
+      const { user_id, new_password } = body;
+      if (!user_id || !new_password) throw new Error('user_id e new_password são obrigatórios');
+      if (new_password.length < 6) throw new Error('A senha deve ter no mínimo 6 caracteres');
+
+      const { error: authErr } = await supabaseAdmin.auth.admin.updateUserById(user_id, { password: new_password });
+      if (authErr) throw authErr;
+
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     throw new Error('Ação inválida');
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Erro desconhecido';
