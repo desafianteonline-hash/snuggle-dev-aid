@@ -134,6 +134,12 @@ serve(async (req) => {
 
       // Update auth email if provided
       if (newEmail) {
+        // Check for duplicate email
+        const { data: { users: allUsers } } = await supabaseAdmin.auth.admin.listUsers();
+        const duplicate = allUsers?.find(u => u.email?.toLowerCase() === newEmail.toLowerCase() && u.id !== user_id);
+        if (duplicate) {
+          throw new Error('Este email já está em uso por outro usuário');
+        }
         const { error: authErr } = await supabaseAdmin.auth.admin.updateUserById(user_id, { email: newEmail, email_confirm: true });
         if (authErr) throw authErr;
       }
