@@ -660,6 +660,9 @@ const Admin = () => {
               <TabsTrigger value="operational" className="gap-1.5">
                 <Gauge className="h-3.5 w-3.5" /> Operacional
               </TabsTrigger>
+              <TabsTrigger value="apk" className="gap-1.5">
+                <Package className="h-3.5 w-3.5" /> APK
+              </TabsTrigger>
             </TabsList>
 
             {/* ===== TEAM TAB ===== */}
