@@ -200,9 +200,36 @@ const Admin = () => {
     setLoadingUsers(false);
   }, []);
 
+  const fetchApk = useCallback(async () => {
+    try {
+      const { data } = await supabase.storage.from('apk').list('', { limit: 10 });
+      if (data && data.length > 0) {
+        const apkFile = data.find(f => f.name.endsWith('.apk'));
+        if (apkFile) {
+          const { data: urlData } = supabase.storage.from('apk').getPublicUrl(apkFile.name);
+          setCurrentApk({
+            name: apkFile.name,
+            url: urlData.publicUrl,
+            size: apkFile.metadata?.size || 0,
+            updated: apkFile.updated_at || apkFile.created_at || '',
+          });
+        } else {
+          setCurrentApk(null);
+        }
+      } else {
+        setCurrentApk(null);
+      }
+    } catch (err) {
+      console.error('Erro ao buscar APK:', err);
+    }
+  }, []);
+
   useEffect(() => {
-    if (role === 'admin') fetchUsers();
-  }, [role, fetchUsers]);
+    if (role === 'admin') {
+      fetchUsers();
+      fetchApk();
+    }
+  }, [role, fetchUsers, fetchApk]);
 
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center bg-background">
