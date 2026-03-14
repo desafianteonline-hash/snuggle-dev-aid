@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 import PlatformBrand from '@/components/PlatformBrand';
-import { Shield, Download, Smartphone, Share2, Plus, ArrowLeft, CheckCircle2, Copy, ExternalLink } from 'lucide-react';
+import { Shield, Download, Smartphone, Share2, Plus, ArrowLeft, CheckCircle2, Copy, ExternalLink, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { QRCodeSVG } from 'qrcode.react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -19,10 +20,29 @@ const Install = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [installing, setInstalling] = useState(false);
+  const [apkUrl, setApkUrl] = useState<string | null>(null);
 
   // Use published URL to avoid Lovable auth redirect
   const publishedOrigin = 'https://snuggle-dev-aid.lovable.app';
   const appUrl = `${publishedOrigin}/patrol`;
+
+  const isAndroid = /android/i.test(navigator.userAgent);
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+  // Check if APK exists in storage
+  useEffect(() => {
+    const checkApk = async () => {
+      const { data } = await supabase.storage.from('apk').list('', { limit: 1, search: '.apk' });
+      if (data && data.length > 0) {
+        const apkFile = data.find(f => f.name.endsWith('.apk'));
+        if (apkFile) {
+          const { data: urlData } = supabase.storage.from('apk').getPublicUrl(apkFile.name);
+          setApkUrl(urlData.publicUrl);
+        }
+      }
+    };
+    checkApk();
+  }, []);
 
   // Listen for PWA install prompt
   useEffect(() => {
@@ -33,7 +53,6 @@ const Install = () => {
 
     window.addEventListener('beforeinstallprompt', handler);
 
-    // Check if already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true);
     }
@@ -81,9 +100,6 @@ const Install = () => {
     await navigator.clipboard.writeText(appUrl);
     toast.success('Link copiado para a área de transferência!');
   };
-
-  const isAndroid = /android/i.test(navigator.userAgent);
-  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
