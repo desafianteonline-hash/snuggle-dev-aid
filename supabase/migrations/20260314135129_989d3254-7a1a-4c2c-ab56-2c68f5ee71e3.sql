@@ -1,0 +1,3 @@
+CREATE POLICY "Allow public read access on apk bucket" ON storage.objects FOR SELECT USING (bucket_id = 'apk');
+CREATE POLICY "Allow admin upload to apk bucket" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'apk' AND (SELECT public.has_role(auth.uid(), 'admin')));
+CREATE POLICY "Allow admin delete from apk bucket" ON storage.objects FOR DELETE USING (bucket_id = 'apk' AND (SELECT public.has_role(auth.uid(), 'admin')));

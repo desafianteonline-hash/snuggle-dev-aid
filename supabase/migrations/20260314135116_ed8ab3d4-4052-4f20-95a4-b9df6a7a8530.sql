@@ -1,0 +1,1 @@
+INSERT INTO storage.buckets (id, name, public) VALUES ('apk', 'apk', true) ON CONFLICT (id) DO NOTHING;
