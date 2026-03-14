@@ -359,6 +359,52 @@ const Admin = () => {
     setSelectedRole('patroller'); setShowPassword(false);
   }
 
+  const handleUploadApk = async (file: File) => {
+    if (!file.name.endsWith('.apk')) {
+      toast.error('Apenas arquivos .apk são permitidos');
+      return;
+    }
+    setUploadingApk(true);
+    try {
+      // Remove existing APKs first
+      const { data: existing } = await supabase.storage.from('apk').list('');
+      if (existing && existing.length > 0) {
+        const toRemove = existing.map(f => f.name);
+        await supabase.storage.from('apk').remove(toRemove);
+      }
+      // Upload new APK
+      const { error } = await supabase.storage.from('apk').upload(file.name, file, { upsert: true });
+      if (error) throw error;
+      toast.success('APK enviado com sucesso!');
+      logActivity({ action: 'upload', entityType: 'apk', entityName: file.name });
+      fetchApk();
+    } catch (err: any) {
+      toast.error('Erro no upload: ' + (err?.message || 'Erro'));
+    }
+    setUploadingApk(false);
+  };
+
+  const handleDeleteApk = async () => {
+    if (!currentApk) return;
+    setConfirmDialog({
+      open: true, title: 'Remover APK', description: `Deseja remover o arquivo ${currentApk.name}? Os patrulheiros não poderão mais baixar o APK.`, variant: 'destructive',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        setDeletingApk(true);
+        try {
+          const { error } = await supabase.storage.from('apk').remove([currentApk.name]);
+          if (error) throw error;
+          toast.success('APK removido');
+          logActivity({ action: 'delete', entityType: 'apk', entityName: currentApk.name });
+          setCurrentApk(null);
+        } catch (err: any) {
+          toast.error('Erro ao remover: ' + (err?.message || 'Erro'));
+        }
+        setDeletingApk(false);
+      },
+    });
+  };
+
   // --- Branding handlers ---
   const handleSaveBranding = async () => {
     if (!settings.id) return;
