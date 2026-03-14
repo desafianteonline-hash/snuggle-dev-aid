@@ -109,6 +109,13 @@ const Admin = () => {
   const [idleTimeout, setIdleTimeout] = useState(30);
   const [minAccuracy, setMinAccuracy] = useState(50);
   const [savingOperational, setSavingOperational] = useState(false);
+
+  // APK upload state
+  const [uploadingApk, setUploadingApk] = useState(false);
+  const [currentApk, setCurrentApk] = useState<{ name: string; url: string; size: number; updated: string } | null>(null);
+  const [deletingApk, setDeletingApk] = useState(false);
+  const apkInputRef = useRef<HTMLInputElement>(null);
+
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean; title: string; description: string; variant: 'default' | 'destructive'; onConfirm: () => void;
   }>({ open: false, title: '', description: '', variant: 'default', onConfirm: () => {} });
