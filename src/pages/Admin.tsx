@@ -1289,6 +1289,91 @@ const Admin = () => {
                 </Button>
               </motion.div>
             </TabsContent>
+
+            {/* ===== APK TAB ===== */}
+            <TabsContent value="apk" className="space-y-6">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Package className="h-5 w-5 text-primary" />
+                    <h3 className="text-base font-bold">Gerenciar APK Android</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Faça upload do APK nativo para que os patrulheiros possam baixá-lo na tela de instalação.
+                  </p>
+
+                  {/* Current APK info */}
+                  {currentApk ? (
+                    <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Package className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-semibold">{currentApk.name}</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {currentApk.size ? `${(currentApk.size / 1024 / 1024).toFixed(1)} MB` : ''}
+                        </span>
+                      </div>
+                      {currentApk.updated && (
+                        <p className="text-xs text-muted-foreground">
+                          Atualizado em: {new Date(currentApk.updated).toLocaleString('pt-BR')}
+                        </p>
+                      )}
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="gap-1" onClick={() => window.open(currentApk.url, '_blank')}>
+                          <Download className="h-3 w-3" /> Baixar
+                        </Button>
+                        <Button size="sm" variant="destructive" className="gap-1" onClick={handleDeleteApk} disabled={deletingApk}>
+                          <Trash2 className="h-3 w-3" /> {deletingApk ? 'Removendo...' : 'Remover'}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-lg border border-dashed border-muted-foreground/30 bg-muted/20 p-6 text-center">
+                      <Package className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">Nenhum APK enviado ainda</p>
+                    </div>
+                  )}
+
+                  {/* Upload area */}
+                  <div className="space-y-2">
+                    <input
+                      ref={apkInputRef}
+                      type="file"
+                      accept=".apk"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleUploadApk(file);
+                        e.target.value = '';
+                      }}
+                    />
+                    <Button
+                      className="w-full gap-2 h-12"
+                      onClick={() => apkInputRef.current?.click()}
+                      disabled={uploadingApk}
+                    >
+                      <Upload className="h-4 w-4" />
+                      {uploadingApk ? 'Enviando APK...' : currentApk ? 'Substituir APK' : 'Enviar APK'}
+                    </Button>
+                    <p className="text-[10px] text-muted-foreground text-center">
+                      Aceita apenas arquivos .apk — O APK ficará disponível para download na tela de instalação do patrulheiro
+                    </p>
+                  </div>
+                </div>
+
+                {/* Instructions */}
+                <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+                  <h4 className="text-sm font-bold">Como funciona</h4>
+                  <ol className="text-xs text-muted-foreground space-y-2 list-decimal list-inside">
+                    <li>Gere o APK nativo do projeto Android (Android Studio → Build → APK)</li>
+                    <li>Faça o upload do arquivo .apk aqui</li>
+                    <li>Os patrulheiros verão o botão de download na tela <strong>/install</strong></li>
+                    <li>O APK inclui rastreamento em segundo plano (background tracking)</li>
+                  </ol>
+                </div>
+              </motion.div>
+            </TabsContent>
           </Tabs>
         </div>
       </div>
