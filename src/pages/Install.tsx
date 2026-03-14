@@ -177,7 +177,35 @@ const Install = () => {
             </div>
           )}
 
-          {/* QR Code */}
+          {/* APK Download - Android only */}
+          {isAndroid && apkUrl && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="rounded-xl border-2 border-primary bg-primary/5 p-5 space-y-3"
+            >
+              <div className="flex items-center gap-2 justify-center">
+                <Package className="h-5 w-5 text-primary" />
+                <h3 className="text-sm font-bold text-primary">App Nativo Android</h3>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Versão nativa com <strong>rastreamento em segundo plano</strong> — funciona mesmo com o celular bloqueado
+              </p>
+              <Button
+                size="lg"
+                className="w-full gap-2 h-14 text-base font-bold"
+                onClick={() => window.open(apkUrl, '_blank')}
+              >
+                <Download className="h-5 w-5" />
+                Baixar APK Nativo
+              </Button>
+              <p className="text-[10px] text-muted-foreground">
+                ⚡ Recomendado para patrulheiros Android
+              </p>
+            </motion.div>
+          )}
+
           <div className="rounded-xl border border-border bg-card p-5 space-y-3">
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Escaneie para instalar</p>
             <div className="flex justify-center">
